@@ -1,0 +1,725 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// USER / AUTHENTICATION
+// ============================================================
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+}
+
+model User {
+  id String @id @default(uuid())
+
+  firstName String
+  lastName  String
+
+  phone String @unique
+  email String @unique
+
+  role UserRole
+
+  isBlocked      Boolean       @default(false)
+  employeesAdded Employee[]    @relation("EmployeeAddedBy")
+  loginOtps      LoginOtp[]
+  sessions       UserSession[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LoginOtp {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  codeHash String
+
+  expiresAt DateTime
+  usedAt    DateTime?
+
+  attempts Int @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model UserSession {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  loginAt        DateTime  @default(now())
+  logoutAt       DateTime?
+  lastActivityAt DateTime?
+
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ============================================================
+// EMPLOYEES
+// ============================================================
+
+enum EmployeePosition {
+  TEAM_LEADER
+  WELDER
+  ENGINEER
+  TECHNICIAN
+}
+
+model Employee {
+  id        String @id @default(uuid())
+  firstName String
+  lastName  String
+
+  email String? @unique
+  phone String?
+
+  position EmployeePosition
+
+  cinNumber         String? @unique
+  cinCardFrontImage String?
+  cinCardBackImage  String?
+
+  addedById String
+  addedBy   User   @relation("EmployeeAddedBy", fields: [addedById], references: [id])
+
+  isActive Boolean @default(true)
+
+  // Projets auxquels cet employé est affecté
+  projectAssignments ProjectEmployee[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProjectEmployee {
+  id               String   @id @default(uuid())
+  projectId        String
+  employeeId       String
+  isProjectManager Boolean  @default(false)
+  assignedAt       DateTime @default(now())
+
+  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, employeeId])
+  @@index([projectId])
+  @@index([employeeId])
+}
+
+// ============================================================
+// CLIENTS
+// ============================================================
+
+model Client {
+  id String @id @default(uuid())
+
+  companyName String
+
+  email   String?
+  phone   String?
+  address String?
+  city    String?
+  country String? @default("Tunisia")
+
+  taxId String? @unique
+
+  isActive Boolean @default(true)
+
+  contacts Contact[]
+  projects Project[]
+
+  quotes      Quote[]
+  orders      Order[]
+  deliveries  Delivery[]
+  invoices    Invoice[]
+  creditNotes CreditNote[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Contact {
+  id String @id @default(uuid())
+
+  firstName String
+  lastName  String
+
+  position  String?
+  email     String?
+  phone     String?
+  isPrimary Boolean @default(false)
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================
+// PROJECTS
+// ============================================================
+
+model Project {
+  id String @id @default(uuid())
+
+  name        String
+  description String?
+  location    String?
+
+  startDate DateTime?
+  endDate   DateTime?
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id])
+
+  quotes           Quote[]
+  orders           Order[]
+  deliveries       Delivery[]
+  invoices         Invoice[]
+  // Équipe affectée au projet
+  projectEmployees ProjectEmployee[]
+  specification    ProjectSpecification?
+  aiAnalyses       ProjectAIAnalysis[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================
+// COMMERCIAL DOCUMENTS
+// ============================================================
+
+enum DocumentType {
+  QUOTE
+  ORDER
+  DELIVERY
+  INVOICE
+  CREDIT_NOTE
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  TRANSFORMED
+  CANCELLED
+}
+
+enum OrderStatus {
+  DRAFT
+  IN_PROGRESS
+  COMPLETED
+  CONFIRMED
+  TRANSFORMED
+  CANCELLED
+}
+
+enum DeliveryStatus {
+  DRAFT
+  DELIVERED
+  CONFIRMED
+  TRANSFORMED
+  CANCELLED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum CreditNoteStatus {
+  DRAFT
+  ISSUED
+  APPLIED
+  CANCELLED
+}
+
+// ============================================================
+// QUOTE
+// ============================================================
+
+model Quote {
+  id     String @id @default(uuid())
+  number String @unique
+
+  issueDate  DateTime  @default(now())
+  validUntil DateTime?
+
+  status QuoteStatus @default(DRAFT)
+
+  subtotal  Decimal @db.Decimal(12, 3)
+  taxAmount Decimal @db.Decimal(12, 3)
+  total     Decimal @db.Decimal(12, 3)
+
+  notes String?
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id])
+
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id])
+
+  lines QuoteLine[]
+
+  orders Order[]
+
+  attachments Document[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model QuoteLine {
+  id String @id @default(uuid())
+
+  description String
+
+  quantity  Decimal @db.Decimal(12, 3)
+  unitPrice Decimal @db.Decimal(12, 3)
+  taxRate   Decimal @db.Decimal(5, 2)
+  total     Decimal @db.Decimal(12, 3)
+
+  quoteId String
+  quote   Quote  @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================
+// ORDER
+// ============================================================
+
+model Order {
+  id     String @id @default(uuid())
+  number String @unique
+
+  orderDate DateTime    @default(now())
+  status    OrderStatus @default(DRAFT)
+
+  subtotal  Decimal @db.Decimal(12, 3)
+  taxAmount Decimal @db.Decimal(12, 3)
+  total     Decimal @db.Decimal(12, 3)
+
+  notes String?
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id])
+
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id])
+
+  quoteId String?
+  quote   Quote?  @relation(fields: [quoteId], references: [id])
+
+  lines OrderLine[]
+
+  deliveries Delivery[]
+  invoices   Invoice[]
+
+  attachments Document[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OrderLine {
+  id String @id @default(uuid())
+
+  description String
+
+  quantity  Decimal @db.Decimal(12, 3)
+  unitPrice Decimal @db.Decimal(12, 3)
+  taxRate   Decimal @db.Decimal(5, 2)
+  total     Decimal @db.Decimal(12, 3)
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================
+// DELIVERY
+// ============================================================
+
+model Delivery {
+  id     String @id @default(uuid())
+  number String @unique
+
+  deliveryDate DateTime       @default(now())
+  status       DeliveryStatus @default(DRAFT)
+
+  notes String?
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id])
+
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id])
+
+  orderId String
+  order   Order? @relation(fields: [orderId], references: [id])
+
+  lines DeliveryLine[]
+
+  attachments Document[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DeliveryLine {
+  id String @id @default(uuid())
+
+  description String
+  quantity    Decimal @db.Decimal(12, 3)
+
+  deliveryId String
+  delivery   Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================
+// INVOICE
+// ============================================================
+
+model Invoice {
+  id     String @id @default(uuid())
+  number String @unique
+
+  issueDate DateTime  @default(now())
+  dueDate   DateTime?
+
+  status InvoiceStatus @default(DRAFT)
+
+  subtotal   Decimal @db.Decimal(12, 3)
+  taxAmount  Decimal @db.Decimal(12, 3)
+  total      Decimal @db.Decimal(12, 3)
+  paidAmount Decimal @default(0) @db.Decimal(12, 3)
+
+  notes String?
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id])
+
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id])
+
+  orderId String?
+  order   Order?  @relation(fields: [orderId], references: [id])
+
+  lines InvoiceLine[]
+
+  creditNotes CreditNote[]
+
+  attachments Document[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model InvoiceLine {
+  id String @id @default(uuid())
+
+  description String
+
+  quantity  Decimal @db.Decimal(12, 3)
+  unitPrice Decimal @db.Decimal(12, 3)
+  taxRate   Decimal @db.Decimal(5, 2)
+  total     Decimal @db.Decimal(12, 3)
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================
+// CREDIT NOTE
+// ============================================================
+
+model CreditNote {
+  id     String @id @default(uuid())
+  number String @unique
+
+  issueDate DateTime         @default(now())
+  status    CreditNoteStatus @default(DRAFT)
+
+  subtotal  Decimal @db.Decimal(12, 3)
+  taxAmount Decimal @db.Decimal(12, 3)
+  total     Decimal @db.Decimal(12, 3)
+
+  reason String?
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id])
+
+  invoiceId String?
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id])
+
+  lines CreditNoteLine[]
+
+  attachments Document[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CreditNoteLine {
+  id String @id @default(uuid())
+
+  description String
+
+  quantity  Decimal @db.Decimal(12, 3)
+  unitPrice Decimal @db.Decimal(12, 3)
+  taxRate   Decimal @db.Decimal(5, 2)
+  total     Decimal @db.Decimal(12, 3)
+
+  creditNoteId String
+  creditNote   CreditNote @relation(fields: [creditNoteId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================
+// FILE DOCUMENTS
+// ============================================================
+
+model Document {
+  id String @id @default(uuid())
+
+  fileName     String
+  originalName String
+  mimeType     String
+  fileSize     Int
+
+  storagePath String
+
+  quoteId String?
+  quote   Quote?  @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  orderId String?
+  order   Order?  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  deliveryId String?
+  delivery   Delivery? @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  invoiceId String?
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  creditNoteId String?
+  creditNote   CreditNote? @relation(fields: [creditNoteId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+// ============================================================
+// DOCUMENT TEMPLATES
+// ============================================================
+
+model DocumentTemplate {
+  id String @id @default(uuid())
+
+  name        String
+  type        DocumentType
+  description String?
+
+  isDefault Boolean @default(false)
+  isActive  Boolean @default(true)
+
+  versions TemplateVersion[]
+  style    TemplateStyle?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([type, name])
+}
+
+model TemplateVersion {
+  id String @id @default(uuid())
+
+  version Int
+
+  fileName    String
+  storagePath String
+
+  templateId String
+  template   DocumentTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([templateId, version])
+}
+
+model TemplateStyle {
+  id String @id @default(uuid())
+
+  primaryColor   String @default("#1F2937")
+  secondaryColor String @default("#6B7280")
+  accentColor    String @default("#2563EB")
+
+  textColor       String @default("#111827")
+  backgroundColor String @default("#FFFFFF")
+
+  fontFamily String @default("Arial")
+  fontSize   Int    @default(10)
+
+  borderRadius Int @default(0)
+  spacing      Int @default(8)
+
+  showLogo      Boolean @default(true)
+  showFooter    Boolean @default(true)
+  showSignature Boolean @default(true)
+
+  templateId String           @unique
+  template   DocumentTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================
+// COMPANY SETTINGS
+// ============================================================
+
+model CompanySettings {
+  id String @id @default(uuid())
+
+  companyName String
+  legalName   String?
+  taxId       String?
+
+  email   String?
+  phone   String?
+  website String?
+
+  address String?
+  city    String?
+  country String?
+
+  logoUrl  String?
+  stampUrl String?
+
+  bankName    String?
+  bankAccount String?
+  iban        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================
+// PROJECT SPECIFICATION / CAHIER DES CHARGES
+// ============================================================
+
+model ProjectSpecification {
+  id String @id @default(uuid())
+
+  fileName     String
+  originalName String
+  mimeType     String
+  fileSize     Int
+  storagePath  String
+
+  projectId String  @unique
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  aiAnalyses ProjectAIAnalysis[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================
+// AI ANALYSIS
+// ============================================================
+
+enum AIAnalysisStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model ProjectAIAnalysis {
+  id String @id @default(uuid())
+
+  status AIAnalysisStatus @default(PENDING)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  specificationId String
+  specification   ProjectSpecification @relation(fields: [specificationId], references: [id], onDelete: Cascade)
+
+  estimation AIEstimation?
+  workPhases AIWorkPhase[]
+  workforce  AIWorkforceRecommendation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AIEstimation {
+  id String @id @default(uuid())
+
+  estimatedPrice Decimal  @db.Decimal(12, 3)
+  minPrice       Decimal? @db.Decimal(12, 3)
+  maxPrice       Decimal? @db.Decimal(12, 3)
+
+  durationDays    Int
+  minDurationDays Int?
+  maxDurationDays Int?
+
+  confidence Decimal? @db.Decimal(5, 2)
+
+  currency String @default("TND")
+
+  analysisId String            @unique
+  analysis   ProjectAIAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+}
+
+model AIWorkPhase {
+  id String @id @default(uuid())
+
+  name        String
+  description String?
+
+  order Int
+
+  durationDays  Int
+  estimatedCost Decimal? @db.Decimal(12, 3)
+
+  analysisId String
+  analysis   ProjectAIAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+model AIWorkforceRecommendation {
+  id String @id @default(uuid())
+
+  position EmployeePosition
+  quantity Int
+  reason   String?
+
+  analysisId String
+  analysis   ProjectAIAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}

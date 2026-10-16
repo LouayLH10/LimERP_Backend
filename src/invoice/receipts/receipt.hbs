@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Reçu {{receipt.number}}</title>
+
+  <style>
+    @page { size: A4; margin: 15mm; }
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: "{{style.fontFamily}}", Arial, sans-serif;
+      font-size: {{style.fontSize}}pt;
+      color: {{style.textColor}};
+      background: {{style.backgroundColor}};
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 18px;
+      border-bottom: 3px solid {{style.primaryColor}};
+      margin-bottom: 24px;
+    }
+
+    .logo { max-width: 170px; max-height: 80px; object-fit: contain; }
+
+    .company-info { text-align: right; font-size: 9pt; color: {{style.secondaryColor}}; }
+    .company-name { font-size: 16pt; font-weight: bold; color: {{style.primaryColor}}; margin: 0; }
+
+    .document-title {
+      text-align: center;
+      margin: 22px 0;
+      padding: 15px;
+      background: {{style.primaryColor}};
+      color: #ffffff;
+      border-radius: {{style.borderRadius}}px;
+    }
+
+    .document-title h1 { margin: 0; font-size: 22pt; letter-spacing: 2px; }
+    .document-title p { margin: 5px 0 0; font-size: 10pt; }
+
+    .paid-badge {
+      text-align: center;
+      margin: 20px 0;
+      padding: 15px;
+      background: #ecfdf5;
+      border: 2px solid #10b981;
+      border-radius: {{style.borderRadius}}px;
+      color: #059669;
+      font-size: 16pt;
+      font-weight: bold;
+      letter-spacing: 3px;
+    }
+
+    .info-section { display: flex; gap: 15px; margin-bottom: 20px; }
+
+    .info-box {
+      flex: 1;
+      min-width: 0;
+      padding: 12px;
+      border: 1px solid #dddddd;
+      border-radius: {{style.borderRadius}}px;
+      overflow-wrap: anywhere;
+    }
+
+    .info-box h2 {
+      font-size: 11pt;
+      color: {{style.primaryColor}};
+      margin: 0 0 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #dddddd;
+    }
+
+    .info-box p { margin: 4px 0; }
+
+    .project-box { margin-bottom: 20px; }
+
+    .amount-box {
+      text-align: center;
+      margin: 25px 0;
+      padding: 20px;
+      background: #f8fafc;
+      border-radius: {{style.borderRadius}}px;
+    }
+
+    .amount-box .label {
+      display: block;
+      color: {{style.secondaryColor}};
+      font-size: 10pt;
+      margin-bottom: 8px;
+    }
+
+    .amount-box .amount {
+      display: block;
+      color: {{style.primaryColor}};
+      font-size: 26pt;
+      font-weight: bold;
+    }
+
+    .amount-box .detail {
+      display: block;
+      margin-top: 10px;
+      font-size: 9pt;
+      color: {{style.secondaryColor}};
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: {{style.spacing}}px;
+      font-size: 9pt;
+    }
+
+    thead { display: table-header-group; }
+    tr { page-break-inside: avoid; }
+
+    th {
+      background: {{style.primaryColor}};
+      color: #ffffff;
+      padding: 9px 6px;
+      text-align: left;
+    }
+
+    td {
+      border-bottom: 1px solid #dddddd;
+      padding: 8px 6px;
+      vertical-align: top;
+    }
+
+    tbody tr:nth-child(even) { background: #f8fafc; }
+
+    .number { text-align: right; white-space: nowrap; }
+
+    .totals { width: 55%; margin-left: auto; margin-top: 22px; }
+    .totals td { padding: 7px 9px; }
+
+    .totals .paid-total td {
+      background: #059669;
+      color: #ffffff;
+      font-size: 12pt;
+      font-weight: bold;
+      border: none;
+    }
+
+    .notes {
+      margin-top: 20px;
+      padding: 12px;
+      background: #f8fafc;
+      border-left: 4px solid {{style.accentColor}};
+      overflow-wrap: anywhere;
+    }
+
+    .legal {
+      margin-top: 25px;
+      padding: 12px;
+      background: #f1f5f9;
+      border-radius: {{style.borderRadius}}px;
+      font-size: 9pt;
+      color: {{style.secondaryColor}};
+      text-align: center;
+    }
+
+    .signatures {
+      display: flex;
+      justify-content: space-between;
+      gap: 30px;
+      margin-top: 45px;
+      page-break-inside: avoid;
+    }
+
+    .signature {
+      flex: 1;
+      min-height: 95px;
+      text-align: center;
+      border-top: 1px solid {{style.secondaryColor}};
+      padding-top: 10px;
+    }
+
+    footer {
+      margin-top: 35px;
+      padding-top: 10px;
+      border-top: 1px solid #dddddd;
+      text-align: center;
+      color: {{style.secondaryColor}};
+      font-size: 8pt;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <img class="logo" src="https://i.ibb.co/vCC87Tky/logo.png" alt="Logo L.I.M.">
+
+    <div class="company-info">
+      <p class="company-name">L.I.M.</p>
+      <p>Louay Industry &amp; Maintenance</p>
+      <p>Travaux industriels et maintenance</p>
+    </div>
+  </header>
+
+  <section class="document-title">
+    <h1>REÇU DE PAIEMENT</h1>
+    <p>Référence : {{receipt.number}}</p>
+  </section>
+
+  <div class="paid-badge">✓ PAYÉ INTÉGRALEMENT</div>
+
+  <section class="info-section">
+    <div class="info-box">
+      <h2>Informations</h2>
+      <p><strong>Reçu n° :</strong> {{receipt.number}}</p>
+      <p><strong>Date :</strong> {{receipt.issueDate}}</p>
+      <p><strong>Facture :</strong> {{invoice.number}}</p>
+      <p><strong>Date de facture :</strong> {{invoice.issueDate}}</p>
+    </div>
+
+    <div class="info-box">
+      <h2>Client</h2>
+      <p><strong>{{client.companyName}}</strong></p>
+      {{#if client.address}}<p>{{client.address}}</p>{{/if}}
+      {{#if client.email}}<p>{{client.email}}</p>{{/if}}
+      {{#if client.phone}}<p>Tél. : {{client.phone}}</p>{{/if}}
+      {{#if client.taxId}}<p>Matricule fiscal : {{client.taxId}}</p>{{/if}}
+    </div>
+  </section>
+
+  {{#if project}}
+    <div class="info-box project-box">
+      <h2>Projet / Chantier</h2>
+      <p><strong>{{project.name}}</strong></p>
+      {{#if project.address}}<p>{{project.address}}</p>{{/if}}
+    </div>
+  {{/if}}
+
+  <div class="amount-box">
+    <span class="label">Montant payé</span>
+    <span class="amount">{{receipt.paidAmount}} TND</span>
+    <span class="detail">Mode de paiement : {{receipt.paymentMethod}}</span>
+  </div>
+
+  <h2 style="color: {{style.primaryColor}}; font-size: 11pt;">Détail de la facture réglée</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th class="number">Quantité</th>
+        <th class="number">Prix HT</th>
+        <th class="number">TVA</th>
+        <th class="number">Total TTC</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each lines}}
+        <tr>
+          <td>{{description}}</td>
+          <td class="number">{{quantity}}</td>
+          <td class="number">{{unitPrice}} TND</td>
+          <td class="number">{{taxRate}} %</td>
+          <td class="number">{{total}} TND</td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <table class="totals">
+    <tbody>
+      <tr>
+        <td>Total HT</td>
+        <td class="number">{{invoice.subtotal}} TND</td>
+      </tr>
+      <tr>
+        <td>Total TVA</td>
+        <td class="number">{{invoice.taxAmount}} TND</td>
+      </tr>
+      <tr class="paid-total">
+        <td>TOTAL PAYÉ</td>
+        <td class="number">{{invoice.paidAmount}} TND</td>
+      </tr>
+    </tbody>
+  </table>
+
+  {{#if invoice.notes}}
+    <div class="notes">
+      <strong>Notes :</strong>
+      <p>{{invoice.notes}}</p>
+    </div>
+  {{/if}}
+
+  <div class="legal">
+    Ce reçu atteste le règlement intégral de la facture <strong>{{invoice.number}}</strong>.
+    Aucun solde n'est dû à ce jour.
+  </div>
+
+  {{#if style.showSignature}}
+    <div class="signatures">
+      <div class="signature">
+        <strong>Signature et cachet L.I.M.</strong>
+      </div>
+      <div class="signature">
+        <strong>Signature du client</strong>
+      </div>
+    </div>
+  {{/if}}
+
+  {{#if style.showFooter}}
+    <footer>
+      <strong>L.I.M. — Louay Industry &amp; Maintenance</strong>
+      <p>Document généré automatiquement par le système ERP L.I.M.</p>
+      <p>Reçu {{receipt.number}} — {{generatedAt}}</p>
+    </footer>
+  {{/if}}
+</body>
+</html>

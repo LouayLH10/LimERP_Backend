@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Bon de livraison {{delivery.number}}</title>
+
+  <style>
+    @page { size: A4; margin: 15mm; }
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: "{{style.fontFamily}}", Arial, sans-serif;
+      font-size: {{style.fontSize}}pt;
+      color: {{style.textColor}};
+      background: {{style.backgroundColor}};
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 18px;
+      border-bottom: 3px solid {{style.primaryColor}};
+      margin-bottom: 24px;
+    }
+
+    .logo {
+      max-width: 170px;
+      max-height: 80px;
+      object-fit: contain;
+    }
+
+    .company-info {
+      text-align: right;
+      font-size: 9pt;
+      color: {{style.secondaryColor}};
+    }
+
+    .company-name {
+      font-size: 16pt;
+      font-weight: bold;
+      color: {{style.primaryColor}};
+      margin: 0;
+    }
+
+    .document-title {
+      text-align: center;
+      margin: 22px 0;
+      padding: 15px;
+      background: {{style.primaryColor}};
+      color: #ffffff;
+      border-radius: {{style.borderRadius}}px;
+    }
+
+    .document-title h1 {
+      margin: 0;
+      font-size: 22pt;
+      letter-spacing: 2px;
+    }
+
+    .document-title p {
+      margin: 5px 0 0;
+      font-size: 10pt;
+    }
+
+    .info-section {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .info-box {
+      flex: 1;
+      min-width: 0;
+      padding: 12px;
+      border: 1px solid #dddddd;
+      border-radius: {{style.borderRadius}}px;
+      overflow-wrap: anywhere;
+    }
+
+    .info-box h2 {
+      font-size: 11pt;
+      color: {{style.primaryColor}};
+      margin: 0 0 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #dddddd;
+    }
+
+    .info-box p { margin: 4px 0; }
+
+    .project-box { margin-bottom: 20px; }
+
+    .status {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 4px;
+      background: #eef2ff;
+      color: {{style.primaryColor}};
+      font-weight: bold;
+      font-size: 9pt;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: {{style.spacing}}px;
+      font-size: 9pt;
+    }
+
+    thead { display: table-header-group; }
+    tr { page-break-inside: avoid; }
+
+    th {
+      background: {{style.primaryColor}};
+      color: #ffffff;
+      padding: 9px 6px;
+      text-align: left;
+    }
+
+    td {
+      border-bottom: 1px solid #dddddd;
+      padding: 8px 6px;
+      vertical-align: top;
+    }
+
+    tbody tr:nth-child(even) { background: #f8fafc; }
+
+    .number {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .notes {
+      margin-top: 25px;
+      padding: 12px;
+      background: #f8fafc;
+      border-left: 4px solid {{style.accentColor}};
+      overflow-wrap: anywhere;
+    }
+
+    .signatures {
+      display: flex;
+      justify-content: space-between;
+      gap: 30px;
+      margin-top: 45px;
+      page-break-inside: avoid;
+    }
+
+    .signature {
+      flex: 1;
+      min-height: 95px;
+      text-align: center;
+      border-top: 1px solid {{style.secondaryColor}};
+      padding-top: 10px;
+    }
+
+    footer {
+      margin-top: 35px;
+      padding-top: 10px;
+      border-top: 1px solid #dddddd;
+      text-align: center;
+      color: {{style.secondaryColor}};
+      font-size: 8pt;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <img class="logo" src="https://i.ibb.co/vCC87Tky/logo.png" alt="Logo L.I.M.">
+
+    <div class="company-info">
+      <p class="company-name">L.I.M.</p>
+      <p>Louay Industry &amp; Maintenance</p>
+      <p>Travaux industriels et maintenance</p>
+      {{#if company.address}}<p>{{company.address}}</p>{{/if}}
+      {{#if company.phone}}<p>Tél. : {{company.phone}}</p>{{/if}}
+      {{#if company.email}}<p>{{company.email}}</p>{{/if}}
+    </div>
+  </header>
+
+  <section class="document-title">
+    <h1>BON DE LIVRAISON</h1>
+    <p>Référence : {{delivery.number}}</p>
+  </section>
+
+  <section class="info-section">
+    <div class="info-box">
+      <h2>Informations du bon de livraison</h2>
+      <p><strong>Numéro :</strong> {{delivery.number}}</p>
+      <p><strong>Date :</strong> {{delivery.deliveryDate}}</p>
+      <p><strong>Statut :</strong>
+        <span class="status">{{delivery.status}}</span>
+      </p>
+      {{#if order}}
+        <p><strong>Commande d'origine :</strong> {{order.number}}</p>
+      {{/if}}
+    </div>
+
+    <div class="info-box">
+      <h2>Client</h2>
+      <p><strong>{{client.companyName}}</strong></p>
+      {{#if client.address}}<p>{{client.address}}</p>{{/if}}
+      {{#if client.email}}<p>{{client.email}}</p>{{/if}}
+      {{#if client.phone}}<p>Tél. : {{client.phone}}</p>{{/if}}
+      {{#if client.taxId}}<p>Matricule fiscal : {{client.taxId}}</p>{{/if}}
+    </div>
+  </section>
+
+  {{#if project}}
+    <div class="info-box project-box">
+      <h2>Projet / Chantier</h2>
+      <p><strong>{{project.name}}</strong></p>
+      {{#if project.address}}<p>{{project.address}}</p>{{/if}}
+    </div>
+  {{/if}}
+
+  <table>
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th class="number">Quantité livrée</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each lines}}
+        <tr>
+          <td>{{description}}</td>
+          <td class="number">{{quantity}}</td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  {{#if delivery.notes}}
+    <div class="notes">
+      <strong>Notes et observations :</strong>
+      <p>{{delivery.notes}}</p>
+    </div>
+  {{/if}}
+
+  {{#if style.showSignature}}
+    <div class="signatures">
+      <div class="signature">
+        <strong>Signature et cachet L.I.M.</strong>
+      </div>
+      <div class="signature">
+        <strong>Signature du client (bon pour réception)</strong>
+      </div>
+    </div>
+  {{/if}}
+
+  {{#if style.showFooter}}
+    <footer>
+      <strong>L.I.M. — Louay Industry &amp; Maintenance</strong>
+      <p>Document généré automatiquement par le système ERP L.I.M.</p>
+      <p>Bon de livraison {{delivery.number}} — {{generatedAt}}</p>
+    </footer>
+  {{/if}}
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Devis {{quote.number}}</title>
+<style>
+@page { size: A4; margin: 13mm; }
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "{{style.fontFamily}}", Arial, sans-serif;
+  font-size: {{style.fontSize}}pt;
+  color: {{style.textColor}};
+  background: {{style.backgroundColor}};
+  line-height: 1.5;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px;
+  border-bottom: 6px solid {{style.accentColor}};
+  background: {{style.primaryColor}};
+  color: {{style.backgroundColor}};
+}
+.logo { max-width: 165px; max-height: 75px; object-fit: contain; }
+.company { text-align: right; font-size: 9pt; }
+.company strong { display: block; font-size: 17pt; color: {{style.backgroundColor}}; }
+.heading { margin: 25px 0 20px; padding-left: 14px; border-left: 7px solid {{style.accentColor}}; }
+h1 { margin: 0; font-size: 26pt; color: {{style.primaryColor}}; letter-spacing: 2px; }
+.ref { color: {{style.secondaryColor}}; margin-top: 4px; }
+.info { display: flex; gap: 15px; margin-bottom: 22px; }
+.card {
+  flex: 1;
+  padding: {{style.spacing}}px;
+  border: 1px solid {{style.secondaryColor}};
+  border-top: 3px solid {{style.accentColor}};
+  border-radius: {{style.borderRadius}}px;
+  overflow-wrap: anywhere;
+}
+.card h2 { font-size: 11pt; margin: 0 0 8px; color: {{style.primaryColor}}; }
+.card p { margin: 3px 0; }
+table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+thead { display: table-header-group; }
+tr { page-break-inside: avoid; }
+th { background: {{style.primaryColor}}; color: {{style.backgroundColor}}; padding: 10px 7px; text-align: left; border-bottom: 3px solid {{style.accentColor}}; }
+td { padding: 9px 7px; border-bottom: 1px solid {{style.secondaryColor}}; }
+.num { text-align: right; white-space: nowrap; }
+.totals { width: 58%; margin: 22px 0 0 auto; }
+.totals td { padding: 8px 10px; }
+.grand td { background: {{style.accentColor}}; color: {{style.textColor}}; font-weight: bold; font-size: 12pt; border: 0; }
+.notes { margin-top: 24px; padding: 12px; border: 1px solid {{style.secondaryColor}}; border-left: 4px solid {{style.accentColor}}; overflow-wrap: anywhere; }
+.signature { margin: 40px 0 0 auto; width: 210px; min-height: 75px; text-align: center; border-top: 1px solid {{style.secondaryColor}}; padding-top: 8px; }
+footer { margin-top: 28px; padding: 12px; background: {{style.primaryColor}}; color: {{style.backgroundColor}}; text-align: center; font-size: 8pt; }
+</style>
+</head>
+<body>
+<header>
+  {{#if style.showLogo}}
+  <img class="logo" src="https://i.ibb.co/vCC87Tky/logo.png" alt="Logo L.I.M.">
+  {{/if}}
+  <div class="company">
+    <strong>L.I.M.</strong>
+    Louay Industry &amp; Maintenance<br>
+    Maintenance et travaux industriels
+  </div>
+</header>
+
+<section class="heading">
+  <h1>DEVIS</h1>
+  <div class="ref">Référence N° {{quote.number}}</div>
+</section>
+
+<div class="info">
+  <section class="card">
+    <h2>DÉTAILS DU DEVIS</h2>
+    <p><strong>Numéro :</strong> {{quote.number}}</p>
+    <p><strong>Date :</strong> {{quote.issueDate}}</p>
+    {{#if quote.validUntil}}<p><strong>Validité :</strong> {{quote.validUntil}}</p>{{/if}}
+  </section>
+  <section class="card">
+    <h2>CLIENT</h2>
+    <p><strong>{{client.companyName}}</strong></p>
+    {{#if client.address}}<p>{{client.address}}</p>{{/if}}
+    {{#if client.email}}<p>{{client.email}}</p>{{/if}}
+    {{#if client.phone}}<p>{{client.phone}}</p>{{/if}}
+  </section>
+</div>
+
+{{#if project}}
+<section class="card" style="margin-bottom:20px">
+  <h2>CHANTIER / PROJET</h2>
+  <p>{{project.name}}</p>
+</section>
+{{/if}}
+
+<table>
+<thead><tr>
+<th>Description des travaux</th><th class="num">Qté</th><th class="num">Prix unitaire HT</th><th class="num">TVA</th><th class="num">Total TTC</th>
+</tr></thead>
+<tbody>
+{{#each lines}}
+<tr>
+<td>{{description}}</td><td class="num">{{quantity}}</td><td class="num">{{unitPrice}} TND</td><td class="num">{{taxRate}} %</td><td class="num">{{total}} TND</td>
+</tr>
+{{/each}}
+</tbody>
+</table>
+
+<table class="totals"><tbody>
+<tr><td>Total HT</td><td class="num">{{quote.subtotal}} TND</td></tr>
+<tr><td>Total TVA</td><td class="num">{{quote.taxAmount}} TND</td></tr>
+<tr class="grand"><td>TOTAL TTC</td><td class="num">{{quote.total}} TND</td></tr>
+</tbody></table>
+
+{{#if quote.notes}}<div class="notes"><strong>Notes / Conditions</strong><p>{{quote.notes}}</p></div>{{/if}}
+{{#if style.showSignature}}<div class="signature">Signature et cachet</div>{{/if}}
+{{#if style.showFooter}}<footer>L.I.M. — Louay Industry &amp; Maintenance<br>Devis {{quote.number}} · {{generatedAt}}</footer>{{/if}}
+</body>
+</html>

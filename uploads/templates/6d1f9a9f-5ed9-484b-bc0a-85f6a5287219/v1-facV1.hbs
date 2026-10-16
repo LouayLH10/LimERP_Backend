@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Facture {{invoice.number}}</title>
+
+  <style>
+    @page { size: A4; margin: 15mm; }
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: "{{style.fontFamily}}", Arial, sans-serif;
+      font-size: {{style.fontSize}}pt;
+      color: {{style.textColor}};
+      background: {{style.backgroundColor}};
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 18px;
+      border-bottom: 3px solid {{style.primaryColor}};
+      margin-bottom: 24px;
+    }
+
+    .logo { max-width: 170px; max-height: 80px; object-fit: contain; }
+
+    .company-info { text-align: right; font-size: 9pt; color: {{style.secondaryColor}}; }
+    .company-name { font-size: 16pt; font-weight: bold; color: {{style.primaryColor}}; margin: 0; }
+
+    .document-title {
+      text-align: center;
+      margin: 22px 0;
+      padding: 15px;
+      background: {{style.primaryColor}};
+      color: #ffffff;
+      border-radius: {{style.borderRadius}}px;
+    }
+
+    .document-title h1 { margin: 0; font-size: 22pt; letter-spacing: 2px; }
+    .document-title p { margin: 5px 0 0; font-size: 10pt; }
+
+    .info-section { display: flex; gap: 15px; margin-bottom: 20px; }
+
+    .info-box {
+      flex: 1;
+      min-width: 0;
+      padding: 12px;
+      border: 1px solid #dddddd;
+      border-radius: {{style.borderRadius}}px;
+      overflow-wrap: anywhere;
+    }
+
+    .info-box h2 {
+      font-size: 11pt;
+      color: {{style.primaryColor}};
+      margin: 0 0 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #dddddd;
+    }
+
+    .info-box p { margin: 4px 0; }
+
+    .project-box { margin-bottom: 20px; }
+
+    .status {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 4px;
+      background: #eef2ff;
+      color: {{style.primaryColor}};
+      font-weight: bold;
+      font-size: 9pt;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: {{style.spacing}}px;
+      font-size: 9pt;
+    }
+
+    thead { display: table-header-group; }
+    tr { page-break-inside: avoid; }
+
+    th {
+      background: {{style.primaryColor}};
+      color: #ffffff;
+      padding: 9px 6px;
+      text-align: left;
+    }
+
+    td {
+      border-bottom: 1px solid #dddddd;
+      padding: 8px 6px;
+      vertical-align: top;
+    }
+
+    tbody tr:nth-child(even) { background: #f8fafc; }
+
+    .number { text-align: right; white-space: nowrap; }
+
+    .totals { width: 55%; margin-left: auto; margin-top: 22px; }
+    .totals td { padding: 7px 9px; }
+
+    .totals .grand-total td {
+      background: {{style.primaryColor}};
+      color: #ffffff;
+      font-size: 12pt;
+      font-weight: bold;
+      border: none;
+    }
+
+    .totals .paid-row td { color: #059669; }
+    .totals .remaining-row td {
+      background: #f1f5f9;
+      font-weight: bold;
+      color: {{style.primaryColor}};
+    }
+
+    .payment-info {
+      margin-top: 25px;
+      padding: 12px;
+      background: #f8fafc;
+      border-left: 4px solid {{style.accentColor}};
+      overflow-wrap: anywhere;
+      font-size: 9pt;
+    }
+
+    .payment-info strong { color: {{style.primaryColor}}; }
+
+    .notes {
+      margin-top: 18px;
+      padding: 12px;
+      background: #f8fafc;
+      border-left: 4px solid {{style.accentColor}};
+      overflow-wrap: anywhere;
+    }
+
+    .signatures {
+      display: flex;
+      justify-content: space-between;
+      gap: 30px;
+      margin-top: 45px;
+      page-break-inside: avoid;
+    }
+
+    .signature {
+      flex: 1;
+      min-height: 95px;
+      text-align: center;
+      border-top: 1px solid {{style.secondaryColor}};
+      padding-top: 10px;
+    }
+
+    footer {
+      margin-top: 35px;
+      padding-top: 10px;
+      border-top: 1px solid #dddddd;
+      text-align: center;
+      color: {{style.secondaryColor}};
+      font-size: 8pt;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <img class="logo" src="https://i.ibb.co/vCC87Tky/logo.png" alt="Logo L.I.M.">
+
+    <div class="company-info">
+      <p class="company-name">L.I.M.</p>
+      <p>Louay Industry &amp; Maintenance</p>
+      <p>Travaux industriels et maintenance</p>
+    </div>
+  </header>
+
+  <section class="document-title">
+    <h1>FACTURE</h1>
+    <p>Référence : {{invoice.number}}</p>
+  </section>
+
+  <section class="info-section">
+    <div class="info-box">
+      <h2>Informations de la facture</h2>
+      <p><strong>Numéro :</strong> {{invoice.number}}</p>
+      <p><strong>Date d'émission :</strong> {{invoice.issueDate}}</p>
+      {{#if invoice.dueDate}}
+        <p><strong>Date d'échéance :</strong> {{invoice.dueDate}}</p>
+      {{/if}}
+      <p><strong>Statut :</strong>
+        <span class="status">{{invoice.status}}</span>
+      </p>
+      {{#if order}}
+        <p><strong>Commande :</strong> {{order.number}}</p>
+      {{/if}}
+    </div>
+
+    <div class="info-box">
+      <h2>Client</h2>
+      <p><strong>{{client.companyName}}</strong></p>
+      {{#if client.address}}<p>{{client.address}}</p>{{/if}}
+      {{#if client.email}}<p>{{client.email}}</p>{{/if}}
+      {{#if client.phone}}<p>Tél. : {{client.phone}}</p>{{/if}}
+      {{#if client.taxId}}<p>Matricule fiscal : {{client.taxId}}</p>{{/if}}
+    </div>
+  </section>
+
+  {{#if project}}
+    <div class="info-box project-box">
+      <h2>Projet / Chantier</h2>
+      <p><strong>{{project.name}}</strong></p>
+      {{#if project.address}}<p>{{project.address}}</p>{{/if}}
+    </div>
+  {{/if}}
+
+  <table>
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th class="number">Quantité</th>
+        <th class="number">Prix unitaire HT</th>
+        <th class="number">TVA (%)</th>
+        <th class="number">Total TTC</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each lines}}
+        <tr>
+          <td>{{description}}</td>
+          <td class="number">{{quantity}}</td>
+          <td class="number">{{unitPrice}} TND</td>
+          <td class="number">{{taxRate}} %</td>
+          <td class="number">{{total}} TND</td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <table class="totals">
+    <tbody>
+      <tr>
+        <td>Total HT</td>
+        <td class="number">{{invoice.subtotal}} TND</td>
+      </tr>
+      <tr>
+        <td>Total TVA</td>
+        <td class="number">{{invoice.taxAmount}} TND</td>
+      </tr>
+      <tr class="grand-total">
+        <td>TOTAL TTC</td>
+        <td class="number">{{invoice.total}} TND</td>
+      </tr>
+      <tr class="paid-row">
+        <td>Déjà payé</td>
+        <td class="number">{{invoice.paidAmount}} TND</td>
+      </tr>
+      <tr class="remaining-row">
+        <td>Reste à payer</td>
+        <td class="number">{{invoice.remaining}} TND</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="payment-info">
+    <strong>Modalités de paiement :</strong>
+    <p>Règlement par virement bancaire ou chèque à l'ordre de L.I.M.</p>
+    <p>Merci d'indiquer la référence <strong>{{invoice.number}}</strong> lors de votre paiement.</p>
+  </div>
+
+  {{#if invoice.notes}}
+    <div class="notes">
+      <strong>Notes :</strong>
+      <p>{{invoice.notes}}</p>
+    </div>
+  {{/if}}
+
+  {{#if style.showSignature}}
+    <div class="signatures">
+      <div class="signature">
+        <strong>Signature et cachet L.I.M.</strong>
+      </div>
+      <div class="signature">
+        <strong>Bon pour accord du client</strong>
+      </div>
+    </div>
+  {{/if}}
+
+  {{#if style.showFooter}}
+    <footer>
+      <strong>L.I.M. — Louay Industry &amp; Maintenance</strong>
+      <p>Document généré automatiquement par le système ERP L.I.M.</p>
+      <p>Facture {{invoice.number}} — {{generatedAt}}</p>
+    </footer>
+  {{/if}}
+</body>
+</html>
