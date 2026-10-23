@@ -1,9 +1,20 @@
+
+import 'dotenv/config';
+
 import { PrismaClient } from '../src/generated/prisma/client';
 import { UserRole } from '../src/generated/prisma/enums';
 import { PrismaPg } from '@prisma/adapter-pg';
 
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error(
+    'DATABASE_URL est absente. Vérifie le fichier .env à la racine du backend.',
+  );
+}
+
 const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL,
+  connectionString,
 });
 
 const prisma = new PrismaClient({
@@ -32,13 +43,13 @@ async function main() {
     },
   });
 
-  console.log('Super Admin created:', superAdmin);
+  console.log('Super Admin créé ou mis à jour :', superAdmin.email);
 }
 
 main()
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
+  .catch((error: unknown) => {
+    console.error('Erreur pendant le seed :', error);
+    process.exitCode = 1;
   })
   .finally(async () => {
     await prisma.$disconnect();
