@@ -29,6 +29,10 @@ export type ProjectAIAnalysisMinAggregateOutputType = {
   status: $Enums.AIAnalysisStatus | null
   projectId: string | null
   specificationId: string | null
+  summary: string | null
+  assumptions: string | null
+  missingInformation: string | null
+  rawResponse: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -38,6 +42,10 @@ export type ProjectAIAnalysisMaxAggregateOutputType = {
   status: $Enums.AIAnalysisStatus | null
   projectId: string | null
   specificationId: string | null
+  summary: string | null
+  assumptions: string | null
+  missingInformation: string | null
+  rawResponse: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -47,6 +55,10 @@ export type ProjectAIAnalysisCountAggregateOutputType = {
   status: number
   projectId: number
   specificationId: number
+  summary: number
+  assumptions: number
+  missingInformation: number
+  rawResponse: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -58,6 +70,10 @@ export type ProjectAIAnalysisMinAggregateInputType = {
   status?: true
   projectId?: true
   specificationId?: true
+  summary?: true
+  assumptions?: true
+  missingInformation?: true
+  rawResponse?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -67,6 +83,10 @@ export type ProjectAIAnalysisMaxAggregateInputType = {
   status?: true
   projectId?: true
   specificationId?: true
+  summary?: true
+  assumptions?: true
+  missingInformation?: true
+  rawResponse?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -76,6 +96,10 @@ export type ProjectAIAnalysisCountAggregateInputType = {
   status?: true
   projectId?: true
   specificationId?: true
+  summary?: true
+  assumptions?: true
+  missingInformation?: true
+  rawResponse?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -158,6 +182,10 @@ export type ProjectAIAnalysisGroupByOutputType = {
   status: $Enums.AIAnalysisStatus
   projectId: string
   specificationId: string
+  summary: string | null
+  assumptions: string | null
+  missingInformation: string | null
+  rawResponse: string | null
   createdAt: Date
   updatedAt: Date
   _count: ProjectAIAnalysisCountAggregateOutputType | null
@@ -188,6 +216,10 @@ export type ProjectAIAnalysisWhereInput = {
   status?: Prisma.EnumAIAnalysisStatusFilter<"ProjectAIAnalysis"> | $Enums.AIAnalysisStatus
   projectId?: Prisma.StringFilter<"ProjectAIAnalysis"> | string
   specificationId?: Prisma.StringFilter<"ProjectAIAnalysis"> | string
+  summary?: Prisma.StringNullableFilter<"ProjectAIAnalysis"> | string | null
+  assumptions?: Prisma.StringNullableFilter<"ProjectAIAnalysis"> | string | null
+  missingInformation?: Prisma.StringNullableFilter<"ProjectAIAnalysis"> | string | null
+  rawResponse?: Prisma.StringNullableFilter<"ProjectAIAnalysis"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ProjectAIAnalysis"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ProjectAIAnalysis"> | Date | string
   project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
@@ -202,6 +234,10 @@ export type ProjectAIAnalysisOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   specificationId?: Prisma.SortOrder
+  summary?: Prisma.SortOrderInput | Prisma.SortOrder
+  assumptions?: Prisma.SortOrderInput | Prisma.SortOrder
+  missingInformation?: Prisma.SortOrderInput | Prisma.SortOrder
+  rawResponse?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   project?: Prisma.ProjectOrderByWithRelationInput
@@ -219,6 +255,10 @@ export type ProjectAIAnalysisWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumAIAnalysisStatusFilter<"ProjectAIAnalysis"> | $Enums.AIAnalysisStatus
   projectId?: Prisma.StringFilter<"ProjectAIAnalysis"> | string
   specificationId?: Prisma.StringFilter<"ProjectAIAnalysis"> | string
+  summary?: Prisma.StringNullableFilter<"ProjectAIAnalysis"> | string | null
+  assumptions?: Prisma.StringNullableFilter<"ProjectAIAnalysis"> | string | null
+  missingInformation?: Prisma.StringNullableFilter<"ProjectAIAnalysis"> | string | null
+  rawResponse?: Prisma.StringNullableFilter<"ProjectAIAnalysis"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ProjectAIAnalysis"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ProjectAIAnalysis"> | Date | string
   project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
@@ -233,6 +273,10 @@ export type ProjectAIAnalysisOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   specificationId?: Prisma.SortOrder
+  summary?: Prisma.SortOrderInput | Prisma.SortOrder
+  assumptions?: Prisma.SortOrderInput | Prisma.SortOrder
+  missingInformation?: Prisma.SortOrderInput | Prisma.SortOrder
+  rawResponse?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ProjectAIAnalysisCountOrderByAggregateInput
@@ -248,6 +292,10 @@ export type ProjectAIAnalysisScalarWhereWithAggregatesInput = {
   status?: Prisma.EnumAIAnalysisStatusWithAggregatesFilter<"ProjectAIAnalysis"> | $Enums.AIAnalysisStatus
   projectId?: Prisma.StringWithAggregatesFilter<"ProjectAIAnalysis"> | string
   specificationId?: Prisma.StringWithAggregatesFilter<"ProjectAIAnalysis"> | string
+  summary?: Prisma.StringNullableWithAggregatesFilter<"ProjectAIAnalysis"> | string | null
+  assumptions?: Prisma.StringNullableWithAggregatesFilter<"ProjectAIAnalysis"> | string | null
+  missingInformation?: Prisma.StringNullableWithAggregatesFilter<"ProjectAIAnalysis"> | string | null
+  rawResponse?: Prisma.StringNullableWithAggregatesFilter<"ProjectAIAnalysis"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ProjectAIAnalysis"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ProjectAIAnalysis"> | Date | string
 }
@@ -255,6 +303,10 @@ export type ProjectAIAnalysisScalarWhereWithAggregatesInput = {
 export type ProjectAIAnalysisCreateInput = {
   id?: string
   status?: $Enums.AIAnalysisStatus
+  summary?: string | null
+  assumptions?: string | null
+  missingInformation?: string | null
+  rawResponse?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutAiAnalysesInput
@@ -269,6 +321,10 @@ export type ProjectAIAnalysisUncheckedCreateInput = {
   status?: $Enums.AIAnalysisStatus
   projectId: string
   specificationId: string
+  summary?: string | null
+  assumptions?: string | null
+  missingInformation?: string | null
+  rawResponse?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   estimation?: Prisma.AIEstimationUncheckedCreateNestedOneWithoutAnalysisInput
@@ -279,6 +335,10 @@ export type ProjectAIAnalysisUncheckedCreateInput = {
 export type ProjectAIAnalysisUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAIAnalysisStatusFieldUpdateOperationsInput | $Enums.AIAnalysisStatus
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assumptions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawResponse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutAiAnalysesNestedInput
@@ -293,6 +353,10 @@ export type ProjectAIAnalysisUncheckedUpdateInput = {
   status?: Prisma.EnumAIAnalysisStatusFieldUpdateOperationsInput | $Enums.AIAnalysisStatus
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   specificationId?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assumptions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawResponse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   estimation?: Prisma.AIEstimationUncheckedUpdateOneWithoutAnalysisNestedInput
@@ -305,6 +369,10 @@ export type ProjectAIAnalysisCreateManyInput = {
   status?: $Enums.AIAnalysisStatus
   projectId: string
   specificationId: string
+  summary?: string | null
+  assumptions?: string | null
+  missingInformation?: string | null
+  rawResponse?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -312,6 +380,10 @@ export type ProjectAIAnalysisCreateManyInput = {
 export type ProjectAIAnalysisUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAIAnalysisStatusFieldUpdateOperationsInput | $Enums.AIAnalysisStatus
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assumptions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawResponse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -321,6 +393,10 @@ export type ProjectAIAnalysisUncheckedUpdateManyInput = {
   status?: Prisma.EnumAIAnalysisStatusFieldUpdateOperationsInput | $Enums.AIAnalysisStatus
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   specificationId?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assumptions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawResponse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -340,6 +416,10 @@ export type ProjectAIAnalysisCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   specificationId?: Prisma.SortOrder
+  summary?: Prisma.SortOrder
+  assumptions?: Prisma.SortOrder
+  missingInformation?: Prisma.SortOrder
+  rawResponse?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -349,6 +429,10 @@ export type ProjectAIAnalysisMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   specificationId?: Prisma.SortOrder
+  summary?: Prisma.SortOrder
+  assumptions?: Prisma.SortOrder
+  missingInformation?: Prisma.SortOrder
+  rawResponse?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -358,6 +442,10 @@ export type ProjectAIAnalysisMinOrderByAggregateInput = {
   status?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   specificationId?: Prisma.SortOrder
+  summary?: Prisma.SortOrder
+  assumptions?: Prisma.SortOrder
+  missingInformation?: Prisma.SortOrder
+  rawResponse?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -500,6 +588,10 @@ export type ProjectAIAnalysisUpdateOneRequiredWithoutWorkforceNestedInput = {
 export type ProjectAIAnalysisCreateWithoutProjectInput = {
   id?: string
   status?: $Enums.AIAnalysisStatus
+  summary?: string | null
+  assumptions?: string | null
+  missingInformation?: string | null
+  rawResponse?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   specification: Prisma.ProjectSpecificationCreateNestedOneWithoutAiAnalysesInput
@@ -512,6 +604,10 @@ export type ProjectAIAnalysisUncheckedCreateWithoutProjectInput = {
   id?: string
   status?: $Enums.AIAnalysisStatus
   specificationId: string
+  summary?: string | null
+  assumptions?: string | null
+  missingInformation?: string | null
+  rawResponse?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   estimation?: Prisma.AIEstimationUncheckedCreateNestedOneWithoutAnalysisInput
@@ -553,6 +649,10 @@ export type ProjectAIAnalysisScalarWhereInput = {
   status?: Prisma.EnumAIAnalysisStatusFilter<"ProjectAIAnalysis"> | $Enums.AIAnalysisStatus
   projectId?: Prisma.StringFilter<"ProjectAIAnalysis"> | string
   specificationId?: Prisma.StringFilter<"ProjectAIAnalysis"> | string
+  summary?: Prisma.StringNullableFilter<"ProjectAIAnalysis"> | string | null
+  assumptions?: Prisma.StringNullableFilter<"ProjectAIAnalysis"> | string | null
+  missingInformation?: Prisma.StringNullableFilter<"ProjectAIAnalysis"> | string | null
+  rawResponse?: Prisma.StringNullableFilter<"ProjectAIAnalysis"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ProjectAIAnalysis"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ProjectAIAnalysis"> | Date | string
 }
@@ -560,6 +660,10 @@ export type ProjectAIAnalysisScalarWhereInput = {
 export type ProjectAIAnalysisCreateWithoutSpecificationInput = {
   id?: string
   status?: $Enums.AIAnalysisStatus
+  summary?: string | null
+  assumptions?: string | null
+  missingInformation?: string | null
+  rawResponse?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutAiAnalysesInput
@@ -572,6 +676,10 @@ export type ProjectAIAnalysisUncheckedCreateWithoutSpecificationInput = {
   id?: string
   status?: $Enums.AIAnalysisStatus
   projectId: string
+  summary?: string | null
+  assumptions?: string | null
+  missingInformation?: string | null
+  rawResponse?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   estimation?: Prisma.AIEstimationUncheckedCreateNestedOneWithoutAnalysisInput
@@ -608,6 +716,10 @@ export type ProjectAIAnalysisUpdateManyWithWhereWithoutSpecificationInput = {
 export type ProjectAIAnalysisCreateWithoutEstimationInput = {
   id?: string
   status?: $Enums.AIAnalysisStatus
+  summary?: string | null
+  assumptions?: string | null
+  missingInformation?: string | null
+  rawResponse?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutAiAnalysesInput
@@ -621,6 +733,10 @@ export type ProjectAIAnalysisUncheckedCreateWithoutEstimationInput = {
   status?: $Enums.AIAnalysisStatus
   projectId: string
   specificationId: string
+  summary?: string | null
+  assumptions?: string | null
+  missingInformation?: string | null
+  rawResponse?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   workPhases?: Prisma.AIWorkPhaseUncheckedCreateNestedManyWithoutAnalysisInput
@@ -646,6 +762,10 @@ export type ProjectAIAnalysisUpdateToOneWithWhereWithoutEstimationInput = {
 export type ProjectAIAnalysisUpdateWithoutEstimationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAIAnalysisStatusFieldUpdateOperationsInput | $Enums.AIAnalysisStatus
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assumptions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawResponse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutAiAnalysesNestedInput
@@ -659,6 +779,10 @@ export type ProjectAIAnalysisUncheckedUpdateWithoutEstimationInput = {
   status?: Prisma.EnumAIAnalysisStatusFieldUpdateOperationsInput | $Enums.AIAnalysisStatus
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   specificationId?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assumptions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawResponse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workPhases?: Prisma.AIWorkPhaseUncheckedUpdateManyWithoutAnalysisNestedInput
@@ -668,6 +792,10 @@ export type ProjectAIAnalysisUncheckedUpdateWithoutEstimationInput = {
 export type ProjectAIAnalysisCreateWithoutWorkPhasesInput = {
   id?: string
   status?: $Enums.AIAnalysisStatus
+  summary?: string | null
+  assumptions?: string | null
+  missingInformation?: string | null
+  rawResponse?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutAiAnalysesInput
@@ -681,6 +809,10 @@ export type ProjectAIAnalysisUncheckedCreateWithoutWorkPhasesInput = {
   status?: $Enums.AIAnalysisStatus
   projectId: string
   specificationId: string
+  summary?: string | null
+  assumptions?: string | null
+  missingInformation?: string | null
+  rawResponse?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   estimation?: Prisma.AIEstimationUncheckedCreateNestedOneWithoutAnalysisInput
@@ -706,6 +838,10 @@ export type ProjectAIAnalysisUpdateToOneWithWhereWithoutWorkPhasesInput = {
 export type ProjectAIAnalysisUpdateWithoutWorkPhasesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAIAnalysisStatusFieldUpdateOperationsInput | $Enums.AIAnalysisStatus
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assumptions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawResponse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutAiAnalysesNestedInput
@@ -719,6 +855,10 @@ export type ProjectAIAnalysisUncheckedUpdateWithoutWorkPhasesInput = {
   status?: Prisma.EnumAIAnalysisStatusFieldUpdateOperationsInput | $Enums.AIAnalysisStatus
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   specificationId?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assumptions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawResponse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   estimation?: Prisma.AIEstimationUncheckedUpdateOneWithoutAnalysisNestedInput
@@ -728,6 +868,10 @@ export type ProjectAIAnalysisUncheckedUpdateWithoutWorkPhasesInput = {
 export type ProjectAIAnalysisCreateWithoutWorkforceInput = {
   id?: string
   status?: $Enums.AIAnalysisStatus
+  summary?: string | null
+  assumptions?: string | null
+  missingInformation?: string | null
+  rawResponse?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutAiAnalysesInput
@@ -741,6 +885,10 @@ export type ProjectAIAnalysisUncheckedCreateWithoutWorkforceInput = {
   status?: $Enums.AIAnalysisStatus
   projectId: string
   specificationId: string
+  summary?: string | null
+  assumptions?: string | null
+  missingInformation?: string | null
+  rawResponse?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   estimation?: Prisma.AIEstimationUncheckedCreateNestedOneWithoutAnalysisInput
@@ -766,6 +914,10 @@ export type ProjectAIAnalysisUpdateToOneWithWhereWithoutWorkforceInput = {
 export type ProjectAIAnalysisUpdateWithoutWorkforceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAIAnalysisStatusFieldUpdateOperationsInput | $Enums.AIAnalysisStatus
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assumptions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawResponse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutAiAnalysesNestedInput
@@ -779,6 +931,10 @@ export type ProjectAIAnalysisUncheckedUpdateWithoutWorkforceInput = {
   status?: Prisma.EnumAIAnalysisStatusFieldUpdateOperationsInput | $Enums.AIAnalysisStatus
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   specificationId?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assumptions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawResponse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   estimation?: Prisma.AIEstimationUncheckedUpdateOneWithoutAnalysisNestedInput
@@ -789,6 +945,10 @@ export type ProjectAIAnalysisCreateManyProjectInput = {
   id?: string
   status?: $Enums.AIAnalysisStatus
   specificationId: string
+  summary?: string | null
+  assumptions?: string | null
+  missingInformation?: string | null
+  rawResponse?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -796,6 +956,10 @@ export type ProjectAIAnalysisCreateManyProjectInput = {
 export type ProjectAIAnalysisUpdateWithoutProjectInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAIAnalysisStatusFieldUpdateOperationsInput | $Enums.AIAnalysisStatus
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assumptions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawResponse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   specification?: Prisma.ProjectSpecificationUpdateOneRequiredWithoutAiAnalysesNestedInput
@@ -808,6 +972,10 @@ export type ProjectAIAnalysisUncheckedUpdateWithoutProjectInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAIAnalysisStatusFieldUpdateOperationsInput | $Enums.AIAnalysisStatus
   specificationId?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assumptions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawResponse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   estimation?: Prisma.AIEstimationUncheckedUpdateOneWithoutAnalysisNestedInput
@@ -819,6 +987,10 @@ export type ProjectAIAnalysisUncheckedUpdateManyWithoutProjectInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAIAnalysisStatusFieldUpdateOperationsInput | $Enums.AIAnalysisStatus
   specificationId?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assumptions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawResponse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -827,6 +999,10 @@ export type ProjectAIAnalysisCreateManySpecificationInput = {
   id?: string
   status?: $Enums.AIAnalysisStatus
   projectId: string
+  summary?: string | null
+  assumptions?: string | null
+  missingInformation?: string | null
+  rawResponse?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -834,6 +1010,10 @@ export type ProjectAIAnalysisCreateManySpecificationInput = {
 export type ProjectAIAnalysisUpdateWithoutSpecificationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAIAnalysisStatusFieldUpdateOperationsInput | $Enums.AIAnalysisStatus
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assumptions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawResponse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutAiAnalysesNestedInput
@@ -846,6 +1026,10 @@ export type ProjectAIAnalysisUncheckedUpdateWithoutSpecificationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAIAnalysisStatusFieldUpdateOperationsInput | $Enums.AIAnalysisStatus
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assumptions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawResponse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   estimation?: Prisma.AIEstimationUncheckedUpdateOneWithoutAnalysisNestedInput
@@ -857,6 +1041,10 @@ export type ProjectAIAnalysisUncheckedUpdateManyWithoutSpecificationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAIAnalysisStatusFieldUpdateOperationsInput | $Enums.AIAnalysisStatus
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assumptions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawResponse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -906,6 +1094,10 @@ export type ProjectAIAnalysisSelect<ExtArgs extends runtime.Types.Extensions.Int
   status?: boolean
   projectId?: boolean
   specificationId?: boolean
+  summary?: boolean
+  assumptions?: boolean
+  missingInformation?: boolean
+  rawResponse?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
@@ -921,6 +1113,10 @@ export type ProjectAIAnalysisSelectCreateManyAndReturn<ExtArgs extends runtime.T
   status?: boolean
   projectId?: boolean
   specificationId?: boolean
+  summary?: boolean
+  assumptions?: boolean
+  missingInformation?: boolean
+  rawResponse?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
@@ -932,6 +1128,10 @@ export type ProjectAIAnalysisSelectUpdateManyAndReturn<ExtArgs extends runtime.T
   status?: boolean
   projectId?: boolean
   specificationId?: boolean
+  summary?: boolean
+  assumptions?: boolean
+  missingInformation?: boolean
+  rawResponse?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
@@ -943,11 +1143,15 @@ export type ProjectAIAnalysisSelectScalar = {
   status?: boolean
   projectId?: boolean
   specificationId?: boolean
+  summary?: boolean
+  assumptions?: boolean
+  missingInformation?: boolean
+  rawResponse?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ProjectAIAnalysisOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "status" | "projectId" | "specificationId" | "createdAt" | "updatedAt", ExtArgs["result"]["projectAIAnalysis"]>
+export type ProjectAIAnalysisOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "status" | "projectId" | "specificationId" | "summary" | "assumptions" | "missingInformation" | "rawResponse" | "createdAt" | "updatedAt", ExtArgs["result"]["projectAIAnalysis"]>
 export type ProjectAIAnalysisInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
   specification?: boolean | Prisma.ProjectSpecificationDefaultArgs<ExtArgs>
@@ -979,6 +1183,10 @@ export type $ProjectAIAnalysisPayload<ExtArgs extends runtime.Types.Extensions.I
     status: $Enums.AIAnalysisStatus
     projectId: string
     specificationId: string
+    summary: string | null
+    assumptions: string | null
+    missingInformation: string | null
+    rawResponse: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["projectAIAnalysis"]>
@@ -1413,6 +1621,10 @@ export interface ProjectAIAnalysisFieldRefs {
   readonly status: Prisma.FieldRef<"ProjectAIAnalysis", 'AIAnalysisStatus'>
   readonly projectId: Prisma.FieldRef<"ProjectAIAnalysis", 'String'>
   readonly specificationId: Prisma.FieldRef<"ProjectAIAnalysis", 'String'>
+  readonly summary: Prisma.FieldRef<"ProjectAIAnalysis", 'String'>
+  readonly assumptions: Prisma.FieldRef<"ProjectAIAnalysis", 'String'>
+  readonly missingInformation: Prisma.FieldRef<"ProjectAIAnalysis", 'String'>
+  readonly rawResponse: Prisma.FieldRef<"ProjectAIAnalysis", 'String'>
   readonly createdAt: Prisma.FieldRef<"ProjectAIAnalysis", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ProjectAIAnalysis", 'DateTime'>
 }

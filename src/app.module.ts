@@ -12,9 +12,10 @@ import { DeliveryModule } from './delivery/delivery.module';
 import { InvoiceModule } from './invoice/invoice.module';
 import { DocumentTemplateModule } from './document-template/document-template.module';
 import { ProjectModule } from './project/project.module';
+import { TimesheetModule } from './timesheet/timesheet.module';
 
 @Module({
-  imports: [ PrismaModule,EmployeeModule,AuthModule, UserModule, QuoteModule, ClientModule, OrderModule,DeliveryModule, InvoiceModule, DocumentTemplateModule, ProjectModule],
+  imports: [ PrismaModule,EmployeeModule,AuthModule, UserModule, QuoteModule, ClientModule, OrderModule,DeliveryModule, InvoiceModule, DocumentTemplateModule, ProjectModule, TimesheetModule],
   controllers: [AppController],
   providers: [AppService],
 })

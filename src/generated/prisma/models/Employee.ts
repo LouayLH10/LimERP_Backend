@@ -20,8 +20,18 @@ export type EmployeeModel = runtime.Types.Result.DefaultSelection<Prisma.$Employ
 
 export type AggregateEmployee = {
   _count: EmployeeCountAggregateOutputType | null
+  _avg: EmployeeAvgAggregateOutputType | null
+  _sum: EmployeeSumAggregateOutputType | null
   _min: EmployeeMinAggregateOutputType | null
   _max: EmployeeMaxAggregateOutputType | null
+}
+
+export type EmployeeAvgAggregateOutputType = {
+  dailyRate: runtime.Decimal | null
+}
+
+export type EmployeeSumAggregateOutputType = {
+  dailyRate: runtime.Decimal | null
 }
 
 export type EmployeeMinAggregateOutputType = {
@@ -36,6 +46,7 @@ export type EmployeeMinAggregateOutputType = {
   cinCardBackImage: string | null
   addedById: string | null
   isActive: boolean | null
+  dailyRate: runtime.Decimal | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -52,6 +63,7 @@ export type EmployeeMaxAggregateOutputType = {
   cinCardBackImage: string | null
   addedById: string | null
   isActive: boolean | null
+  dailyRate: runtime.Decimal | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -68,11 +80,20 @@ export type EmployeeCountAggregateOutputType = {
   cinCardBackImage: number
   addedById: number
   isActive: number
+  dailyRate: number
   createdAt: number
   updatedAt: number
   _all: number
 }
 
+
+export type EmployeeAvgAggregateInputType = {
+  dailyRate?: true
+}
+
+export type EmployeeSumAggregateInputType = {
+  dailyRate?: true
+}
 
 export type EmployeeMinAggregateInputType = {
   id?: true
@@ -86,6 +107,7 @@ export type EmployeeMinAggregateInputType = {
   cinCardBackImage?: true
   addedById?: true
   isActive?: true
+  dailyRate?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -102,6 +124,7 @@ export type EmployeeMaxAggregateInputType = {
   cinCardBackImage?: true
   addedById?: true
   isActive?: true
+  dailyRate?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -118,6 +141,7 @@ export type EmployeeCountAggregateInputType = {
   cinCardBackImage?: true
   addedById?: true
   isActive?: true
+  dailyRate?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -161,6 +185,18 @@ export type EmployeeAggregateArgs<ExtArgs extends runtime.Types.Extensions.Inter
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: EmployeeAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: EmployeeSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: EmployeeMinAggregateInputType
@@ -191,6 +227,8 @@ export type EmployeeGroupByArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   _count?: EmployeeCountAggregateInputType | true
+  _avg?: EmployeeAvgAggregateInputType
+  _sum?: EmployeeSumAggregateInputType
   _min?: EmployeeMinAggregateInputType
   _max?: EmployeeMaxAggregateInputType
 }
@@ -207,9 +245,12 @@ export type EmployeeGroupByOutputType = {
   cinCardBackImage: string | null
   addedById: string
   isActive: boolean
+  dailyRate: runtime.Decimal | null
   createdAt: Date
   updatedAt: Date
   _count: EmployeeCountAggregateOutputType | null
+  _avg: EmployeeAvgAggregateOutputType | null
+  _sum: EmployeeSumAggregateOutputType | null
   _min: EmployeeMinAggregateOutputType | null
   _max: EmployeeMaxAggregateOutputType | null
 }
@@ -244,10 +285,12 @@ export type EmployeeWhereInput = {
   cinCardBackImage?: Prisma.StringNullableFilter<"Employee"> | string | null
   addedById?: Prisma.StringFilter<"Employee"> | string
   isActive?: Prisma.BoolFilter<"Employee"> | boolean
+  dailyRate?: Prisma.DecimalNullableFilter<"Employee"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFilter<"Employee"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Employee"> | Date | string
   addedBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   projectAssignments?: Prisma.ProjectEmployeeListRelationFilter
+  timeEntries?: Prisma.EmployeeTimeEntryListRelationFilter
 }
 
 export type EmployeeOrderByWithRelationInput = {
@@ -262,10 +305,12 @@ export type EmployeeOrderByWithRelationInput = {
   cinCardBackImage?: Prisma.SortOrderInput | Prisma.SortOrder
   addedById?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  dailyRate?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   addedBy?: Prisma.UserOrderByWithRelationInput
   projectAssignments?: Prisma.ProjectEmployeeOrderByRelationAggregateInput
+  timeEntries?: Prisma.EmployeeTimeEntryOrderByRelationAggregateInput
 }
 
 export type EmployeeWhereUniqueInput = Prisma.AtLeast<{
@@ -283,10 +328,12 @@ export type EmployeeWhereUniqueInput = Prisma.AtLeast<{
   cinCardBackImage?: Prisma.StringNullableFilter<"Employee"> | string | null
   addedById?: Prisma.StringFilter<"Employee"> | string
   isActive?: Prisma.BoolFilter<"Employee"> | boolean
+  dailyRate?: Prisma.DecimalNullableFilter<"Employee"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFilter<"Employee"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Employee"> | Date | string
   addedBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   projectAssignments?: Prisma.ProjectEmployeeListRelationFilter
+  timeEntries?: Prisma.EmployeeTimeEntryListRelationFilter
 }, "id" | "email" | "cinNumber">
 
 export type EmployeeOrderByWithAggregationInput = {
@@ -301,11 +348,14 @@ export type EmployeeOrderByWithAggregationInput = {
   cinCardBackImage?: Prisma.SortOrderInput | Prisma.SortOrder
   addedById?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  dailyRate?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.EmployeeCountOrderByAggregateInput
+  _avg?: Prisma.EmployeeAvgOrderByAggregateInput
   _max?: Prisma.EmployeeMaxOrderByAggregateInput
   _min?: Prisma.EmployeeMinOrderByAggregateInput
+  _sum?: Prisma.EmployeeSumOrderByAggregateInput
 }
 
 export type EmployeeScalarWhereWithAggregatesInput = {
@@ -323,6 +373,7 @@ export type EmployeeScalarWhereWithAggregatesInput = {
   cinCardBackImage?: Prisma.StringNullableWithAggregatesFilter<"Employee"> | string | null
   addedById?: Prisma.StringWithAggregatesFilter<"Employee"> | string
   isActive?: Prisma.BoolWithAggregatesFilter<"Employee"> | boolean
+  dailyRate?: Prisma.DecimalNullableWithAggregatesFilter<"Employee"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Employee"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Employee"> | Date | string
 }
@@ -338,10 +389,12 @@ export type EmployeeCreateInput = {
   cinCardFrontImage?: string | null
   cinCardBackImage?: string | null
   isActive?: boolean
+  dailyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   addedBy: Prisma.UserCreateNestedOneWithoutEmployeesAddedInput
   projectAssignments?: Prisma.ProjectEmployeeCreateNestedManyWithoutEmployeeInput
+  timeEntries?: Prisma.EmployeeTimeEntryCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateInput = {
@@ -356,9 +409,11 @@ export type EmployeeUncheckedCreateInput = {
   cinCardBackImage?: string | null
   addedById: string
   isActive?: boolean
+  dailyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   projectAssignments?: Prisma.ProjectEmployeeUncheckedCreateNestedManyWithoutEmployeeInput
+  timeEntries?: Prisma.EmployeeTimeEntryUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUpdateInput = {
@@ -372,10 +427,12 @@ export type EmployeeUpdateInput = {
   cinCardFrontImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardBackImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  dailyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   addedBy?: Prisma.UserUpdateOneRequiredWithoutEmployeesAddedNestedInput
   projectAssignments?: Prisma.ProjectEmployeeUpdateManyWithoutEmployeeNestedInput
+  timeEntries?: Prisma.EmployeeTimeEntryUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateInput = {
@@ -390,9 +447,11 @@ export type EmployeeUncheckedUpdateInput = {
   cinCardBackImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addedById?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  dailyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projectAssignments?: Prisma.ProjectEmployeeUncheckedUpdateManyWithoutEmployeeNestedInput
+  timeEntries?: Prisma.EmployeeTimeEntryUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateManyInput = {
@@ -407,6 +466,7 @@ export type EmployeeCreateManyInput = {
   cinCardBackImage?: string | null
   addedById: string
   isActive?: boolean
+  dailyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -422,6 +482,7 @@ export type EmployeeUpdateManyMutationInput = {
   cinCardFrontImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardBackImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  dailyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -438,6 +499,7 @@ export type EmployeeUncheckedUpdateManyInput = {
   cinCardBackImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addedById?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  dailyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -464,8 +526,13 @@ export type EmployeeCountOrderByAggregateInput = {
   cinCardBackImage?: Prisma.SortOrder
   addedById?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  dailyRate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type EmployeeAvgOrderByAggregateInput = {
+  dailyRate?: Prisma.SortOrder
 }
 
 export type EmployeeMaxOrderByAggregateInput = {
@@ -480,6 +547,7 @@ export type EmployeeMaxOrderByAggregateInput = {
   cinCardBackImage?: Prisma.SortOrder
   addedById?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  dailyRate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -496,8 +564,13 @@ export type EmployeeMinOrderByAggregateInput = {
   cinCardBackImage?: Prisma.SortOrder
   addedById?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  dailyRate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type EmployeeSumOrderByAggregateInput = {
+  dailyRate?: Prisma.SortOrder
 }
 
 export type EmployeeScalarRelationFilter = {
@@ -551,6 +624,28 @@ export type EnumEmployeePositionFieldUpdateOperationsInput = {
   set?: $Enums.EmployeePosition
 }
 
+export type NullableDecimalFieldUpdateOperationsInput = {
+  set?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type EmployeeCreateNestedOneWithoutTimeEntriesInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutTimeEntriesInput, Prisma.EmployeeUncheckedCreateWithoutTimeEntriesInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutTimeEntriesInput
+  connect?: Prisma.EmployeeWhereUniqueInput
+}
+
+export type EmployeeUpdateOneRequiredWithoutTimeEntriesNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutTimeEntriesInput, Prisma.EmployeeUncheckedCreateWithoutTimeEntriesInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutTimeEntriesInput
+  upsert?: Prisma.EmployeeUpsertWithoutTimeEntriesInput
+  connect?: Prisma.EmployeeWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeUpdateToOneWithWhereWithoutTimeEntriesInput, Prisma.EmployeeUpdateWithoutTimeEntriesInput>, Prisma.EmployeeUncheckedUpdateWithoutTimeEntriesInput>
+}
+
 export type EmployeeCreateNestedOneWithoutProjectAssignmentsInput = {
   create?: Prisma.XOR<Prisma.EmployeeCreateWithoutProjectAssignmentsInput, Prisma.EmployeeUncheckedCreateWithoutProjectAssignmentsInput>
   connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutProjectAssignmentsInput
@@ -576,9 +671,11 @@ export type EmployeeCreateWithoutAddedByInput = {
   cinCardFrontImage?: string | null
   cinCardBackImage?: string | null
   isActive?: boolean
+  dailyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   projectAssignments?: Prisma.ProjectEmployeeCreateNestedManyWithoutEmployeeInput
+  timeEntries?: Prisma.EmployeeTimeEntryCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutAddedByInput = {
@@ -592,9 +689,11 @@ export type EmployeeUncheckedCreateWithoutAddedByInput = {
   cinCardFrontImage?: string | null
   cinCardBackImage?: string | null
   isActive?: boolean
+  dailyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   projectAssignments?: Prisma.ProjectEmployeeUncheckedCreateNestedManyWithoutEmployeeInput
+  timeEntries?: Prisma.EmployeeTimeEntryUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutAddedByInput = {
@@ -638,8 +737,97 @@ export type EmployeeScalarWhereInput = {
   cinCardBackImage?: Prisma.StringNullableFilter<"Employee"> | string | null
   addedById?: Prisma.StringFilter<"Employee"> | string
   isActive?: Prisma.BoolFilter<"Employee"> | boolean
+  dailyRate?: Prisma.DecimalNullableFilter<"Employee"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFilter<"Employee"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Employee"> | Date | string
+}
+
+export type EmployeeCreateWithoutTimeEntriesInput = {
+  id?: string
+  firstName: string
+  lastName: string
+  email?: string | null
+  phone?: string | null
+  position: $Enums.EmployeePosition
+  cinNumber?: string | null
+  cinCardFrontImage?: string | null
+  cinCardBackImage?: string | null
+  isActive?: boolean
+  dailyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  addedBy: Prisma.UserCreateNestedOneWithoutEmployeesAddedInput
+  projectAssignments?: Prisma.ProjectEmployeeCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeUncheckedCreateWithoutTimeEntriesInput = {
+  id?: string
+  firstName: string
+  lastName: string
+  email?: string | null
+  phone?: string | null
+  position: $Enums.EmployeePosition
+  cinNumber?: string | null
+  cinCardFrontImage?: string | null
+  cinCardBackImage?: string | null
+  addedById: string
+  isActive?: boolean
+  dailyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  projectAssignments?: Prisma.ProjectEmployeeUncheckedCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeCreateOrConnectWithoutTimeEntriesInput = {
+  where: Prisma.EmployeeWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutTimeEntriesInput, Prisma.EmployeeUncheckedCreateWithoutTimeEntriesInput>
+}
+
+export type EmployeeUpsertWithoutTimeEntriesInput = {
+  update: Prisma.XOR<Prisma.EmployeeUpdateWithoutTimeEntriesInput, Prisma.EmployeeUncheckedUpdateWithoutTimeEntriesInput>
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutTimeEntriesInput, Prisma.EmployeeUncheckedCreateWithoutTimeEntriesInput>
+  where?: Prisma.EmployeeWhereInput
+}
+
+export type EmployeeUpdateToOneWithWhereWithoutTimeEntriesInput = {
+  where?: Prisma.EmployeeWhereInput
+  data: Prisma.XOR<Prisma.EmployeeUpdateWithoutTimeEntriesInput, Prisma.EmployeeUncheckedUpdateWithoutTimeEntriesInput>
+}
+
+export type EmployeeUpdateWithoutTimeEntriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  position?: Prisma.EnumEmployeePositionFieldUpdateOperationsInput | $Enums.EmployeePosition
+  cinNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cinCardFrontImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cinCardBackImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  dailyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  addedBy?: Prisma.UserUpdateOneRequiredWithoutEmployeesAddedNestedInput
+  projectAssignments?: Prisma.ProjectEmployeeUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeUncheckedUpdateWithoutTimeEntriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  position?: Prisma.EnumEmployeePositionFieldUpdateOperationsInput | $Enums.EmployeePosition
+  cinNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cinCardFrontImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cinCardBackImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  addedById?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  dailyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  projectAssignments?: Prisma.ProjectEmployeeUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutProjectAssignmentsInput = {
@@ -653,9 +841,11 @@ export type EmployeeCreateWithoutProjectAssignmentsInput = {
   cinCardFrontImage?: string | null
   cinCardBackImage?: string | null
   isActive?: boolean
+  dailyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   addedBy: Prisma.UserCreateNestedOneWithoutEmployeesAddedInput
+  timeEntries?: Prisma.EmployeeTimeEntryCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutProjectAssignmentsInput = {
@@ -670,8 +860,10 @@ export type EmployeeUncheckedCreateWithoutProjectAssignmentsInput = {
   cinCardBackImage?: string | null
   addedById: string
   isActive?: boolean
+  dailyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  timeEntries?: Prisma.EmployeeTimeEntryUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutProjectAssignmentsInput = {
@@ -701,9 +893,11 @@ export type EmployeeUpdateWithoutProjectAssignmentsInput = {
   cinCardFrontImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardBackImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  dailyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   addedBy?: Prisma.UserUpdateOneRequiredWithoutEmployeesAddedNestedInput
+  timeEntries?: Prisma.EmployeeTimeEntryUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutProjectAssignmentsInput = {
@@ -718,8 +912,10 @@ export type EmployeeUncheckedUpdateWithoutProjectAssignmentsInput = {
   cinCardBackImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addedById?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  dailyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  timeEntries?: Prisma.EmployeeTimeEntryUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateManyAddedByInput = {
@@ -733,6 +929,7 @@ export type EmployeeCreateManyAddedByInput = {
   cinCardFrontImage?: string | null
   cinCardBackImage?: string | null
   isActive?: boolean
+  dailyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -748,9 +945,11 @@ export type EmployeeUpdateWithoutAddedByInput = {
   cinCardFrontImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardBackImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  dailyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projectAssignments?: Prisma.ProjectEmployeeUpdateManyWithoutEmployeeNestedInput
+  timeEntries?: Prisma.EmployeeTimeEntryUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutAddedByInput = {
@@ -764,9 +963,11 @@ export type EmployeeUncheckedUpdateWithoutAddedByInput = {
   cinCardFrontImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardBackImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  dailyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projectAssignments?: Prisma.ProjectEmployeeUncheckedUpdateManyWithoutEmployeeNestedInput
+  timeEntries?: Prisma.EmployeeTimeEntryUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateManyWithoutAddedByInput = {
@@ -780,6 +981,7 @@ export type EmployeeUncheckedUpdateManyWithoutAddedByInput = {
   cinCardFrontImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardBackImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  dailyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -791,10 +993,12 @@ export type EmployeeUncheckedUpdateManyWithoutAddedByInput = {
 
 export type EmployeeCountOutputType = {
   projectAssignments: number
+  timeEntries: number
 }
 
 export type EmployeeCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   projectAssignments?: boolean | EmployeeCountOutputTypeCountProjectAssignmentsArgs
+  timeEntries?: boolean | EmployeeCountOutputTypeCountTimeEntriesArgs
 }
 
 /**
@@ -814,6 +1018,13 @@ export type EmployeeCountOutputTypeCountProjectAssignmentsArgs<ExtArgs extends r
   where?: Prisma.ProjectEmployeeWhereInput
 }
 
+/**
+ * EmployeeCountOutputType without action
+ */
+export type EmployeeCountOutputTypeCountTimeEntriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EmployeeTimeEntryWhereInput
+}
+
 
 export type EmployeeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -827,10 +1038,12 @@ export type EmployeeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   cinCardBackImage?: boolean
   addedById?: boolean
   isActive?: boolean
+  dailyRate?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   addedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   projectAssignments?: boolean | Prisma.Employee$projectAssignmentsArgs<ExtArgs>
+  timeEntries?: boolean | Prisma.Employee$timeEntriesArgs<ExtArgs>
   _count?: boolean | Prisma.EmployeeCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["employee"]>
 
@@ -846,6 +1059,7 @@ export type EmployeeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   cinCardBackImage?: boolean
   addedById?: boolean
   isActive?: boolean
+  dailyRate?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   addedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -863,6 +1077,7 @@ export type EmployeeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   cinCardBackImage?: boolean
   addedById?: boolean
   isActive?: boolean
+  dailyRate?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   addedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -880,14 +1095,16 @@ export type EmployeeSelectScalar = {
   cinCardBackImage?: boolean
   addedById?: boolean
   isActive?: boolean
+  dailyRate?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type EmployeeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "firstName" | "lastName" | "email" | "phone" | "position" | "cinNumber" | "cinCardFrontImage" | "cinCardBackImage" | "addedById" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["employee"]>
+export type EmployeeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "firstName" | "lastName" | "email" | "phone" | "position" | "cinNumber" | "cinCardFrontImage" | "cinCardBackImage" | "addedById" | "isActive" | "dailyRate" | "createdAt" | "updatedAt", ExtArgs["result"]["employee"]>
 export type EmployeeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   addedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   projectAssignments?: boolean | Prisma.Employee$projectAssignmentsArgs<ExtArgs>
+  timeEntries?: boolean | Prisma.Employee$timeEntriesArgs<ExtArgs>
   _count?: boolean | Prisma.EmployeeCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type EmployeeIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -902,6 +1119,7 @@ export type $EmployeePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
   objects: {
     addedBy: Prisma.$UserPayload<ExtArgs>
     projectAssignments: Prisma.$ProjectEmployeePayload<ExtArgs>[]
+    timeEntries: Prisma.$EmployeeTimeEntryPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -915,6 +1133,7 @@ export type $EmployeePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     cinCardBackImage: string | null
     addedById: string
     isActive: boolean
+    dailyRate: runtime.Decimal | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["employee"]>
@@ -1313,6 +1532,7 @@ export interface Prisma__EmployeeClient<T, Null = never, ExtArgs extends runtime
   readonly [Symbol.toStringTag]: "PrismaPromise"
   addedBy<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   projectAssignments<T extends Prisma.Employee$projectAssignmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$projectAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectEmployeePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  timeEntries<T extends Prisma.Employee$timeEntriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$timeEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeTimeEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1353,6 +1573,7 @@ export interface EmployeeFieldRefs {
   readonly cinCardBackImage: Prisma.FieldRef<"Employee", 'String'>
   readonly addedById: Prisma.FieldRef<"Employee", 'String'>
   readonly isActive: Prisma.FieldRef<"Employee", 'Boolean'>
+  readonly dailyRate: Prisma.FieldRef<"Employee", 'Decimal'>
   readonly createdAt: Prisma.FieldRef<"Employee", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Employee", 'DateTime'>
 }
@@ -1777,6 +1998,30 @@ export type Employee$projectAssignmentsArgs<ExtArgs extends runtime.Types.Extens
   take?: number
   skip?: number
   distinct?: Prisma.ProjectEmployeeScalarFieldEnum | Prisma.ProjectEmployeeScalarFieldEnum[]
+}
+
+/**
+ * Employee.timeEntries
+ */
+export type Employee$timeEntriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EmployeeTimeEntry
+   */
+  select?: Prisma.EmployeeTimeEntrySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EmployeeTimeEntry
+   */
+  omit?: Prisma.EmployeeTimeEntryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EmployeeTimeEntryInclude<ExtArgs> | null
+  where?: Prisma.EmployeeTimeEntryWhereInput
+  orderBy?: Prisma.EmployeeTimeEntryOrderByWithRelationInput | Prisma.EmployeeTimeEntryOrderByWithRelationInput[]
+  cursor?: Prisma.EmployeeTimeEntryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EmployeeTimeEntryScalarFieldEnum | Prisma.EmployeeTimeEntryScalarFieldEnum[]
 }
 
 /**

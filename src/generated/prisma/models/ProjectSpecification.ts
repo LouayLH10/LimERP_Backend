@@ -41,6 +41,7 @@ export type ProjectSpecificationMinAggregateOutputType = {
   mimeType: string | null
   fileSize: number | null
   storagePath: string | null
+  extractedText: string | null
   projectId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -53,6 +54,7 @@ export type ProjectSpecificationMaxAggregateOutputType = {
   mimeType: string | null
   fileSize: number | null
   storagePath: string | null
+  extractedText: string | null
   projectId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -65,6 +67,7 @@ export type ProjectSpecificationCountAggregateOutputType = {
   mimeType: number
   fileSize: number
   storagePath: number
+  extractedText: number
   projectId: number
   createdAt: number
   updatedAt: number
@@ -87,6 +90,7 @@ export type ProjectSpecificationMinAggregateInputType = {
   mimeType?: true
   fileSize?: true
   storagePath?: true
+  extractedText?: true
   projectId?: true
   createdAt?: true
   updatedAt?: true
@@ -99,6 +103,7 @@ export type ProjectSpecificationMaxAggregateInputType = {
   mimeType?: true
   fileSize?: true
   storagePath?: true
+  extractedText?: true
   projectId?: true
   createdAt?: true
   updatedAt?: true
@@ -111,6 +116,7 @@ export type ProjectSpecificationCountAggregateInputType = {
   mimeType?: true
   fileSize?: true
   storagePath?: true
+  extractedText?: true
   projectId?: true
   createdAt?: true
   updatedAt?: true
@@ -210,6 +216,7 @@ export type ProjectSpecificationGroupByOutputType = {
   mimeType: string
   fileSize: number
   storagePath: string
+  extractedText: string | null
   projectId: string
   createdAt: Date
   updatedAt: Date
@@ -245,6 +252,7 @@ export type ProjectSpecificationWhereInput = {
   mimeType?: Prisma.StringFilter<"ProjectSpecification"> | string
   fileSize?: Prisma.IntFilter<"ProjectSpecification"> | number
   storagePath?: Prisma.StringFilter<"ProjectSpecification"> | string
+  extractedText?: Prisma.StringNullableFilter<"ProjectSpecification"> | string | null
   projectId?: Prisma.StringFilter<"ProjectSpecification"> | string
   createdAt?: Prisma.DateTimeFilter<"ProjectSpecification"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ProjectSpecification"> | Date | string
@@ -259,6 +267,7 @@ export type ProjectSpecificationOrderByWithRelationInput = {
   mimeType?: Prisma.SortOrder
   fileSize?: Prisma.SortOrder
   storagePath?: Prisma.SortOrder
+  extractedText?: Prisma.SortOrderInput | Prisma.SortOrder
   projectId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -277,6 +286,7 @@ export type ProjectSpecificationWhereUniqueInput = Prisma.AtLeast<{
   mimeType?: Prisma.StringFilter<"ProjectSpecification"> | string
   fileSize?: Prisma.IntFilter<"ProjectSpecification"> | number
   storagePath?: Prisma.StringFilter<"ProjectSpecification"> | string
+  extractedText?: Prisma.StringNullableFilter<"ProjectSpecification"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ProjectSpecification"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ProjectSpecification"> | Date | string
   project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
@@ -290,6 +300,7 @@ export type ProjectSpecificationOrderByWithAggregationInput = {
   mimeType?: Prisma.SortOrder
   fileSize?: Prisma.SortOrder
   storagePath?: Prisma.SortOrder
+  extractedText?: Prisma.SortOrderInput | Prisma.SortOrder
   projectId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -310,6 +321,7 @@ export type ProjectSpecificationScalarWhereWithAggregatesInput = {
   mimeType?: Prisma.StringWithAggregatesFilter<"ProjectSpecification"> | string
   fileSize?: Prisma.IntWithAggregatesFilter<"ProjectSpecification"> | number
   storagePath?: Prisma.StringWithAggregatesFilter<"ProjectSpecification"> | string
+  extractedText?: Prisma.StringNullableWithAggregatesFilter<"ProjectSpecification"> | string | null
   projectId?: Prisma.StringWithAggregatesFilter<"ProjectSpecification"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ProjectSpecification"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ProjectSpecification"> | Date | string
@@ -322,6 +334,7 @@ export type ProjectSpecificationCreateInput = {
   mimeType: string
   fileSize: number
   storagePath: string
+  extractedText?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutSpecificationInput
@@ -335,6 +348,7 @@ export type ProjectSpecificationUncheckedCreateInput = {
   mimeType: string
   fileSize: number
   storagePath: string
+  extractedText?: string | null
   projectId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -348,6 +362,7 @@ export type ProjectSpecificationUpdateInput = {
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   fileSize?: Prisma.IntFieldUpdateOperationsInput | number
   storagePath?: Prisma.StringFieldUpdateOperationsInput | string
+  extractedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutSpecificationNestedInput
@@ -361,6 +376,7 @@ export type ProjectSpecificationUncheckedUpdateInput = {
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   fileSize?: Prisma.IntFieldUpdateOperationsInput | number
   storagePath?: Prisma.StringFieldUpdateOperationsInput | string
+  extractedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -374,6 +390,7 @@ export type ProjectSpecificationCreateManyInput = {
   mimeType: string
   fileSize: number
   storagePath: string
+  extractedText?: string | null
   projectId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -386,6 +403,7 @@ export type ProjectSpecificationUpdateManyMutationInput = {
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   fileSize?: Prisma.IntFieldUpdateOperationsInput | number
   storagePath?: Prisma.StringFieldUpdateOperationsInput | string
+  extractedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -397,6 +415,7 @@ export type ProjectSpecificationUncheckedUpdateManyInput = {
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   fileSize?: Prisma.IntFieldUpdateOperationsInput | number
   storagePath?: Prisma.StringFieldUpdateOperationsInput | string
+  extractedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -414,6 +433,7 @@ export type ProjectSpecificationCountOrderByAggregateInput = {
   mimeType?: Prisma.SortOrder
   fileSize?: Prisma.SortOrder
   storagePath?: Prisma.SortOrder
+  extractedText?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -430,6 +450,7 @@ export type ProjectSpecificationMaxOrderByAggregateInput = {
   mimeType?: Prisma.SortOrder
   fileSize?: Prisma.SortOrder
   storagePath?: Prisma.SortOrder
+  extractedText?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -442,6 +463,7 @@ export type ProjectSpecificationMinOrderByAggregateInput = {
   mimeType?: Prisma.SortOrder
   fileSize?: Prisma.SortOrder
   storagePath?: Prisma.SortOrder
+  extractedText?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -509,6 +531,7 @@ export type ProjectSpecificationCreateWithoutProjectInput = {
   mimeType: string
   fileSize: number
   storagePath: string
+  extractedText?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   aiAnalyses?: Prisma.ProjectAIAnalysisCreateNestedManyWithoutSpecificationInput
@@ -521,6 +544,7 @@ export type ProjectSpecificationUncheckedCreateWithoutProjectInput = {
   mimeType: string
   fileSize: number
   storagePath: string
+  extractedText?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   aiAnalyses?: Prisma.ProjectAIAnalysisUncheckedCreateNestedManyWithoutSpecificationInput
@@ -549,6 +573,7 @@ export type ProjectSpecificationUpdateWithoutProjectInput = {
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   fileSize?: Prisma.IntFieldUpdateOperationsInput | number
   storagePath?: Prisma.StringFieldUpdateOperationsInput | string
+  extractedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   aiAnalyses?: Prisma.ProjectAIAnalysisUpdateManyWithoutSpecificationNestedInput
@@ -561,6 +586,7 @@ export type ProjectSpecificationUncheckedUpdateWithoutProjectInput = {
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   fileSize?: Prisma.IntFieldUpdateOperationsInput | number
   storagePath?: Prisma.StringFieldUpdateOperationsInput | string
+  extractedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   aiAnalyses?: Prisma.ProjectAIAnalysisUncheckedUpdateManyWithoutSpecificationNestedInput
@@ -573,6 +599,7 @@ export type ProjectSpecificationCreateWithoutAiAnalysesInput = {
   mimeType: string
   fileSize: number
   storagePath: string
+  extractedText?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutSpecificationInput
@@ -585,6 +612,7 @@ export type ProjectSpecificationUncheckedCreateWithoutAiAnalysesInput = {
   mimeType: string
   fileSize: number
   storagePath: string
+  extractedText?: string | null
   projectId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -613,6 +641,7 @@ export type ProjectSpecificationUpdateWithoutAiAnalysesInput = {
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   fileSize?: Prisma.IntFieldUpdateOperationsInput | number
   storagePath?: Prisma.StringFieldUpdateOperationsInput | string
+  extractedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutSpecificationNestedInput
@@ -625,6 +654,7 @@ export type ProjectSpecificationUncheckedUpdateWithoutAiAnalysesInput = {
   mimeType?: Prisma.StringFieldUpdateOperationsInput | string
   fileSize?: Prisma.IntFieldUpdateOperationsInput | number
   storagePath?: Prisma.StringFieldUpdateOperationsInput | string
+  extractedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -668,6 +698,7 @@ export type ProjectSpecificationSelect<ExtArgs extends runtime.Types.Extensions.
   mimeType?: boolean
   fileSize?: boolean
   storagePath?: boolean
+  extractedText?: boolean
   projectId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -683,6 +714,7 @@ export type ProjectSpecificationSelectCreateManyAndReturn<ExtArgs extends runtim
   mimeType?: boolean
   fileSize?: boolean
   storagePath?: boolean
+  extractedText?: boolean
   projectId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -696,6 +728,7 @@ export type ProjectSpecificationSelectUpdateManyAndReturn<ExtArgs extends runtim
   mimeType?: boolean
   fileSize?: boolean
   storagePath?: boolean
+  extractedText?: boolean
   projectId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -709,12 +742,13 @@ export type ProjectSpecificationSelectScalar = {
   mimeType?: boolean
   fileSize?: boolean
   storagePath?: boolean
+  extractedText?: boolean
   projectId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ProjectSpecificationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "fileName" | "originalName" | "mimeType" | "fileSize" | "storagePath" | "projectId" | "createdAt" | "updatedAt", ExtArgs["result"]["projectSpecification"]>
+export type ProjectSpecificationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "fileName" | "originalName" | "mimeType" | "fileSize" | "storagePath" | "extractedText" | "projectId" | "createdAt" | "updatedAt", ExtArgs["result"]["projectSpecification"]>
 export type ProjectSpecificationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
   aiAnalyses?: boolean | Prisma.ProjectSpecification$aiAnalysesArgs<ExtArgs>
@@ -740,6 +774,7 @@ export type $ProjectSpecificationPayload<ExtArgs extends runtime.Types.Extension
     mimeType: string
     fileSize: number
     storagePath: string
+    extractedText: string | null
     projectId: string
     createdAt: Date
     updatedAt: Date
@@ -1174,6 +1209,7 @@ export interface ProjectSpecificationFieldRefs {
   readonly mimeType: Prisma.FieldRef<"ProjectSpecification", 'String'>
   readonly fileSize: Prisma.FieldRef<"ProjectSpecification", 'Int'>
   readonly storagePath: Prisma.FieldRef<"ProjectSpecification", 'String'>
+  readonly extractedText: Prisma.FieldRef<"ProjectSpecification", 'String'>
   readonly projectId: Prisma.FieldRef<"ProjectSpecification", 'String'>
   readonly createdAt: Prisma.FieldRef<"ProjectSpecification", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ProjectSpecification", 'DateTime'>

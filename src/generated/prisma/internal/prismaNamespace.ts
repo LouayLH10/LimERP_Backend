@@ -401,6 +401,7 @@ export const ModelName = {
   LoginOtp: 'LoginOtp',
   UserSession: 'UserSession',
   Employee: 'Employee',
+  EmployeeTimeEntry: 'EmployeeTimeEntry',
   ProjectEmployee: 'ProjectEmployee',
   Client: 'Client',
   Contact: 'Contact',
@@ -440,7 +441,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "loginOtp" | "userSession" | "employee" | "projectEmployee" | "client" | "contact" | "project" | "quote" | "quoteLine" | "order" | "orderLine" | "delivery" | "deliveryLine" | "invoice" | "invoiceLine" | "creditNote" | "creditNoteLine" | "document" | "documentTemplate" | "templateVersion" | "templateStyle" | "companySettings" | "projectSpecification" | "projectAIAnalysis" | "aIEstimation" | "aIWorkPhase" | "aIWorkforceRecommendation"
+    modelProps: "user" | "loginOtp" | "userSession" | "employee" | "employeeTimeEntry" | "projectEmployee" | "client" | "contact" | "project" | "quote" | "quoteLine" | "order" | "orderLine" | "delivery" | "deliveryLine" | "invoice" | "invoiceLine" | "creditNote" | "creditNoteLine" | "document" | "documentTemplate" | "templateVersion" | "templateStyle" | "companySettings" | "projectSpecification" | "projectAIAnalysis" | "aIEstimation" | "aIWorkPhase" | "aIWorkforceRecommendation"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -737,6 +738,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.EmployeeCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.EmployeeCountAggregateOutputType> | number
+        }
+      }
+    }
+    EmployeeTimeEntry: {
+      payload: Prisma.$EmployeeTimeEntryPayload<ExtArgs>
+      fields: Prisma.EmployeeTimeEntryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EmployeeTimeEntryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTimeEntryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EmployeeTimeEntryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTimeEntryPayload>
+        }
+        findFirst: {
+          args: Prisma.EmployeeTimeEntryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTimeEntryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EmployeeTimeEntryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTimeEntryPayload>
+        }
+        findMany: {
+          args: Prisma.EmployeeTimeEntryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTimeEntryPayload>[]
+        }
+        create: {
+          args: Prisma.EmployeeTimeEntryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTimeEntryPayload>
+        }
+        createMany: {
+          args: Prisma.EmployeeTimeEntryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EmployeeTimeEntryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTimeEntryPayload>[]
+        }
+        delete: {
+          args: Prisma.EmployeeTimeEntryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTimeEntryPayload>
+        }
+        update: {
+          args: Prisma.EmployeeTimeEntryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTimeEntryPayload>
+        }
+        deleteMany: {
+          args: Prisma.EmployeeTimeEntryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EmployeeTimeEntryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EmployeeTimeEntryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTimeEntryPayload>[]
+        }
+        upsert: {
+          args: Prisma.EmployeeTimeEntryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTimeEntryPayload>
+        }
+        aggregate: {
+          args: Prisma.EmployeeTimeEntryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmployeeTimeEntry>
+        }
+        groupBy: {
+          args: Prisma.EmployeeTimeEntryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeTimeEntryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EmployeeTimeEntryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeTimeEntryCountAggregateOutputType> | number
         }
       }
     }
@@ -2609,11 +2684,30 @@ export const EmployeeScalarFieldEnum = {
   cinCardBackImage: 'cinCardBackImage',
   addedById: 'addedById',
   isActive: 'isActive',
+  dailyRate: 'dailyRate',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type EmployeeScalarFieldEnum = (typeof EmployeeScalarFieldEnum)[keyof typeof EmployeeScalarFieldEnum]
+
+
+export const EmployeeTimeEntryScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  projectId: 'projectId',
+  date: 'date',
+  days: 'days',
+  dailyRateSnapshot: 'dailyRateSnapshot',
+  totalAmount: 'totalAmount',
+  overtimeHours: 'overtimeHours',
+  overtimeRate: 'overtimeRate',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeTimeEntryScalarFieldEnum = (typeof EmployeeTimeEntryScalarFieldEnum)[keyof typeof EmployeeTimeEntryScalarFieldEnum]
 
 
 export const ProjectEmployeeScalarFieldEnum = {
@@ -2924,6 +3018,7 @@ export const ProjectSpecificationScalarFieldEnum = {
   mimeType: 'mimeType',
   fileSize: 'fileSize',
   storagePath: 'storagePath',
+  extractedText: 'extractedText',
   projectId: 'projectId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -2937,6 +3032,10 @@ export const ProjectAIAnalysisScalarFieldEnum = {
   status: 'status',
   projectId: 'projectId',
   specificationId: 'specificationId',
+  summary: 'summary',
+  assumptions: 'assumptions',
+  missingInformation: 'missingInformation',
+  rawResponse: 'rawResponse',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -3094,20 +3193,6 @@ export type ListEnumEmployeePositionFieldRefInput<$PrismaModel> = FieldRefInputT
 
 
 /**
- * Reference to a field of type 'QuoteStatus'
- */
-export type EnumQuoteStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QuoteStatus'>
-    
-
-
-/**
- * Reference to a field of type 'QuoteStatus[]'
- */
-export type ListEnumQuoteStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QuoteStatus[]'>
-    
-
-
-/**
  * Reference to a field of type 'Decimal'
  */
 export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
@@ -3118,6 +3203,20 @@ export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
  * Reference to a field of type 'Decimal[]'
  */
 export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
+    
+
+
+/**
+ * Reference to a field of type 'QuoteStatus'
+ */
+export type EnumQuoteStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QuoteStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'QuoteStatus[]'
+ */
+export type ListEnumQuoteStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QuoteStatus[]'>
     
 
 
@@ -3373,6 +3472,7 @@ export type GlobalOmitConfig = {
   loginOtp?: Prisma.LoginOtpOmit
   userSession?: Prisma.UserSessionOmit
   employee?: Prisma.EmployeeOmit
+  employeeTimeEntry?: Prisma.EmployeeTimeEntryOmit
   projectEmployee?: Prisma.ProjectEmployeeOmit
   client?: Prisma.ClientOmit
   contact?: Prisma.ContactOmit

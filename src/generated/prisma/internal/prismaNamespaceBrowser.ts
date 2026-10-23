@@ -55,6 +55,7 @@ export const ModelName = {
   LoginOtp: 'LoginOtp',
   UserSession: 'UserSession',
   Employee: 'Employee',
+  EmployeeTimeEntry: 'EmployeeTimeEntry',
   ProjectEmployee: 'ProjectEmployee',
   Client: 'Client',
   Contact: 'Contact',
@@ -151,11 +152,30 @@ export const EmployeeScalarFieldEnum = {
   cinCardBackImage: 'cinCardBackImage',
   addedById: 'addedById',
   isActive: 'isActive',
+  dailyRate: 'dailyRate',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type EmployeeScalarFieldEnum = (typeof EmployeeScalarFieldEnum)[keyof typeof EmployeeScalarFieldEnum]
+
+
+export const EmployeeTimeEntryScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  projectId: 'projectId',
+  date: 'date',
+  days: 'days',
+  dailyRateSnapshot: 'dailyRateSnapshot',
+  totalAmount: 'totalAmount',
+  overtimeHours: 'overtimeHours',
+  overtimeRate: 'overtimeRate',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeTimeEntryScalarFieldEnum = (typeof EmployeeTimeEntryScalarFieldEnum)[keyof typeof EmployeeTimeEntryScalarFieldEnum]
 
 
 export const ProjectEmployeeScalarFieldEnum = {
@@ -466,6 +486,7 @@ export const ProjectSpecificationScalarFieldEnum = {
   mimeType: 'mimeType',
   fileSize: 'fileSize',
   storagePath: 'storagePath',
+  extractedText: 'extractedText',
   projectId: 'projectId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -479,6 +500,10 @@ export const ProjectAIAnalysisScalarFieldEnum = {
   status: 'status',
   projectId: 'projectId',
   specificationId: 'specificationId',
+  summary: 'summary',
+  assumptions: 'assumptions',
+  missingInformation: 'missingInformation',
+  rawResponse: 'rawResponse',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

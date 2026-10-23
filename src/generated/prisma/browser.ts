@@ -38,6 +38,11 @@ export type UserSession = Prisma.UserSessionModel
  */
 export type Employee = Prisma.EmployeeModel
 /**
+ * Model EmployeeTimeEntry
+ * 
+ */
+export type EmployeeTimeEntry = Prisma.EmployeeTimeEntryModel
+/**
  * Model ProjectEmployee
  * 
  */
