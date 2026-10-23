@@ -766,7 +766,7 @@ async sendEmail(id: string) {
 
   await transporter.sendMail({
     from: user,
-    to: "hcinlouay@gmail.com",
+    to: recipient,
     subject: `Facture ${invoice.number}`,
     text: [
       `Bonjour ${invoice.client.companyName || ''},`,
@@ -1252,7 +1252,7 @@ async sendReceiptEmail(id: string) {
   try {
     await transporter.sendMail({
       from: SMTP_FROM,
-      to: "hcinlouay@gmail.com",
+      to: recipientEmail,
       subject: `Votre reçu de paiement ${receiptNumber} — L.I.M.`,
       text:
         `Bonjour ${invoice.client.companyName ?? 'Client'},\n\n` +

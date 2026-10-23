@@ -907,7 +907,7 @@ console.log({
   try {
     await transporter.sendMail({
       from: SMTP_FROM,
-      to: "hcinlouay@gmail.com",
+      to: recipientEmail,
       subject: `Votre devis ${quote.number} — L.I.M.`,
       text:
         `Bonjour ${quote.client.companyName ?? 'Client'},\n\n` +

@@ -1074,7 +1074,7 @@ async sendEmail(id: string) {
   try {
     await transporter.sendMail({
       from: SMTP_FROM,
-      to: "hcinlouay@gmail.com",
+      to: recipientEmail,
       subject: `Votre bon de commande ${order.number} — L.I.M.`,
       text:
         `Bonjour ${order.client.companyName ?? 'Client'},\n\n` +
