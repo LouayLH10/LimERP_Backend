@@ -15,7 +15,7 @@ async function bootstrap() {
 
   // Configuration CORS
   app.enableCors({
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "https://lim-erp.vercel.app/"],
     credentials: true,
   });
 
