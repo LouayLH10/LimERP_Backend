@@ -8,18 +8,10 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
   Res,
   NotFoundException,
-  MaxFileSizeValidator,
-  ParseFilePipe,
-  FileTypeValidator,
 } from '@nestjs/common';
-
-import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
 import type { Response } from 'express';
 import { generateClientTokenFromReadWriteToken } from '@vercel/blob/client';
 
@@ -46,7 +38,6 @@ export class ProjectController {
   // =========================
   // CRUD PROJECTS
   // =========================
-
   @Post()
   create(@Body() createProjectDto: CreateProjectDto) {
     return this.projectService.create(createProjectDto);
@@ -76,55 +67,52 @@ export class ProjectController {
   }
 
   // =========================================================
-  // UPLOAD PROJECT SPECIFICATION (Même logique que CIN)
+  // UPLOAD DIRECT (PRESIGNED URL)
   // =========================================================
 
-  @Post(':id/specification')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: memoryStorage(),
-      limits: { fileSize: 20 * 1024 * 1024 }, // Limite 20 Mo pour Vercel Serverless
-      fileFilter: (_req, file, callback) => {
-        const allowedMimeTypes = [
-          'application/pdf',
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        ];
-        const allowedExtensions = /\.(pdf|docx)$/i;
-
-        if (
-          !allowedMimeTypes.includes(file.mimetype) ||
-          !allowedExtensions.test(file.originalname)
-        ) {
-          return callback(
-            new BadRequestException('Seuls les fichiers PDF et DOCX sont autorisés.'),
-            false,
-          );
-        }
-        callback(null, true);
-      },
-    }),
-  )
-  uploadSpecification(
+  /**
+   * 1. Générer l'URL d'upload sécurisée
+   */
+  @Post(':id/upload-url')
+  async getUploadUrl(
     @Param('id', ParseUUIDPipe) id: string,
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 4 * 1024 * 1024 }),
-          new FileTypeValidator({
-            fileType: /^(application\/pdf|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document)$/,
-          }),
-        ],
-      }),
-    )
-    file: Express.Multer.File,
+    @Body() body: { fileName: string; fileType: string },
   ) {
-    return this.projectAiService.uploadSpecification(id, file);
+    const token = await generateClientTokenFromReadWriteToken({
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+      pathname: `specifications/${body.fileName}`,
+      allowedContentTypes: [
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      ],
+      maximumSizeInBytes: 15 * 1024 * 1024, // 15 Mo
+      validUntil: Date.now() + 300000, // 5 minutes
+    });
+
+    // On renvoie l'URL d'upload générée par Vercel
+    const uploadUrl = `https://blob.vercel-storage.com/specifications/${body.fileName}`;
+
+    return { uploadUrl, token };
+  }
+
+  /**
+   * 2. Traiter le fichier après l'upload direct
+   */
+  @Post(':id/specification/process')
+  async processSpecification(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: { fileName: string; fileType: string },
+  ) {
+    return this.projectAiService.processSpecificationFromVercel(
+      id,
+      body.fileName,
+      body.fileType,
+    );
   }
 
   // =========================================================
   // GET SPECIFICATION FILE (Download)
   // =========================================================
-
   @Get(':id/specification/file')
   async getSpecificationFile(
     @Param('id', ParseUUIDPipe) id: string,
@@ -149,26 +137,8 @@ export class ProjectController {
   }
 
   // =========================
-  // RUN AI ANALYSIS
+  // AI ANALYSIS
   // =========================
-@Post('upload-token')
-async getUploadToken(@Body() body: { pathname: string }) {
-  console.log('Token présent côté backend :', !!process.env.BLOB_READ_WRITE_TOKEN);
-
-  const token = await generateClientTokenFromReadWriteToken({
-    token: process.env.BLOB_READ_WRITE_TOKEN, // 👈 Force l'utilisation du token
-    pathname: body.pathname,
-    allowedContentTypes: [
-      'application/pdf',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    ],
-    maximumSizeInBytes: 15 * 1024 * 1024,
-    validUntil: Date.now() + 300000,
-  });
-  
-  console.log('Token généré avec succès');
-  return { token };
-}
   @Post(':id/ai-analysis')
   analyzeProject(@Param('id', ParseUUIDPipe) id: string) {
     return this.projectAiService.analyzeProject(id);
@@ -185,12 +155,5 @@ async getUploadToken(@Body() body: { pathname: string }) {
     @Param('analysisId', ParseUUIDPipe) analysisId: string,
   ) {
     return this.projectAiService.getAnalysis(id, analysisId);
-  }
-    @Post(':id/specification')
-  saveSpecification(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() payload: { blobUrl: string; originalName: string; mimeType: string; fileSize: number },
-  ) {
-    return this.projectAiService.saveSpecificationFromUrl(id, payload);
   }
 }
