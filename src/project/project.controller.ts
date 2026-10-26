@@ -153,6 +153,8 @@ export class ProjectController {
   // =========================
   @Post('upload-token')
   async getUploadToken(@Body() body: { pathname: string }) {
+      console.log('Token présent côté backend :', !!process.env.BLOB_READ_WRITE_TOKEN);
+
     const token = await generateClientTokenFromReadWriteToken({
       token: process.env.BLOB_READ_WRITE_TOKEN,
       pathname: body.pathname,
