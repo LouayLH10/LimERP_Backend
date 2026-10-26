@@ -14,6 +14,7 @@ import {
 import type { Request } from 'express';
 
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
+import { generateClientTokenFromReadWriteToken } from '@vercel/blob/client';
 
 import { ProjectService } from './project.service';
 import { ProjectAiService } from './project-ai.service';
@@ -77,27 +78,20 @@ export class ProjectController {
    * Appelée par le navigateur du client (via @vercel/blob/client).
    */
   @Post('upload-token')
-  async getUploadToken(
-    @Body() body: HandleUploadBody,
-    @Req() req: Request, // 👈 Récupération de la requête native
-  ) {
-    return await handleUpload({
-      body,
-      // 👈 Cast nécessaire car Express.Request et Web.Request sont différents
-      request: req as unknown as globalThis.Request,
-      onBeforeGenerateToken: async () => ({
-        allowedContentTypes: [
-          'application/pdf',
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        ],
-        maximumSizeInBytes: 15 * 1024 * 1024, 
-         validUntil: Date.now() + 300000, // 15 Mo
-      }),
-      onUploadCompleted: async ({ blob }) => {
-        console.log('[Vercel Blob] Upload terminé avec succès:', blob.url);
-      },
-    });
-  }
+async getUploadToken(@Req() req: Request) {
+  const token = await generateClientTokenFromReadWriteToken({
+    token: process.env.BLOB_READ_WRITE_TOKEN,
+    pathname: req.body.pathname, // Le nom du fichier
+    allowedContentTypes: [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ],
+    maximumSizeInBytes: 15 * 1024 * 1024, // 15 MB
+    validUntil: Date.now() + 300000, // 5 minutes de validité
+  });
+  return { token };
+}
+
 
   /**
    * 2. Route pour sauvegarder les métadonnées de la spécification.
