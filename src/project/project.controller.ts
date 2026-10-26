@@ -11,10 +11,12 @@ import {
   UseGuards,
   Res,
   NotFoundException,
+  Req,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import { generateClientTokenFromReadWriteToken } from '@vercel/blob/client';
-
+import { generateClientTokenFromReadWriteToken} from '@vercel/blob/client';
+import { handleUpload } from '@vercel/blob/client';
+import type { HandleUploadBody } from '@vercel/blob/client';
 import { ProjectService } from './project.service';
 import { ProjectAiService } from './project-ai.service';
 
@@ -73,6 +75,27 @@ export class ProjectController {
   /**
    * 1. Générer l'URL d'upload sécurisée
    */
+  @Post('upload-token')
+async getUploadToken(
+  @Body() body: HandleUploadBody,
+  @Req() req: Request,
+) {
+  return await handleUpload({
+    body,
+    request: req as unknown as globalThis.Request,
+    onBeforeGenerateToken: async () => ({
+      allowedContentTypes: [
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      ],
+      maximumSizeInBytes: 15 * 1024 * 1024,
+      validUntil: Date.now() + 300000, // 5 minutes (important pour les gros fichiers)
+    }),
+    onUploadCompleted: async ({ blob }) => {
+      console.log('Upload terminé:', blob.url);
+    },
+  });
+}
   @Post(':id/upload-url')
   async getUploadUrl(
     @Param('id', ParseUUIDPipe) id: string,
