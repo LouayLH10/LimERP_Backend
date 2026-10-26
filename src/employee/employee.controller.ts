@@ -9,10 +9,12 @@ import {
   UploadedFiles,
   UseGuards,
   UseInterceptors,
+  Res, // 👈 IMPORTANT : Ajout de Res
+  NotFoundException, // 👈 IMPORTANT : Ajout de NotFoundException
 } from '@nestjs/common';
 
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import type { Express } from 'express';
+import type { Express, Response } from 'express'; // 👈 Ajout de Response
 
 import { EmployeesService } from './employee.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
@@ -33,42 +35,33 @@ export class EmployeeController {
   ) {}
 
   // SUPER_ADMIN + ADMIN
-@Post()
-@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
-@UseInterceptors(
-  FileFieldsInterceptor([
-    { name: 'cinCardFrontImage', maxCount: 1 },
-    { name: 'cinCardBackImage', maxCount: 1 },
-  ]),
-)
-create(
-  @Body() createEmployeeDto: CreateEmployeeDto,
-  @UploadedFiles()
-  files: {
-    cinCardFrontImage?: Express.Multer.File[];
-    cinCardBackImage?: Express.Multer.File[];
-  },
-  @CurrentUser() user: any,
-) {
-  console.log('========== CREATE EMPLOYEE ==========');
-  console.log('Content-Type:', 'Vérifie également dans Network');
-  console.log('DTO reçu :', createEmployeeDto);
-  console.log('Fichiers reçus :', files);
-  console.log(
-    'Recto :',
-    files?.cinCardFrontImage?.[0]?.originalname,
-  );
-  console.log(
-    'Verso :',
-    files?.cinCardBackImage?.[0]?.originalname,
-  );
-
-  return this.employeeService.create(
-    createEmployeeDto,
-    user.id,
-    files,
-  );
-}
+  @Post()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'cinCardFrontImage', maxCount: 1 },
+      { name: 'cinCardBackImage', maxCount: 1 },
+    ]),
+  )
+  create(
+    @Body() createEmployeeDto: CreateEmployeeDto,
+    @UploadedFiles()
+    files: {
+      cinCardFrontImage?: Express.Multer.File[];
+      cinCardBackImage?: Express.Multer.File[];
+    },
+    @CurrentUser() user: any,
+  ) {
+    console.log('========== CREATE EMPLOYEE ==========');
+    console.log('DTO reçu :', createEmployeeDto);
+    console.log('Fichiers reçus :', files);
+    
+    return this.employeeService.create(
+      createEmployeeDto,
+      user.id,
+      files,
+    );
+  }
 
   // SUPER_ADMIN + ADMIN
   @Get()
@@ -84,30 +77,79 @@ create(
     return this.employeeService.findOne(id);
   }
 
-  // SUPER_ADMIN + ADMIN
+  // 👇👇👇 LA NOUVELLE ROUTE POUR LES IMAGES CIN 👇👇👇
+  @Get(':id/cin/:side')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  async getCinImage(
+    @Param('id') id: string,
+    @Param('side') side: 'front' | 'back',
+    @Res() res: Response,
+  ) {
+    console.log(`\n=== [BACKEND] Route /employees/${id}/cin/${side} appelée ===`);
 
-@Patch(":id")
-@UseInterceptors(
-  FileFieldsInterceptor([
-    { name: "cinCardFrontImage", maxCount: 1 },
-    { name: "cinCardBackImage", maxCount: 1 },
-  ]),
-)
-update(
-  @Param("id") id: string,
-  @Body() updateEmployeeDto: UpdateEmployeeDto,
-  @UploadedFiles()
-  files: {
-    cinCardFrontImage?: Express.Multer.File[];
-    cinCardBackImage?: Express.Multer.File[];
-  },
-) {
-  return this.employeeService.update(
-    id,
-    updateEmployeeDto,
-    files,
-  );
-}
+    // 1. Récupérer l'employé
+    const employee = await this.employeeService.findOne(id);
+    
+    if (!employee) {
+      throw new NotFoundException('Employé introuvable');
+    }
+
+    // 2. Déterminer quelle image récupérer
+    const imageUrl =
+      side === 'front'
+        ? employee.cinCardFrontImage
+        : employee.cinCardBackImage;
+
+    console.log(`[BACKEND] URL en base pour ${side} :`, imageUrl);
+
+    if (!imageUrl) {
+      console.log(`[BACKEND] ❌ Aucune URL trouvée pour ${side}`);
+      throw new NotFoundException(`Image ${side} introuvable en base`);
+    }
+
+    // 3. Lire le fichier depuis le service
+    try {
+      console.log(`[BACKEND] Lecture du Blob Vercel...`);
+      const buffer = await this.employeeService.getPrivateImage(imageUrl);
+      
+      console.log(`[BACKEND] ✅ Image lue avec succès. Taille : ${buffer.length} bytes`);
+
+      // 4. Envoyer l'image
+      res.setHeader('Content-Type', 'image/jpeg'); // (ou image/png selon le fichier)
+      res.setHeader('Cache-Control', 'private, max-age=86400');
+      res.send(buffer);
+      
+    } catch (error: any) {
+      console.error(`[BACKEND] ❌ Erreur lors de la lecture du Blob :`, error.message);
+      throw new NotFoundException(`Impossible de charger l'image ${side}`);
+    }
+  }
+  // 👆👆👆 FIN DE LA NOUVELLE ROUTE 👆👆👆
+
+  // SUPER_ADMIN + ADMIN
+  @Patch(":id")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: "cinCardFrontImage", maxCount: 1 },
+      { name: "cinCardBackImage", maxCount: 1 },
+    ]),
+  )
+  update(
+    @Param("id") id: string,
+    @Body() updateEmployeeDto: UpdateEmployeeDto,
+    @UploadedFiles()
+    files: {
+      cinCardFrontImage?: Express.Multer.File[];
+      cinCardBackImage?: Express.Multer.File[];
+    },
+  ) {
+    return this.employeeService.update(
+      id,
+      updateEmployeeDto,
+      files,
+    );
+  }
 
   // SUPER_ADMIN + ADMIN
   @Patch(':id/activate')
@@ -123,9 +165,9 @@ update(
     return this.employeeService.deactivate(id);
   }
 
-@Delete(":id")
-delete(@Param("id") id: string) {
-  return this.employeeService.delete(id);
-}
-
+  @Delete(":id")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  delete(@Param("id") id: string) {
+    return this.employeeService.delete(id);
+  }
 }
