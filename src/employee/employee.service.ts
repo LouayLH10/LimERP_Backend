@@ -1,3 +1,4 @@
+
 import {
   BadRequestException,
   Injectable,
@@ -5,28 +6,30 @@ import {
 } from '@nestjs/common';
 
 import { PrismaService } from 'src/prisma/prisma.service';
-
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 
-import { mkdir, writeFile } from 'node:fs/promises';
-import { extname, join } from 'node:path';
+import { put, get, del } from '@vercel/blob';
+import { extname } from 'node:path';
 import { randomUUID } from 'node:crypto';
 
 @Injectable()
 export class EmployeesService {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  // Enregistrer une image sur le serveur
-  private async saveImage(
-    file: Express.Multer.File,
-  ): Promise<string> {
-    if (!file || !file.buffer) {
-      throw new BadRequestException(
-        'Fichier image invalide',
-      );
+  private getBlobToken(): string {
+    const token = process.env.BLOB_READ_WRITE_TOKEN;
+
+    if (!token) {
+      throw new Error('BLOB_READ_WRITE_TOKEN is not configured');
+    }
+
+    return token;
+  }
+
+  private validateImage(file: Express.Multer.File): string {
+    if (!file?.buffer?.length) {
+      throw new BadRequestException('Fichier image invalide');
     }
 
     const allowedMimeTypes = [
@@ -42,7 +45,6 @@ export class EmployeesService {
     }
 
     const extension = extname(file.originalname).toLowerCase();
-
     const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
 
     if (!allowedExtensions.includes(extension)) {
@@ -51,30 +53,49 @@ export class EmployeesService {
       );
     }
 
-    const uploadDirectory = join(
-      process.cwd(),
-      'uploads',
-      'employees',
-    );
-
-    await mkdir(uploadDirectory, {
-      recursive: true,
-    });
-
-    const filename = `${randomUUID()}${extension}`;
-
-    const filePath = join(
-      uploadDirectory,
-      filename,
-    );
-
-    await writeFile(filePath, file.buffer);
-
-    // Chemin relatif enregistré dans la base de données
-    return `uploads/employees/${filename}`;
+    return extension;
   }
 
-  // Créer un employé
+  // Envoyer une image CIN dans Vercel Blob privé.
+  private async saveImage(
+    file: Express.Multer.File,
+  ): Promise<string> {
+    const extension = this.validateImage(file);
+    const token = this.getBlobToken();
+    const filename = `${randomUUID()}${extension}`;
+
+    const blob = await put(
+      `employees/cin/${filename}`,
+      file.buffer,
+      {
+        access: 'private',
+        addRandomSuffix: false,
+        contentType: file.mimetype,
+        token,
+      },
+    );
+
+    return blob.url;
+  }
+
+  // Supprimer une image Blob si elle existe.
+  private async deleteBlobImage(
+    imageUrl?: string | null,
+  ): Promise<void> {
+    if (
+      !imageUrl ||
+      !imageUrl.startsWith('https://') ||
+      !imageUrl.includes('.blob.vercel-storage.com/')
+    ) {
+      // Ne pas essayer de supprimer les anciens chemins locaux.
+      return;
+    }
+
+    await del(imageUrl, {
+      token: this.getBlobToken(),
+    });
+  }
+
   async create(
     createEmployeeDto: CreateEmployeeDto,
     addedById: string,
@@ -85,46 +106,57 @@ export class EmployeesService {
   ) {
     const frontImage = files?.cinCardFrontImage?.[0];
     const backImage = files?.cinCardBackImage?.[0];
-console.log(frontImage)
+
     if (!frontImage || !backImage) {
       throw new BadRequestException(
         'Les deux images de la CIN sont obligatoires',
       );
     }
 
-    // Enregistrer les fichiers avant de sauvegarder leurs chemins
-    const frontImagePath = await this.saveImage(frontImage);
-    const backImagePath = await this.saveImage(backImage);
+    // Vérifier les deux images avant de les envoyer.
+    this.validateImage(frontImage);
+    this.validateImage(backImage);
 
-    return this.prisma.employee.create({
-      data: {
-        ...createEmployeeDto,
+    let frontImageUrl: string | undefined;
+    let backImageUrl: string | undefined;
 
-        // Remplacer les éventuelles valeurs reçues par les chemins
-        cinCardFrontImage: frontImagePath,
-        cinCardBackImage: backImagePath,
+    try {
+      frontImageUrl = await this.saveImage(frontImage);
+      backImageUrl = await this.saveImage(backImage);
 
-        addedById,
-      },
-      include: {
-        addedBy: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            role: true,
+      return await this.prisma.employee.create({
+        data: {
+          ...createEmployeeDto,
+          cinCardFrontImage: frontImageUrl,
+          cinCardBackImage: backImageUrl,
+          addedById,
+        },
+        include: {
+          addedBy: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              role: true,
+            },
           },
         },
-      },
-    });
+      });
+    } catch (error) {
+      // Éviter de conserver les images si la création échoue.
+      await Promise.allSettled([
+        this.deleteBlobImage(frontImageUrl),
+        this.deleteBlobImage(backImageUrl),
+      ]);
+
+      throw error;
+    }
   }
 
   async findAll() {
     return this.prisma.employee.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: { createdAt: 'desc' },
       include: {
         addedBy: {
           select: {
@@ -140,10 +172,8 @@ console.log(frontImage)
   }
 
   async findOne(id: string) {
-    return this.prisma.employee.findUnique({
-      where: {
-        id,
-      },
+    const employee = await this.prisma.employee.findUnique({
+      where: { id },
       include: {
         addedBy: {
           select: {
@@ -156,73 +186,106 @@ console.log(frontImage)
         },
       },
     });
+
+    if (!employee) {
+      throw new NotFoundException('Employé introuvable');
+    }
+
+    return employee;
   }
 
-
-async update(
-  id: string,
-  updateEmployeeDto: UpdateEmployeeDto,
-  files?: {
-    cinCardFrontImage?: Express.Multer.File[];
-    cinCardBackImage?: Express.Multer.File[];
-  },
-) {
-  const employee = await this.prisma.employee.findUnique({
-    where: { id },
-  });
-
-  if (!employee) {
-    throw new NotFoundException("Employé introuvable");
-  }
-
-  const frontFile = files?.cinCardFrontImage?.[0];
-  const backFile = files?.cinCardBackImage?.[0];
-
-  // Ne remplacer les images que si de nouveaux fichiers sont envoyés.
-  const frontImagePath = frontFile
-    ? await this.saveImage(frontFile)
-    : undefined;
-
-  const backImagePath = backFile
-    ? await this.saveImage(backFile)
-    : undefined;
-
-  return this.prisma.employee.update({
-    where: { id },
-    data: {
-      ...updateEmployeeDto,
-
-      ...(frontImagePath
-        ? { cinCardFrontImage: frontImagePath }
-        : {}),
-
-      ...(backImagePath
-        ? { cinCardBackImage: backImagePath }
-        : {}),
+  async update(
+    id: string,
+    updateEmployeeDto: UpdateEmployeeDto,
+    files?: {
+      cinCardFrontImage?: Express.Multer.File[];
+      cinCardBackImage?: Express.Multer.File[];
     },
-    include: {
-      addedBy: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          role: true,
+  ) {
+    const employee = await this.prisma.employee.findUnique({
+      where: { id },
+    });
+
+    if (!employee) {
+      throw new NotFoundException('Employé introuvable');
+    }
+
+    const frontFile = files?.cinCardFrontImage?.[0];
+    const backFile = files?.cinCardBackImage?.[0];
+
+    if (frontFile) this.validateImage(frontFile);
+    if (backFile) this.validateImage(backFile);
+
+    let newFrontUrl: string | undefined;
+    let newBackUrl: string | undefined;
+
+    try {
+      if (frontFile) {
+        newFrontUrl = await this.saveImage(frontFile);
+      }
+
+      if (backFile) {
+        newBackUrl = await this.saveImage(backFile);
+      }
+
+      const updatedEmployee = await this.prisma.employee.update({
+        where: { id },
+        data: {
+          ...updateEmployeeDto,
+          ...(newFrontUrl
+            ? { cinCardFrontImage: newFrontUrl }
+            : {}),
+          ...(newBackUrl
+            ? { cinCardBackImage: newBackUrl }
+            : {}),
         },
-      },
-    },
-  });
-}
+        include: {
+          addedBy: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              role: true,
+            },
+          },
+        },
+      });
 
+      // Supprimer les anciennes images seulement après la mise à jour.
+      await Promise.allSettled([
+        newFrontUrl
+          ? this.deleteBlobImage(employee.cinCardFrontImage)
+          : Promise.resolve(),
+        newBackUrl
+          ? this.deleteBlobImage(employee.cinCardBackImage)
+          : Promise.resolve(),
+      ]);
+
+      return updatedEmployee;
+    } catch (error) {
+      // Si la mise à jour échoue, supprimer les nouveaux fichiers.
+      await Promise.allSettled([
+        this.deleteBlobImage(newFrontUrl),
+        this.deleteBlobImage(newBackUrl),
+      ]);
+
+      throw error;
+    }
+  }
 
   async deactivate(id: string) {
+    const employee = await this.prisma.employee.findUnique({
+      where: { id },
+    });
+
+    if (!employee) {
+      throw new NotFoundException('Employé introuvable');
+    }
+
     return this.prisma.employee.update({
-      where: {
-        id,
-      },
-      data: {
-        isActive: false,
-      },
+      where: { id },
+      data: { isActive: false },
       include: {
         addedBy: {
           select: {
@@ -238,13 +301,17 @@ async update(
   }
 
   async activate(id: string) {
+    const employee = await this.prisma.employee.findUnique({
+      where: { id },
+    });
+
+    if (!employee) {
+      throw new NotFoundException('Employé introuvable');
+    }
+
     return this.prisma.employee.update({
-      where: {
-        id,
-      },
-      data: {
-        isActive: true,
-      },
+      where: { id },
+      data: { isActive: true },
       include: {
         addedBy: {
           select: {
@@ -258,23 +325,55 @@ async update(
       },
     });
   }
-  
-async delete(id: string) {
-  const employee = await this.prisma.employee.findUnique({
-    where: { id },
-  });
 
-  if (!employee) {
-    throw new NotFoundException("Employé introuvable");
+  async delete(id: string) {
+    const employee = await this.prisma.employee.findUnique({
+      where: { id },
+    });
+
+    if (!employee) {
+      throw new NotFoundException('Employé introuvable');
+    }
+
+    await this.prisma.employee.delete({
+      where: { id },
+    });
+
+    await Promise.allSettled([
+      this.deleteBlobImage(employee.cinCardFrontImage),
+      this.deleteBlobImage(employee.cinCardBackImage),
+    ]);
+
+    return {
+      message: 'Employé supprimé avec succès',
+      id,
+    };
   }
 
-  await this.prisma.employee.delete({
-    where: { id },
-  });
+  // Lecture d'une image privée : à exposer via une route protégée.
+  async getPrivateImage(imageUrl: string): Promise<Buffer> {
+    if (
+      !imageUrl.startsWith('https://') ||
+      !imageUrl.includes('.blob.vercel-storage.com/')
+    ) {
+      throw new BadRequestException('URL Blob invalide');
+    }
 
-  return {
-    message: "Employé supprimé avec succès",
-    id,
-  };
-}
+    const result = await get(imageUrl, {
+      access: 'private',
+      token: this.getBlobToken(),
+    });
+
+    if (!result || result.statusCode !== 200 || !result.stream) {
+      throw new NotFoundException('Image introuvable');
+    }
+
+    const chunks: Buffer[] = [];
+
+    for await (const chunk of result.stream) {
+      chunks.push(Buffer.from(chunk));
+    }
+
+    return Buffer.concat(chunks);
+  }
 }
