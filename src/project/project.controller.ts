@@ -151,22 +151,24 @@ export class ProjectController {
   // =========================
   // RUN AI ANALYSIS
   // =========================
-  @Post('upload-token')
-  async getUploadToken(@Body() body: { pathname: string }) {
-      console.log('Token présent côté backend :', !!process.env.BLOB_READ_WRITE_TOKEN);
+@Post('upload-token')
+async getUploadToken(@Body() body: { pathname: string }) {
+  console.log('Token présent côté backend :', !!process.env.BLOB_READ_WRITE_TOKEN);
 
-    const token = await generateClientTokenFromReadWriteToken({
-      token: process.env.BLOB_READ_WRITE_TOKEN,
-      pathname: body.pathname,
-      allowedContentTypes: [
-        'application/pdf',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      ],
-      maximumSizeInBytes: 15 * 1024 * 1024, // 15 Mo (autorisé pour le client upload)
-      validUntil: Date.now() + 300000, // 5 minutes
-    });
-    return { token };
-  }
+  const token = await generateClientTokenFromReadWriteToken({
+    token: process.env.BLOB_READ_WRITE_TOKEN, // 👈 Force l'utilisation du token
+    pathname: body.pathname,
+    allowedContentTypes: [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ],
+    maximumSizeInBytes: 15 * 1024 * 1024,
+    validUntil: Date.now() + 300000,
+  });
+  
+  console.log('Token généré avec succès');
+  return { token };
+}
   @Post(':id/ai-analysis')
   analyzeProject(@Param('id', ParseUUIDPipe) id: string) {
     return this.projectAiService.analyzeProject(id);
