@@ -478,19 +478,19 @@ async uploadVersion(
   const safeFileName = file.originalname
     .replace(/[^a-zA-Z0-9._-]/g, '_');
 
-  const blob = await put(
-    `templates/${templateId}/v${nextVersion}-${safeFileName}`,
-    file.buffer,
-    {
-      access: 'public',
-      addRandomSuffix: true,
-      contentType:
-        extension === 'html'
-          ? 'text/html; charset=utf-8'
-          : 'text/plain; charset=utf-8',
-      token: process.env.BLOB_READ_WRITE_TOKEN,
-    },
-  );
+const blob = await put(
+  `templates/${templateId}/v${nextVersion}-${safeFileName}`,
+  file.buffer,
+  {
+    access: 'private',
+    addRandomSuffix: true,
+    contentType:
+      extension === 'html'
+        ? 'text/html; charset=utf-8'
+        : 'text/plain; charset=utf-8',
+    token: process.env.BLOB_READ_WRITE_TOKEN,
+  },
+);
 
   try {
     const version = await this.prisma.templateVersion.create({
