@@ -90,7 +90,8 @@ export class ProjectController {
           'application/pdf',
           'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         ],
-        maximumSizeInBytes: 15 * 1024 * 1024, // 15 Mo
+        maximumSizeInBytes: 15 * 1024 * 1024, 
+         validUntil: Date.now() + 300000, // 15 Mo
       }),
       onUploadCompleted: async ({ blob }) => {
         console.log('[Vercel Blob] Upload terminé avec succès:', blob.url);
