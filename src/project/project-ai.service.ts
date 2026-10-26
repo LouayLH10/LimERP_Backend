@@ -59,7 +59,7 @@ type AIResult = {
   quote?: AIQuote | null;
 };
 
-// 👈 Nouveau type pour les données reçues du front
+// 👈 Type exporté pour le contrôleur
 export type SaveSpecificationPayload = {
   blobUrl: string;
   originalName: string;
@@ -129,6 +129,8 @@ export class ProjectAiService {
 
     try {
       console.log(`[Project AI] Téléchargement du fichier depuis Vercel Blob : ${blobUrl}`);
+      
+      // On utilise fetch car l'URL est publique (définie dans le front avec access: 'public')
       const response = await fetch(blobUrl);
       
       if (!response.ok) {
@@ -225,8 +227,6 @@ export class ProjectAiService {
         extractedCharacters: extractedText.length,
       };
     } catch (error) {
-      // En cas d'erreur en base, on ne supprime PAS le blob ici car le client l'a déjà uploadé
-      // et on ne veut pas casser le lien si l'utilisateur réessaie.
       throw error;
     }
   }
