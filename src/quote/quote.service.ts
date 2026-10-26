@@ -12,10 +12,9 @@ import { CreateQuoteDto } from './dto/create-quote.dto';
 import { UpdateQuoteDto } from './dto/update-quote.dto';
 
 import Handlebars from 'handlebars';
-import puppeteer from 'puppeteer-core';
 import chromium from '@sparticuz/chromium';
 import nodemailer from 'nodemailer';
-import { get } from '@vercel/blob'; // 👈 Import pour Vercel Blob
+import { get } from '@vercel/blob';
 
 @Injectable()
 export class QuotesService {
@@ -414,7 +413,7 @@ export class QuotesService {
       throw new ConflictException('Le modèle de devis par défaut ne possède aucune version.');
     }
 
-    // 3. Lire le template depuis Vercel Blob (au lieu du système local)
+    // 3. Lire le template depuis Vercel Blob
     let templateSource: string;
 
     if (
@@ -505,13 +504,21 @@ export class QuotesService {
     const compiledTemplate = Handlebars.compile(templateSource);
     const html = compiledTemplate(templateData);
 
-    // 7. Générer le PDF avec Puppeteer
- const browser = await puppeteer.launch({
-  args: chromium.args,
-  defaultViewport: { width: 1200, height: 800 }, // 👈 Valeur manuelle
-  executablePath: await chromium.executablePath(),
+    // =========================================================
+    // 7. Générer le PDF avec Puppeteer (Importation dynamique)
+    // =========================================================
+    // 👇 On utilise await import() pour charger le module ESM
+    const puppeteer = (await import('puppeteer-core')).default;
+    
+    // Si chromium est aussi un module ESM, on fait pareil :
+    const chromiumModule = (await import('@sparticuz/chromium')).default;
 
-});
+    const browser = await puppeteer.launch({
+      args: chromiumModule.args,
+      defaultViewport: { width: 1200, height: 800 }, // 👈 Valeur manuelle
+      executablePath: await chromiumModule.executablePath(),
+    });
+
     try {
       const page = await browser.newPage();
       await page.setContent(html, { waitUntil: 'load' });
