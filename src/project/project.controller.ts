@@ -8,17 +8,22 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  UploadedFile,
   UseGuards,
-  Req,
+  UseInterceptors,
+  Res,
+  NotFoundException,
+  MaxFileSizeValidator,
+  ParseFilePipe,
+  FileTypeValidator,
 } from '@nestjs/common';
-import type { Request } from 'express';
 
-import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
-import { generateClientTokenFromReadWriteToken } from '@vercel/blob/client';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
+import type { Response } from 'express';
 
 import { ProjectService } from './project.service';
 import { ProjectAiService } from './project-ai.service';
-import type { SaveSpecificationPayload } from './project-ai.service';
 
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
@@ -70,46 +75,80 @@ export class ProjectController {
   }
 
   // =========================================================
-  // UPLOAD PROJECT SPECIFICATION (NOUVELLE ARCHITECTURE)
+  // UPLOAD PROJECT SPECIFICATION (Même logique que CIN)
   // =========================================================
 
-  /**
-   * 1. Route pour générer le token d'upload direct vers Vercel Blob.
-   * Appelée par le navigateur du client (via @vercel/blob/client).
-   */
-@Post('upload-token')
-async getUploadToken(@Body() body: { pathname: string }) {
-  // 👇 On passe explicitement le token pour éviter tout conflit
-  const token = await generateClientTokenFromReadWriteToken({
-    token: process.env.BLOB_READ_WRITE_TOKEN, 
-    pathname: body.pathname,
-    allowedContentTypes: [
-      'application/pdf',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    ],
-    maximumSizeInBytes: 15 * 1024 * 1024,
-    validUntil: Date.now() + 300000,
-  });
-  
-  return { token };
-}
-
-
-  /**
-   * 2. Route pour sauvegarder les métadonnées de la spécification.
-   * Reçoit l'URL du fichier déjà uploadé sur Vercel Blob (pas le fichier binaire).
-   */
   @Post(':id/specification')
-  saveSpecification(
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: { fileSize: 20 * 1024 * 1024 }, // Limite 20 Mo pour Vercel Serverless
+      fileFilter: (_req, file, callback) => {
+        const allowedMimeTypes = [
+          'application/pdf',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ];
+        const allowedExtensions = /\.(pdf|docx)$/i;
+
+        if (
+          !allowedMimeTypes.includes(file.mimetype) ||
+          !allowedExtensions.test(file.originalname)
+        ) {
+          return callback(
+            new BadRequestException('Seuls les fichiers PDF et DOCX sont autorisés.'),
+            false,
+          );
+        }
+        callback(null, true);
+      },
+    }),
+  )
+  uploadSpecification(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() payload: SaveSpecificationPayload,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 4 * 1024 * 1024 }),
+          new FileTypeValidator({
+            fileType: /^(application\/pdf|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document)$/,
+          }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
   ) {
-    return this.projectAiService.saveSpecificationFromUrl(id, payload);
+    return this.projectAiService.uploadSpecification(id, file);
+  }
+
+  // =========================================================
+  // GET SPECIFICATION FILE (Download)
+  // =========================================================
+
+  @Get(':id/specification/file')
+  async getSpecificationFile(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Res() res: Response,
+  ) {
+    const specification = await this.projectAiService.getSpecification(id);
+
+    if (!specification || !specification.storagePath) {
+      throw new NotFoundException('Cahier des charges introuvable');
+    }
+
+    try {
+      const buffer = await this.projectAiService.getPrivateFile(specification.storagePath);
+      
+      res.setHeader('Content-Type', specification.mimeType);
+      res.setHeader('Content-Disposition', `inline; filename="${specification.originalName}"`);
+      res.setHeader('Cache-Control', 'private, max-age=86400');
+      res.send(buffer);
+    } catch (error) {
+      throw new NotFoundException('Impossible de charger le fichier');
+    }
   }
 
   // =========================
   // RUN AI ANALYSIS
-  // POST /projects/:id/ai-analysis
   // =========================
 
   @Post(':id/ai-analysis')
@@ -117,20 +156,10 @@ async getUploadToken(@Body() body: { pathname: string }) {
     return this.projectAiService.analyzeProject(id);
   }
 
-  // =========================
-  // GET ALL PROJECT AI ANALYSES
-  // GET /projects/:id/ai-analysis
-  // =========================
-
   @Get(':id/ai-analysis')
   getProjectAnalyses(@Param('id', ParseUUIDPipe) id: string) {
     return this.projectAiService.getProjectAnalyses(id);
   }
-
-  // =========================
-  // GET ONE AI ANALYSIS
-  // GET /projects/:id/ai-analysis/:analysisId
-  // =========================
 
   @Get(':id/ai-analysis/:analysisId')
   getAnalysis(

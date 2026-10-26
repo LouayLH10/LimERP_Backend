@@ -9,7 +9,7 @@ import { randomUUID } from 'crypto';
 import { extname } from 'path';
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
-import { del } from '@vercel/blob';
+import { put, get, del } from '@vercel/blob';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { EmployeePosition } from '../generated/prisma/enums';
@@ -59,14 +59,6 @@ type AIResult = {
   quote?: AIQuote | null;
 };
 
-// 👈 Type exporté pour le contrôleur
-export type SaveSpecificationPayload = {
-  blobUrl: string;
-  originalName: string;
-  mimeType: string;
-  fileSize: number;
-};
-
 @Injectable()
 export class ProjectAiService {
   private readonly groqBaseUrl = 'https://api.groq.com/openai/v1';
@@ -99,15 +91,13 @@ export class ProjectAiService {
   }
 
   /**
-   * Enregistrer un cahier des charges dont le fichier a déjà été uploadé sur Vercel Blob.
+   * Upload et enregistrement du cahier des charges (Même logique que CIN)
    */
-  async saveSpecificationFromUrl(
-    projectId: string,
-    payload: SaveSpecificationPayload,
-  ) {
-    const { blobUrl, originalName, mimeType, fileSize } = payload;
+  async uploadSpecification(projectId: string, file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('Aucun fichier reçu.');
+    }
 
-    // 1. Vérifier que le projet existe
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
       select: { id: true },
@@ -117,118 +107,138 @@ export class ProjectAiService {
       throw new NotFoundException('Projet introuvable.');
     }
 
-    // 2. Vérifier l'extension du fichier
-    const extension = extname(originalName).toLowerCase();
+    const extension = extname(file.originalname).toLowerCase();
     if (!['.pdf', '.docx'].includes(extension)) {
       throw new BadRequestException('Formats acceptés : PDF et DOCX.');
     }
 
-    // 3. Télécharger le fichier depuis Vercel Blob pour extraire le texte
     let extractedText = '';
-    let fileBuffer: Buffer;
-
     try {
-      console.log(`[Project AI] Téléchargement du fichier depuis Vercel Blob : ${blobUrl}`);
-      
-      // On utilise fetch car l'URL est publique (définie dans le front avec access: 'public')
-      const response = await fetch(blobUrl);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status} - ${response.statusText}`);
-      }
-      
-      const arrayBuffer = await response.arrayBuffer();
-      fileBuffer = Buffer.from(arrayBuffer);
-
-      if (!fileBuffer.length) {
-        throw new Error('Le fichier téléchargé est vide.');
-      }
-
-      // Extraire le texte selon le type de fichier
       if (extension === '.pdf') {
-        const pdf = await pdfParse(fileBuffer);
+        const pdf = await pdfParse(file.buffer);
         extractedText = pdf.text?.trim() ?? '';
       } else {
-        const result = await mammoth.extractRawText({ buffer: fileBuffer });
+        const result = await mammoth.extractRawText({ buffer: file.buffer });
         extractedText = result.value.trim();
       }
-    } catch (error: any) {
-      console.error('[Project AI] Erreur lors du traitement du document :', error);
-      throw new BadRequestException(
-        'Impossible de lire le document depuis Vercel Blob. Vérifie que le fichier est valide.',
-      );
+    } catch (error) {
+      console.error('[Project AI] Erreur de lecture du document :', error);
+      throw new BadRequestException('Impossible de lire le document.');
     }
 
     if (!extractedText) {
       throw new BadRequestException(
-        'Aucun texte extractible. Si le PDF est scanné, un OCR sera nécessaire.',
+        'Aucun texte extractible. Un OCR peut être nécessaire.',
       );
     }
 
-    // 4. Sauvegarder en base de données
+    // Upload vers Vercel Blob (Privé)
+    let blobUrl: string;
+    try {
+      const filename = `specifications/${randomUUID()}${extension}`;
+      const blob = await put(filename, file.buffer, {
+        access: 'private',
+        addRandomSuffix: false,
+        contentType: file.mimetype,
+        token: this.getBlobToken(),
+      });
+      blobUrl = blob.url;
+    } catch (error: any) {
+      console.error('[Project AI] Erreur upload Vercel Blob:', error);
+      throw new InternalServerErrorException(
+        "Impossible d'envoyer le fichier sur Vercel.",
+      );
+    }
+
     try {
       const previous = await this.prisma.projectSpecification.findUnique({
         where: { projectId },
         select: { id: true, storagePath: true },
       });
 
-      const generatedFileName = blobUrl.split('/').pop() || `${randomUUID()}${extension}`;
-
       const specification = await this.prisma.$transaction(async (tx) => {
-        // Supprimer les anciennes analyses IA liées à l'ancien cahier des charges
         await tx.projectAIAnalysis.deleteMany({ where: { projectId } });
+
+        const generatedFileName =
+          blobUrl.split('/').pop() || `${randomUUID()}${extension}`;
 
         return tx.projectSpecification.upsert({
           where: { projectId },
           create: {
             projectId,
             fileName: generatedFileName,
-            originalName,
-            mimeType,
-            fileSize,
+            originalName: file.originalname,
+            mimeType: file.mimetype,
+            fileSize: file.size,
             storagePath: blobUrl,
             extractedText,
           },
           update: {
             fileName: generatedFileName,
-            originalName,
-            mimeType,
-            fileSize,
+            originalName: file.originalname,
+            mimeType: file.mimetype,
+            fileSize: file.size,
             storagePath: blobUrl,
             extractedText,
-          },
-          select: {
-            id: true,
-            projectId: true,
-            fileName: true,
-            originalName: true,
-            mimeType: true,
-            fileSize: true,
-            createdAt: true,
-            updatedAt: true,
           },
         });
       });
 
-      // 5. Nettoyer l'ancien fichier sur Vercel si nécessaire
+      // Nettoyage de l'ancien fichier
       if (previous?.storagePath && previous.storagePath !== blobUrl) {
         if (previous.storagePath.includes('.blob.vercel-storage.com/')) {
-          await del(previous.storagePath, {
-            token: this.getBlobToken(),
-          }).catch((err) => {
-            console.warn('[Project AI] Impossible de supprimer l\'ancien Blob:', err.message);
-          });
+          await del(previous.storagePath, { token: this.getBlobToken() }).catch(
+            () => {},
+          );
         }
       }
 
       return {
-        message: 'Cahier des charges enregistré et texte extrait.',
+        message: 'Cahier des charges importé.',
         specification,
         extractedCharacters: extractedText.length,
       };
     } catch (error) {
+      await del(blobUrl, { token: this.getBlobToken() }).catch(() => {});
       throw error;
     }
+  }
+
+  /**
+   * Récupérer les infos d'une spécification
+   */
+  async getSpecification(projectId: string) {
+    return this.prisma.projectSpecification.findUnique({
+      where: { projectId },
+    });
+  }
+
+  /**
+   * Télécharger un fichier privé depuis Vercel Blob (Même logique que CIN)
+   */
+  async getPrivateFile(fileUrl: string): Promise<Buffer> {
+    if (
+      !fileUrl.startsWith('https://') ||
+      !fileUrl.includes('.blob.vercel-storage.com/')
+    ) {
+      throw new BadRequestException('URL Blob invalide');
+    }
+
+    const result = await get(fileUrl, {
+      access: 'private',
+      token: this.getBlobToken(),
+    });
+
+    if (!result || result.statusCode !== 200 || !result.stream) {
+      throw new NotFoundException('Fichier introuvable');
+    }
+
+    const chunks: Buffer[] = [];
+    for await (const chunk of result.stream) {
+      chunks.push(Buffer.from(chunk));
+    }
+
+    return Buffer.concat(chunks);
   }
 
   /**
@@ -576,9 +586,7 @@ Fin du cahier des charges.
   /**
    * Appel Groq pour générer le devis à partir du résumé de l'analyse.
    */
-  private async callGroqForQuote(
-    analysis: AIResult,
-  ): Promise<AIQuote> {
+  private async callGroqForQuote(analysis: AIResult): Promise<AIQuote> {
     const apiKey = this.getGroqApiKey();
     const url = `${this.groqBaseUrl}/chat/completions`;
 
@@ -717,7 +725,10 @@ Règles :
     }
 
     if (payload.error?.message) {
-      console.error('[Groq] Erreur signalée par le serveur :', payload.error.message);
+      console.error(
+        '[Groq] Erreur signalée par le serveur :',
+        payload.error.message,
+      );
       throw new InternalServerErrorException(
         'Groq a signalé une erreur pendant la génération.',
       );
@@ -726,7 +737,9 @@ Règles :
     const content = payload.choices?.[0]?.message?.content;
     if (!content?.trim()) {
       console.error('[Groq] Réponse reçue sans contenu exploitable.', payload);
-      throw new InternalServerErrorException('Groq a retourné une réponse vide.');
+      throw new InternalServerErrorException(
+        'Groq a retourné une réponse vide.',
+      );
     }
 
     try {
@@ -734,7 +747,10 @@ Règles :
       console.log('[Groq] JSON décodé avec succès.');
       return parsed;
     } catch (error) {
-      console.error('[Groq] Le contenu généré n’est pas un JSON valide :', error);
+      console.error(
+        '[Groq] Le contenu généré n’est pas un JSON valide :',
+        error,
+      );
       console.error('[Groq] Début du contenu reçu :', content.slice(0, 1500));
       throw new InternalServerErrorException(
         'La réponse de Groq ne contient pas de JSON valide. Essaie de relancer l’analyse.',
