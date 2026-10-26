@@ -12,7 +12,7 @@ import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { put, get, del } from '@vercel/blob';
 import { extname } from 'node:path';
 import { randomUUID } from 'node:crypto';
-
+import {Multer} from 'multer';
 @Injectable()
 export class EmployeesService {
   constructor(private readonly prisma: PrismaService) {}

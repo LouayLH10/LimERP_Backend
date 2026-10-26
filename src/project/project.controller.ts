@@ -77,18 +77,20 @@ export class ProjectController {
    * 1. Route pour générer le token d'upload direct vers Vercel Blob.
    * Appelée par le navigateur du client (via @vercel/blob/client).
    */
-  @Post('upload-token')
-async getUploadToken(@Req() req: Request) {
+@Post('upload-token')
+async getUploadToken(@Body() body: { pathname: string }) {
+  // 👇 On passe explicitement le token pour éviter tout conflit
   const token = await generateClientTokenFromReadWriteToken({
-    token: process.env.BLOB_READ_WRITE_TOKEN,
-    pathname: req.body.pathname, // Le nom du fichier
+    token: process.env.BLOB_READ_WRITE_TOKEN, 
+    pathname: body.pathname,
     allowedContentTypes: [
       'application/pdf',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ],
-    maximumSizeInBytes: 15 * 1024 * 1024, // 15 MB
-    validUntil: Date.now() + 300000, // 5 minutes de validité
+    maximumSizeInBytes: 15 * 1024 * 1024,
+    validUntil: Date.now() + 300000,
   });
+  
   return { token };
 }
 
