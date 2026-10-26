@@ -9,7 +9,7 @@ import { randomUUID } from 'crypto';
 import { extname } from 'path';
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
-import { put, del } from '@vercel/blob';
+import { del } from '@vercel/blob';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { EmployeePosition } from '../generated/prisma/enums';
@@ -59,6 +59,14 @@ type AIResult = {
   quote?: AIQuote | null;
 };
 
+// 👈 Nouveau type pour les données reçues du front
+export type SaveSpecificationPayload = {
+  blobUrl: string;
+  originalName: string;
+  mimeType: string;
+  fileSize: number;
+};
+
 @Injectable()
 export class ProjectAiService {
   private readonly groqBaseUrl = 'https://api.groq.com/openai/v1';
@@ -91,16 +99,15 @@ export class ProjectAiService {
   }
 
   /**
-   * Importer un cahier des charges PDF ou DOCX.
+   * Enregistrer un cahier des charges dont le fichier a déjà été uploadé sur Vercel Blob.
    */
-  async uploadSpecification(
+  async saveSpecificationFromUrl(
     projectId: string,
-    file: Express.Multer.File,
+    payload: SaveSpecificationPayload,
   ) {
-    if (!file) {
-      throw new BadRequestException('Aucun fichier reçu.');
-    }
+    const { blobUrl, originalName, mimeType, fileSize } = payload;
 
+    // 1. Vérifier que le projet existe
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
       select: { id: true },
@@ -110,27 +117,43 @@ export class ProjectAiService {
       throw new NotFoundException('Projet introuvable.');
     }
 
-    const extension = extname(file.originalname).toLowerCase();
+    // 2. Vérifier l'extension du fichier
+    const extension = extname(originalName).toLowerCase();
     if (!['.pdf', '.docx'].includes(extension)) {
       throw new BadRequestException('Formats acceptés : PDF et DOCX.');
     }
-    if (!file.buffer?.length) {
-      throw new BadRequestException('Le fichier est vide.');
-    }
 
+    // 3. Télécharger le fichier depuis Vercel Blob pour extraire le texte
     let extractedText = '';
+    let fileBuffer: Buffer;
+
     try {
+      console.log(`[Project AI] Téléchargement du fichier depuis Vercel Blob : ${blobUrl}`);
+      const response = await fetch(blobUrl);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} - ${response.statusText}`);
+      }
+      
+      const arrayBuffer = await response.arrayBuffer();
+      fileBuffer = Buffer.from(arrayBuffer);
+
+      if (!fileBuffer.length) {
+        throw new Error('Le fichier téléchargé est vide.');
+      }
+
+      // Extraire le texte selon le type de fichier
       if (extension === '.pdf') {
-        const pdf = await pdfParse(file.buffer);
+        const pdf = await pdfParse(fileBuffer);
         extractedText = pdf.text?.trim() ?? '';
       } else {
-        const result = await mammoth.extractRawText({ buffer: file.buffer });
+        const result = await mammoth.extractRawText({ buffer: fileBuffer });
         extractedText = result.value.trim();
       }
-    } catch (error) {
-      console.error('[Project AI] Erreur de lecture du document :', error);
+    } catch (error: any) {
+      console.error('[Project AI] Erreur lors du traitement du document :', error);
       throw new BadRequestException(
-        'Impossible de lire le document. Vérifie que le fichier n’est pas endommagé.',
+        'Impossible de lire le document depuis Vercel Blob. Vérifie que le fichier est valide.',
       );
     }
 
@@ -140,57 +163,35 @@ export class ProjectAiService {
       );
     }
 
-    // Upload vers Vercel Blob
-    let blobUrl: string;
-    try {
-      const blobFileName = `specifications/${randomUUID()}${extension}`;
-      
-      console.log(`[Project AI] Upload du cahier des charges vers Vercel Blob: ${blobFileName}`);
-      
-      const blob = await put(blobFileName, file.buffer, {
-        access: 'public', // ou 'private' selon vos besoins
-        addRandomSuffix: false,
-        contentType: file.mimetype,
-        token: this.getBlobToken(),
-      });
-
-      blobUrl = blob.url;
-      console.log(`[Project AI] ✅ Fichier uploadé avec succès: ${blobUrl}`);
-    } catch (error: any) {
-      console.error('[Project AI] Erreur upload Vercel Blob:', error);
-      throw new InternalServerErrorException(
-        "Impossible d'envoyer le fichier sur Vercel Blob.",
-      );
-    }
-
+    // 4. Sauvegarder en base de données
     try {
       const previous = await this.prisma.projectSpecification.findUnique({
         where: { projectId },
         select: { id: true, storagePath: true },
       });
 
+      const generatedFileName = blobUrl.split('/').pop() || `${randomUUID()}${extension}`;
+
       const specification = await this.prisma.$transaction(async (tx) => {
+        // Supprimer les anciennes analyses IA liées à l'ancien cahier des charges
         await tx.projectAIAnalysis.deleteMany({ where: { projectId } });
-        
-        // Extraire un nom de fichier basé sur l'URL générée par Blob
-        const generatedFileName = blobUrl.split('/').pop() || `${randomUUID()}${extension}`;
 
         return tx.projectSpecification.upsert({
           where: { projectId },
           create: {
             projectId,
             fileName: generatedFileName,
-            originalName: file.originalname,
-            mimeType: file.mimetype,
-            fileSize: file.size,
-            storagePath: blobUrl, // L'URL Vercel est maintenant stockée ici
+            originalName,
+            mimeType,
+            fileSize,
+            storagePath: blobUrl,
             extractedText,
           },
           update: {
             fileName: generatedFileName,
-            originalName: file.originalname,
-            mimeType: file.mimetype,
-            fileSize: file.size,
+            originalName,
+            mimeType,
+            fileSize,
             storagePath: blobUrl,
             extractedText,
           },
@@ -207,7 +208,7 @@ export class ProjectAiService {
         });
       });
 
-      // Nettoyage de l'ancien fichier sur Vercel si existant
+      // 5. Nettoyer l'ancien fichier sur Vercel si nécessaire
       if (previous?.storagePath && previous.storagePath !== blobUrl) {
         if (previous.storagePath.includes('.blob.vercel-storage.com/')) {
           await del(previous.storagePath, {
@@ -219,13 +220,13 @@ export class ProjectAiService {
       }
 
       return {
-        message: 'Cahier des charges importé et texte extrait.',
+        message: 'Cahier des charges enregistré et texte extrait.',
         specification,
         extractedCharacters: extractedText.length,
       };
     } catch (error) {
-      // En cas d'erreur en base de données, supprimer le fichier nouvellement uploadé
-      await del(blobUrl, { token: this.getBlobToken() }).catch(() => undefined);
+      // En cas d'erreur en base, on ne supprime PAS le blob ici car le client l'a déjà uploadé
+      // et on ne veut pas casser le lien si l'utilisateur réessaie.
       throw error;
     }
   }

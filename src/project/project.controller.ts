@@ -1,4 +1,3 @@
-
 import {
   BadRequestException,
   Body,
@@ -9,19 +8,16 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
-  MaxFileSizeValidator,
-  ParseFilePipe,
-  FileTypeValidator,
+  Req,
 } from '@nestjs/common';
+import type { Request } from 'express';
 
-import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
+import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 
 import { ProjectService } from './project.service';
 import { ProjectAiService } from './project-ai.service';
+import type { SaveSpecificationPayload } from './project-ai.service';
 
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
@@ -72,60 +68,46 @@ export class ProjectController {
     return this.projectService.remove(id);
   }
 
-  // =========================
-  // UPLOAD PROJECT SPECIFICATION
-  // POST /projects/:id/specification
-  // =========================
+  // =========================================================
+  // UPLOAD PROJECT SPECIFICATION (NOUVELLE ARCHITECTURE)
+  // =========================================================
 
-  @Post(':id/specification')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: memoryStorage(),
-      limits: {
-        fileSize: 15 * 1024 * 1024, // 15 MB
-      },
-      fileFilter: (_req, file, callback) => {
-        const allowedMimeTypes = [
+  /**
+   * 1. Route pour générer le token d'upload direct vers Vercel Blob.
+   * Appelée par le navigateur du client (via @vercel/blob/client).
+   */
+  @Post('upload-token')
+  async getUploadToken(
+    @Body() body: HandleUploadBody,
+    @Req() req: Request, // 👈 Récupération de la requête native
+  ) {
+    return await handleUpload({
+      body,
+      // 👈 Cast nécessaire car Express.Request et Web.Request sont différents
+      request: req as unknown as globalThis.Request,
+      onBeforeGenerateToken: async () => ({
+        allowedContentTypes: [
           'application/pdf',
           'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        ];
-
-        const allowedExtensions = /\.(pdf|docx)$/i;
-
-        if (
-          !allowedMimeTypes.includes(file.mimetype) ||
-          !allowedExtensions.test(file.originalname)
-        ) {
-          return callback(
-            new BadRequestException(
-              'Seuls les fichiers PDF et DOCX sont autorisés.',
-            ),
-            false,
-          );
-        }
-
-        callback(null, true);
-      },
-    }),
-  )
-  uploadSpecification(
-    @Param('id', ParseUUIDPipe) id: string,
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({
-            maxSize: 15 * 1024 * 1024,
-          }),
-          new FileTypeValidator({
-            fileType:
-              /^(application\/pdf|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document)$/,
-          }),
         ],
+        maximumSizeInBytes: 15 * 1024 * 1024, // 15 Mo
       }),
-    )
-    file: Express.Multer.File,
+      onUploadCompleted: async ({ blob }) => {
+        console.log('[Vercel Blob] Upload terminé avec succès:', blob.url);
+      },
+    });
+  }
+
+  /**
+   * 2. Route pour sauvegarder les métadonnées de la spécification.
+   * Reçoit l'URL du fichier déjà uploadé sur Vercel Blob (pas le fichier binaire).
+   */
+  @Post(':id/specification')
+  saveSpecification(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() payload: SaveSpecificationPayload,
   ) {
-    return this.projectAiService.uploadSpecification(id, file);
+    return this.projectAiService.saveSpecificationFromUrl(id, payload);
   }
 
   // =========================
