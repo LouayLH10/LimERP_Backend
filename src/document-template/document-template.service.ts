@@ -10,12 +10,11 @@ import { DocumentType } from 'src/generated/prisma/enums';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 import * as Handlebars from 'handlebars';
-import { put, del } from '@vercel/blob';
+import { put, del,get } from '@vercel/blob';
 
 import { CreateDocumentTemplateDto } from './dto/create-document-template.dto';
 import { UpdateDocumentTemplateDto } from './dto/update-document-template.dto';
 import { UpdateTemplateStyleDto } from './dto/create-document-template.dto';
-
 @Injectable()
 export class DocumentTemplateService {
   constructor(private readonly prisma: PrismaService) {}
@@ -582,6 +581,7 @@ async remove(id: string) {
 
 
 
+
 async getTemplatePreview(templateId: string): Promise<string> {
   const template = await this.prisma.documentTemplate.findUnique({
     where: { id: templateId },
@@ -608,52 +608,79 @@ async getTemplatePreview(templateId: string): Promise<string> {
 
   const fileUrl = latestVersion.storagePath;
 
-  if (!fileUrl.startsWith('https://')) {
+  // Vérifier que le fichier est stocké sur Vercel Blob.
+  if (
+    !fileUrl.startsWith('https://') ||
+    !fileUrl.includes('.blob.vercel-storage.com/')
+  ) {
     throw new BadRequestException(
-      'Cette version utilise encore un ancien chemin local. Veuillez téléverser à nouveau le fichier.',
+      'Cette version utilise un ancien chemin local. Veuillez téléverser à nouveau le fichier.',
     );
   }
 
-  let response: Response;
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
+
+  if (!token) {
+    throw new Error('BLOB_READ_WRITE_TOKEN is not configured');
+  }
+
+  let source: string;
 
   try {
-    response = await fetch(fileUrl);
+    const result = await get(fileUrl, {
+      access: 'private',
+      token,
+    });
+
+    if (!result || result.statusCode !== 200 || !result.stream) {
+      throw new Error('Le fichier Blob est introuvable ou inaccessible.');
+    }
+
+    const chunks: Buffer[] = [];
+
+    for await (const chunk of result.stream) {
+      chunks.push(Buffer.from(chunk));
+    }
+
+    source = Buffer.concat(chunks).toString('utf8');
   } catch (error) {
-    console.error('Erreur lors de la lecture du template Blob:', error);
+    console.error(
+      '[PREVIEW] Erreur de lecture Vercel Blob :',
+      error,
+    );
 
     throw new BadRequestException(
-      'Impossible de récupérer le fichier du template.',
+      'Impossible de récupérer le fichier privé du template.',
     );
   }
 
-  if (!response.ok) {
+  if (!source.trim()) {
     throw new BadRequestException(
-      `Impossible de lire le fichier Blob (HTTP ${response.status}).`,
+      'Le fichier du template est vide.',
     );
   }
-
-  const source = await response.text();
-
-  let compiled: Handlebars.TemplateDelegate;
 
   try {
-    compiled = Handlebars.compile(source);
+    const compiled = Handlebars.compile(source);
+
+    return compiled({
+      template,
+      style: template.style,
+      company: {
+        name: 'L.I.M.',
+      },
+      preview: true,
+    });
   } catch (error) {
-    console.error('Erreur de compilation Handlebars:', error);
+    console.error(
+      '[PREVIEW] Erreur de compilation Handlebars :',
+      error,
+    );
 
     throw new BadRequestException(
-      'Impossible de compiler le template.',
+      'Impossible de compiler le template. Vérifiez la syntaxe Handlebars.',
     );
   }
-
-  return compiled({
-    template,
-    style: template.style,
-    company: {
-      name: 'L.I.M.',
-    },
-    preview: true,
-  });
 }
 
 }
