@@ -21,6 +21,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import type { Response } from 'express';
+import { generateClientTokenFromReadWriteToken } from '@vercel/blob/client';
 
 import { ProjectService } from './project.service';
 import { ProjectAiService } from './project-ai.service';
@@ -150,7 +151,20 @@ export class ProjectController {
   // =========================
   // RUN AI ANALYSIS
   // =========================
-
+  @Post('upload-token')
+  async getUploadToken(@Body() body: { pathname: string }) {
+    const token = await generateClientTokenFromReadWriteToken({
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+      pathname: body.pathname,
+      allowedContentTypes: [
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      ],
+      maximumSizeInBytes: 15 * 1024 * 1024, // 15 Mo (autorisé pour le client upload)
+      validUntil: Date.now() + 300000, // 5 minutes
+    });
+    return { token };
+  }
   @Post(':id/ai-analysis')
   analyzeProject(@Param('id', ParseUUIDPipe) id: string) {
     return this.projectAiService.analyzeProject(id);
@@ -167,5 +181,12 @@ export class ProjectController {
     @Param('analysisId', ParseUUIDPipe) analysisId: string,
   ) {
     return this.projectAiService.getAnalysis(id, analysisId);
+  }
+    @Post(':id/specification')
+  saveSpecification(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() payload: { blobUrl: string; originalName: string; mimeType: string; fileSize: number },
+  ) {
+    return this.projectAiService.saveSpecificationFromUrl(id, payload);
   }
 }

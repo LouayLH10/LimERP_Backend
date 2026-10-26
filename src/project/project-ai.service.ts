@@ -874,4 +874,43 @@ Règles :
       }
     }
   }
+  async saveSpecificationFromUrl(
+  projectId: string,
+  payload: { blobUrl: string; originalName: string; mimeType: string; fileSize: number },
+) {
+  // 1. Télécharger le fichier privé depuis Vercel Blob
+  const result = await get(payload.blobUrl, {
+    access: 'private',
+    token: this.getBlobToken(),
+  });
+
+  if (!result || result.statusCode !== 200 || !result.stream) {
+    throw new BadRequestException('Fichier introuvable sur Vercel.');
+  }
+
+  const chunks: Buffer[] = [];
+  for await (const chunk of result.stream) {
+    chunks.push(Buffer.from(chunk));
+  }
+  const fileBuffer = Buffer.concat(chunks);
+
+  // 2. Extraire le texte (votre code existant avec pdf-parse / mammoth)
+  let extractedText = '';
+  const extension = extname(payload.originalName).toLowerCase();
+  
+  if (extension === '.pdf') {
+    const pdf = await pdfParse(fileBuffer);
+    extractedText = pdf.text?.trim() ?? '';
+  } else {
+    const resultDocx = await mammoth.extractRawText({ buffer: fileBuffer });
+    extractedText = resultDocx.value.trim();
+  }
+
+  if (!extractedText) {
+    throw new BadRequestException('Aucun texte extractible.');
+  }
+
+  // 3. Sauvegarder en base de données (votre code Prisma existant)
+  // ... (upsert avec storagePath: payload.blobUrl)
+}
 }
