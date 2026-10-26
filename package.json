@@ -42,6 +42,7 @@
     "pdf-parse": "^1.1.1",
     "pg": "^8.23.1",
     "prisma": "^7.10.0",
+    "puppeteer": "^25.16.0",
     "puppeteer-core": "^25.16.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
