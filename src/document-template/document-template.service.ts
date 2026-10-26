@@ -1,3 +1,4 @@
+
 import {
   BadRequestException,
   Injectable,
@@ -6,15 +7,15 @@ import {
 
 import { Prisma } from 'src/generated/prisma/client';
 import { DocumentType } from 'src/generated/prisma/enums';
-
 import { PrismaService } from 'src/prisma/prisma.service';
+
 import * as Handlebars from 'handlebars';
+import { put, del } from '@vercel/blob';
+
 import { CreateDocumentTemplateDto } from './dto/create-document-template.dto';
 import { UpdateDocumentTemplateDto } from './dto/update-document-template.dto';
-import { UpdateTemplateStyleDto } from './dto/create-document-template.dto'; 
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import { Multer } from 'multer';
+import { UpdateTemplateStyleDto } from './dto/create-document-template.dto';
+
 @Injectable()
 export class DocumentTemplateService {
   constructor(private readonly prisma: PrismaService) {}
@@ -430,117 +431,94 @@ export class DocumentTemplateService {
    * The file is stored locally in:
    * uploads/templates/{templateId}/
    */
-  async uploadVersion(
-    templateId: string,
-    file: Express.Multer.File,
-  ) {
-    if (!file) {
-      throw new BadRequestException(
-        'Template file is required',
-      );
-    }
+ 
+async uploadVersion(
+  templateId: string,
+  file: Express.Multer.File,
+) {
+  if (!file) {
+    throw new BadRequestException('Template file is required');
+  }
 
-    const template =
-      await this.prisma.documentTemplate.findUnique({
-        where: { id: templateId },
-      });
+  const template = await this.prisma.documentTemplate.findUnique({
+    where: { id: templateId },
+  });
 
-    if (!template) {
-      throw new NotFoundException(
-        'Document template not found',
-      );
-    }
+  if (!template) {
+    throw new NotFoundException('Document template not found');
+  }
 
-    const extension = path
-      .extname(file.originalname)
-      .toLowerCase();
+  const extension = file.originalname
+    .split('.')
+    .pop()
+    ?.toLowerCase();
 
-    const allowedExtensions = ['.hbs', '.html'];
-
-    if (!allowedExtensions.includes(extension)) {
-      throw new BadRequestException(
-        'Only .hbs and .html template files are allowed',
-      );
-    }
-
-    // Get the last version number
-    const lastVersion =
-      await this.prisma.templateVersion.findFirst({
-        where: {
-          templateId,
-        },
-        orderBy: {
-          version: 'desc',
-        },
-        select: {
-          version: true,
-        },
-      });
-
-    const nextVersion = lastVersion
-      ? lastVersion.version + 1
-      : 1;
-
-    // Create directory:
-    // uploads/templates/{templateId}
-    const templateDirectory = path.join(
-      process.cwd(),
-      'uploads',
-      'templates',
-      templateId,
+  if (!extension || !['hbs', 'html'].includes(extension)) {
+    throw new BadRequestException(
+      'Only .hbs and .html template files are allowed',
     );
+  }
 
-    await fs.mkdir(templateDirectory, {
-      recursive: true,
+  if (!file.buffer || file.buffer.length === 0) {
+    throw new BadRequestException('Template file is empty');
+  }
+
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    throw new Error('BLOB_READ_WRITE_TOKEN is not configured');
+  }
+
+  const lastVersion = await this.prisma.templateVersion.findFirst({
+    where: { templateId },
+    orderBy: { version: 'desc' },
+    select: { version: true },
+  });
+
+  const nextVersion = lastVersion ? lastVersion.version + 1 : 1;
+
+  const safeFileName = file.originalname
+    .replace(/[^a-zA-Z0-9._-]/g, '_');
+
+  const blob = await put(
+    `templates/${templateId}/v${nextVersion}-${safeFileName}`,
+    file.buffer,
+    {
+      access: 'public',
+      addRandomSuffix: true,
+      contentType:
+        extension === 'html'
+          ? 'text/html; charset=utf-8'
+          : 'text/plain; charset=utf-8',
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    },
+  );
+
+  try {
+    const version = await this.prisma.templateVersion.create({
+      data: {
+        version: nextVersion,
+        fileName: file.originalname,
+        storagePath: blob.url,
+        templateId,
+      },
     });
 
-    // Keep a clean filename
-    const safeFileName = file.originalname
-      .replace(/[^a-zA-Z0-9._-]/g, '_')
-      .replace(/\s+/g, '_');
+    return {
+      message: 'Template version uploaded successfully',
+      template,
+      version,
+    };
+  } catch (error) {
+    // Nettoyer le fichier Blob si l'enregistrement en base échoue.
+    await del(blob.url, {
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    }).catch((deleteError) => {
+      console.error('Unable to delete orphaned Blob:', deleteError);
+    });
 
-    const storedFileName =
-      `v${nextVersion}-${safeFileName}`;
-
-    const storagePath = path.join(
-      templateDirectory,
-      storedFileName,
-    );
-
-    await fs.writeFile(
-      storagePath,
-      file.buffer,
-    );
-
-    // Store a relative path in the database.
-    const relativeStoragePath = path
-      .relative(process.cwd(), storagePath)
-      .replace(/\\/g, '/');
-
-    try {
-      const version =
-        await this.prisma.templateVersion.create({
-          data: {
-            version: nextVersion,
-            fileName: file.originalname,
-            storagePath: relativeStoragePath,
-            templateId,
-          },
-        });
-
-      return {
-        message: 'Template version uploaded successfully',
-        template,
-        version,
-      };
-    } catch (error) {
-      // If database insertion fails,
-      // remove the file we just created.
-      await fs.unlink(storagePath).catch(() => undefined);
-
-      throw error;
-    }
+    throw error;
   }
+}
+
 
   async findVersions(templateId: string) {
     const template =
@@ -564,113 +542,118 @@ export class DocumentTemplateService {
     });
   }
 
-  async remove(id: string) {
-    const template =
-      await this.prisma.documentTemplate.findUnique({
-        where: { id },
-        include: {
-          versions: true,
-        },
-      });
 
-    if (!template) {
-      throw new NotFoundException(
-        'Document template not found',
-      );
-    }
+async remove(id: string) {
+  const template = await this.prisma.documentTemplate.findUnique({
+    where: { id },
+    include: { versions: true },
+  });
 
-    if (template.isDefault) {
-      throw new BadRequestException(
-        'The default template cannot be deleted. Set another template as default first.',
-      );
-    }
-
-    // Remove physical template files
-    const templateDirectory = path.join(
-      process.cwd(),
-      'uploads',
-      'templates',
-      id,
-    );
-
-    await fs.rm(templateDirectory, {
-      recursive: true,
-      force: true,
-    });
-
-    return this.prisma.documentTemplate.delete({
-      where: { id },
-    });
+  if (!template) {
+    throw new NotFoundException('Document template not found');
   }
+
+  if (template.isDefault) {
+    throw new BadRequestException(
+      'The default template cannot be deleted. Set another template as default first.',
+    );
+  }
+
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    throw new Error('BLOB_READ_WRITE_TOKEN is not configured');
+  }
+
+  // Supprimer uniquement les fichiers qui sont des URL Blob.
+  for (const version of template.versions) {
+    if (
+      version.storagePath.startsWith('https://') &&
+      version.storagePath.includes('.blob.vercel-storage.com/')
+    ) {
+      await del(version.storagePath, {
+        token: process.env.BLOB_READ_WRITE_TOKEN,
+      });
+    }
+  }
+
+  return this.prisma.documentTemplate.delete({
+    where: { id },
+  });
+}
+
+
 
 async getTemplatePreview(templateId: string): Promise<string> {
-  console.log('[PREVIEW] Début, templateId =', templateId);
+  const template = await this.prisma.documentTemplate.findUnique({
+    where: { id: templateId },
+    include: {
+      versions: {
+        orderBy: { version: 'desc' },
+        take: 1,
+      },
+      style: true,
+    },
+  });
+
+  if (!template) {
+    throw new NotFoundException('Template introuvable');
+  }
+
+  const latestVersion = template.versions[0];
+
+  if (!latestVersion) {
+    throw new BadRequestException(
+      'Ce template ne possède aucune version.',
+    );
+  }
+
+  const fileUrl = latestVersion.storagePath;
+
+  if (!fileUrl.startsWith('https://')) {
+    throw new BadRequestException(
+      'Cette version utilise encore un ancien chemin local. Veuillez téléverser à nouveau le fichier.',
+    );
+  }
+
+  let response: Response;
 
   try {
-    const template = await this.prisma.documentTemplate.findUnique({
-      where: { id: templateId },
-      include: {
-        versions: {
-          orderBy: { version: 'desc' },
-          take: 1,
-        },
-        style: true,
-      },
-    });
-
-    if (!template) {
-      throw new NotFoundException('Template introuvable');
-    }
-
-    const latestVersion = template.versions[0];
-
-    if (!latestVersion) {
-      throw new BadRequestException(
-        'Ce template ne possède aucune version.',
-      );
-    }
-
-    const filePath = path.resolve(
-      process.cwd(),
-      latestVersion.storagePath,
-    );
-
-    console.log('[PREVIEW] Fichier :', filePath);
-
-    const source = await fs.readFile(filePath, 'utf8');
-
-    console.log('[PREVIEW] Fichier lu, longueur =', source.length);
-    console.log('[PREVIEW] Compilation Handlebars...');
-
-    const compiled = Handlebars.compile(source);
-
-    const html = compiled({
-      template,
-      style: template.style,
-      company: {
-        name: 'L.I.M.',
-      },
-      preview: true,
-    });
-
-    console.log('[PREVIEW] Compilation réussie');
-
-    return html;
+    response = await fetch(fileUrl);
   } catch (error) {
-    console.error('[PREVIEW] Erreur originale :', error);
+    console.error('Erreur lors de la lecture du template Blob:', error);
 
-    if (
-      error instanceof BadRequestException ||
-      error instanceof NotFoundException
-    ) {
-      throw error;
-    }
-
-    throw new BadRequestException({
-      message: 'Unable to compile the document template',
-      details: error instanceof Error ? error.message : String(error),
-    });
+    throw new BadRequestException(
+      'Impossible de récupérer le fichier du template.',
+    );
   }
+
+  if (!response.ok) {
+    throw new BadRequestException(
+      `Impossible de lire le fichier Blob (HTTP ${response.status}).`,
+    );
+  }
+
+  const source = await response.text();
+
+  let compiled: Handlebars.TemplateDelegate;
+
+  try {
+    compiled = Handlebars.compile(source);
+  } catch (error) {
+    console.error('Erreur de compilation Handlebars:', error);
+
+    throw new BadRequestException(
+      'Impossible de compiler le template.',
+    );
+  }
+
+  return compiled({
+    template,
+    style: template.style,
+    company: {
+      name: 'L.I.M.',
+    },
+    preview: true,
+  });
 }
 
 }
