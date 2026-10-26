@@ -6,10 +6,10 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
-import { mkdir, unlink, writeFile } from 'fs/promises';
-import { extname, resolve } from 'path';
+import { extname } from 'path';
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
+import { put, del } from '@vercel/blob';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { EmployeePosition } from '../generated/prisma/enums';
@@ -70,16 +70,6 @@ export class ProjectAiService {
     private readonly quotesService: QuotesService,
   ) {}
 
-  private get storageDirectory(): string {
-    return resolve(
-      process.cwd(),
-      this.config.get<string>(
-        'SPECIFICATIONS_DIR',
-        'uploads/specifications',
-      ),
-    );
-  }
-
   private getGroqApiKey(): string {
     const apiKey = this.config.get<string>('GROQ_API');
     if (!apiKey?.trim()) {
@@ -88,6 +78,16 @@ export class ProjectAiService {
       );
     }
     return apiKey.trim();
+  }
+
+  private getBlobToken(): string {
+    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    if (!token) {
+      throw new InternalServerErrorException(
+        "Le token BLOB_READ_WRITE_TOKEN n'est pas configuré dans le fichier .env.",
+      );
+    }
+    return token;
   }
 
   /**
@@ -140,56 +140,82 @@ export class ProjectAiService {
       );
     }
 
-    const fileName = `${randomUUID()}${extension}`;
-    const absolutePath = resolve(this.storageDirectory, fileName);
-    await mkdir(this.storageDirectory, { recursive: true });
-    await writeFile(absolutePath, file.buffer);
+    // Upload vers Vercel Blob
+    let blobUrl: string;
+    try {
+      const blobFileName = `specifications/${randomUUID()}${extension}`;
+      
+      console.log(`[Project AI] Upload du cahier des charges vers Vercel Blob: ${blobFileName}`);
+      
+      const blob = await put(blobFileName, file.buffer, {
+        access: 'public', // ou 'private' selon vos besoins
+        addRandomSuffix: false,
+        contentType: file.mimetype,
+        token: this.getBlobToken(),
+      });
+
+      blobUrl = blob.url;
+      console.log(`[Project AI] ✅ Fichier uploadé avec succès: ${blobUrl}`);
+    } catch (error: any) {
+      console.error('[Project AI] Erreur upload Vercel Blob:', error);
+      throw new InternalServerErrorException(
+        "Impossible d'envoyer le fichier sur Vercel Blob.",
+      );
+    }
 
     try {
-      const previous =
-        await this.prisma.projectSpecification.findUnique({
+      const previous = await this.prisma.projectSpecification.findUnique({
+        where: { projectId },
+        select: { id: true, storagePath: true },
+      });
+
+      const specification = await this.prisma.$transaction(async (tx) => {
+        await tx.projectAIAnalysis.deleteMany({ where: { projectId } });
+        
+        // Extraire un nom de fichier basé sur l'URL générée par Blob
+        const generatedFileName = blobUrl.split('/').pop() || `${randomUUID()}${extension}`;
+
+        return tx.projectSpecification.upsert({
           where: { projectId },
-          select: { id: true, storagePath: true },
+          create: {
+            projectId,
+            fileName: generatedFileName,
+            originalName: file.originalname,
+            mimeType: file.mimetype,
+            fileSize: file.size,
+            storagePath: blobUrl, // L'URL Vercel est maintenant stockée ici
+            extractedText,
+          },
+          update: {
+            fileName: generatedFileName,
+            originalName: file.originalname,
+            mimeType: file.mimetype,
+            fileSize: file.size,
+            storagePath: blobUrl,
+            extractedText,
+          },
+          select: {
+            id: true,
+            projectId: true,
+            fileName: true,
+            originalName: true,
+            mimeType: true,
+            fileSize: true,
+            createdAt: true,
+            updatedAt: true,
+          },
         });
+      });
 
-      const specification = await this.prisma.$transaction(
-        async (tx) => {
-          await tx.projectAIAnalysis.deleteMany({ where: { projectId } });
-          return tx.projectSpecification.upsert({
-            where: { projectId },
-            create: {
-              projectId,
-              fileName,
-              originalName: file.originalname,
-              mimeType: file.mimetype,
-              fileSize: file.size,
-              storagePath: absolutePath,
-              extractedText,
-            },
-            update: {
-              fileName,
-              originalName: file.originalname,
-              mimeType: file.mimetype,
-              fileSize: file.size,
-              storagePath: absolutePath,
-              extractedText,
-            },
-            select: {
-              id: true,
-              projectId: true,
-              fileName: true,
-              originalName: true,
-              mimeType: true,
-              fileSize: true,
-              createdAt: true,
-              updatedAt: true,
-            },
+      // Nettoyage de l'ancien fichier sur Vercel si existant
+      if (previous?.storagePath && previous.storagePath !== blobUrl) {
+        if (previous.storagePath.includes('.blob.vercel-storage.com/')) {
+          await del(previous.storagePath, {
+            token: this.getBlobToken(),
+          }).catch((err) => {
+            console.warn('[Project AI] Impossible de supprimer l\'ancien Blob:', err.message);
           });
-        },
-      );
-
-      if (previous?.storagePath && previous.storagePath !== absolutePath) {
-        await unlink(previous.storagePath).catch(() => undefined);
+        }
       }
 
       return {
@@ -198,7 +224,8 @@ export class ProjectAiService {
         extractedCharacters: extractedText.length,
       };
     } catch (error) {
-      await unlink(absolutePath).catch(() => undefined);
+      // En cas d'erreur en base de données, supprimer le fichier nouvellement uploadé
+      await del(blobUrl, { token: this.getBlobToken() }).catch(() => undefined);
       throw error;
     }
   }
