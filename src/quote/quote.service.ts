@@ -12,7 +12,8 @@ import { CreateQuoteDto } from './dto/create-quote.dto';
 import { UpdateQuoteDto } from './dto/update-quote.dto';
 
 import Handlebars from 'handlebars';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 import nodemailer from 'nodemailer';
 import { get } from '@vercel/blob'; // 👈 Import pour Vercel Blob
 
@@ -505,11 +506,12 @@ export class QuotesService {
     const html = compiledTemplate(templateData);
 
     // 7. Générer le PDF avec Puppeteer
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    });
+ const browser = await puppeteer.launch({
+  args: chromium.args,
+  defaultViewport: { width: 1200, height: 800 }, // 👈 Valeur manuelle
+  executablePath: await chromium.executablePath(),
 
+});
     try {
       const page = await browser.newPage();
       await page.setContent(html, { waitUntil: 'load' });
