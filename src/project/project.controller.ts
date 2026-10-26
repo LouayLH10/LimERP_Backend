@@ -110,7 +110,7 @@ async getUploadToken(
       ],
       maximumSizeInBytes: 15 * 1024 * 1024, // 15 Mo
       validUntil: Date.now() + 300000, // 5 minutes
-            addRandomSuffix: true, 
+            allowOverwrite: true, 
 
     });
 
