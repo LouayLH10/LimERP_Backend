@@ -121,18 +121,18 @@ async getUploadToken(
   /**
    * 2. Traiter le fichier après l'upload direct
    */
-  @Post(':id/specification/process')
-  async processSpecification(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() body: { fileName: string; fileType: string },
-  ) {
-    return this.projectAiService.processSpecificationFromVercel(
-      id,
-      body.fileName,
-      body.fileType,
-    );
-  }
-
+@Post(':id/specification/process')
+async processSpecification(
+  @Param('id', ParseUUIDPipe) id: string,
+  @Body() body: { blobUrl: string; originalName: string; mimeType: string }, // 👈 Changement ici
+) {
+  return this.projectAiService.processSpecificationFromVercel(
+    id,
+    body.blobUrl,       // 👈 On passe l'URL
+    body.originalName, 
+    body.mimeType,
+  );
+}
   // =========================================================
   // GET SPECIFICATION FILE (Download)
   // =========================================================
