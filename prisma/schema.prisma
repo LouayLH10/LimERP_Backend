@@ -190,7 +190,6 @@ model Client {
   city    String?
   country String? @default("Tunisia")
 
-  taxId String? @unique
 
   isActive Boolean @default(true)
 

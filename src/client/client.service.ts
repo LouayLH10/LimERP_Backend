@@ -1,5 +1,4 @@
 import {
-  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -27,24 +26,9 @@ export class ClientService {
       address,
       city,
       country,
-      taxId,
     } = createClientDto;
 
-    // Vérifier le taxId s'il est fourni
-    if (taxId) {
-      const existingClient =
-        await this.prisma.client.findUnique({
-          where: {
-            taxId,
-          },
-        });
-
-      if (existingClient) {
-        throw new ConflictException(
-          'A client with this tax ID already exists',
-        );
-      }
-    }
+    // 👇 Suppression de la vérification du taxId
 
     return this.prisma.client.create({
       data: {
@@ -54,7 +38,6 @@ export class ClientService {
         address,
         city,
         country,
-        taxId,
       },
     });
   }
@@ -112,24 +95,7 @@ export class ClientService {
       );
     }
 
-    // Vérifier taxId s'il est modifié
-    if (updateClientDto.taxId !== undefined) {
-      const existingClient =
-        await this.prisma.client.findUnique({
-          where: {
-            taxId: updateClientDto.taxId,
-          },
-        });
-
-      if (
-        existingClient &&
-        existingClient.id !== id
-      ) {
-        throw new ConflictException(
-          'A client with this tax ID already exists',
-        );
-      }
-    }
+    // 👇 Suppression de la vérification du taxId
 
     return this.prisma.client.update({
       where: {

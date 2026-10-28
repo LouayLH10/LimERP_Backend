@@ -36,8 +36,5 @@ export class CreateClientDto {
   @Length(2, 100)
   country?: string;
 
-  @IsString()
-  @IsOptional()
-  @Length(2, 50)
-  taxId?: string;
+ 
 }
