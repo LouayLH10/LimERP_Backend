@@ -201,85 +201,86 @@ async create(
     return employee;
   }
 
-  async update(
-    id: string,
-    updateEmployeeDto: UpdateEmployeeDto,
-    files?: {
-      cinCardFrontImage?: Express.Multer.File[];
-      cinCardBackImage?: Express.Multer.File[];
-    },
-  ) {
-    const employee = await this.prisma.employee.findUnique({
-      where: { id },
-    });
+async update(
+  id: string,
+  updateEmployeeDto: UpdateEmployeeDto,
+  files?: {
+    cinCardFrontImage?: Express.Multer.File[];
+    cinCardBackImage?: Express.Multer.File[];
+  },
+) {
+  const employee = await this.prisma.employee.findUnique({
+    where: { id },
+  });
 
-    if (!employee) {
-      throw new NotFoundException('Employé introuvable');
+  if (!employee) {
+    throw new NotFoundException('Employé introuvable');
+  }
+
+  const frontFile = files?.cinCardFrontImage?.[0];
+  const backFile = files?.cinCardBackImage?.[0];
+
+  // Validation uniquement si les fichiers sont présents
+  if (frontFile) this.validateImage(frontFile);
+  if (backFile) this.validateImage(backFile);
+
+  let newFrontUrl: string | undefined;
+  let newBackUrl: string | undefined;
+
+  try {
+    // Sauvegarde des nouvelles images si elles sont fournies
+    if (frontFile) {
+      newFrontUrl = await this.saveImage(frontFile);
     }
 
-    const frontFile = files?.cinCardFrontImage?.[0];
-    const backFile = files?.cinCardBackImage?.[0];
+    if (backFile) {
+      newBackUrl = await this.saveImage(backFile);
+    }
 
-    if (frontFile) this.validateImage(frontFile);
-    if (backFile) this.validateImage(backFile);
-
-    let newFrontUrl: string | undefined;
-    let newBackUrl: string | undefined;
-
-    try {
-      if (frontFile) {
-        newFrontUrl = await this.saveImage(frontFile);
-      }
-
-      if (backFile) {
-        newBackUrl = await this.saveImage(backFile);
-      }
-
-      const updatedEmployee = await this.prisma.employee.update({
-        where: { id },
-        data: {
-          ...updateEmployeeDto,
-          ...(newFrontUrl
-            ? { cinCardFrontImage: newFrontUrl }
-            : {}),
-          ...(newBackUrl
-            ? { cinCardBackImage: newBackUrl }
-            : {}),
-        },
-        include: {
-          addedBy: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
-              role: true,
-            },
+    const updatedEmployee = await this.prisma.employee.update({
+      where: { id },
+      data: {
+        // 👇 Le spread operator inclut automatiquement cnssNumber s'il est fourni
+        ...updateEmployeeDto,
+        // Mise à jour des images uniquement si de nouveaux fichiers ont été uploadés
+        ...(newFrontUrl ? { cinCardFrontImage: newFrontUrl } : {}),
+        ...(newBackUrl ? { cinCardBackImage: newBackUrl } : {}),
+      },
+      include: {
+        addedBy: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
           },
         },
-      });
+      },
+    });
 
-      // Supprimer les anciennes images seulement après la mise à jour.
-      await Promise.allSettled([
-        newFrontUrl
-          ? this.deleteBlobImage(employee.cinCardFrontImage)
-          : Promise.resolve(),
-        newBackUrl
-          ? this.deleteBlobImage(employee.cinCardBackImage)
-          : Promise.resolve(),
-      ]);
+    // Supprimer les anciennes images seulement après la mise à jour réussie
+    await Promise.allSettled([
+      newFrontUrl
+        ? this.deleteBlobImage(employee.cinCardFrontImage)
+        : Promise.resolve(),
+      newBackUrl
+        ? this.deleteBlobImage(employee.cinCardBackImage)
+        : Promise.resolve(),
+    ]);
 
-      return updatedEmployee;
-    } catch (error) {
-      // Si la mise à jour échoue, supprimer les nouveaux fichiers.
-      await Promise.allSettled([
-        this.deleteBlobImage(newFrontUrl),
-        this.deleteBlobImage(newBackUrl),
-      ]);
+    return updatedEmployee;
+  } catch (error) {
+    // En cas d'échec de la mise à jour, on supprime les nouveaux fichiers uploadés
+    // pour ne pas laisser de fichiers orphelins dans le Blob.
+    await Promise.allSettled([
+      this.deleteBlobImage(newFrontUrl),
+      this.deleteBlobImage(newBackUrl),
+    ]);
 
-      throw error;
-    }
+    throw error;
   }
+}
 
   async deactivate(id: string) {
     const employee = await this.prisma.employee.findUnique({
