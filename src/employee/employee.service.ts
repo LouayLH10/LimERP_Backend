@@ -96,63 +96,70 @@ export class EmployeesService {
     });
   }
 
-  async create(
-    createEmployeeDto: CreateEmployeeDto,
-    addedById: string,
-    files: {
-      cinCardFrontImage?: Express.Multer.File[];
-      cinCardBackImage?: Express.Multer.File[];
-    },
-  ) {
-    const frontImage = files?.cinCardFrontImage?.[0];
-    const backImage = files?.cinCardBackImage?.[0];
+async create(
+  createEmployeeDto: CreateEmployeeDto,
+  addedById: string,
+  files: {
+    cinCardFrontImage?: Express.Multer.File[];
+    cinCardBackImage?: Express.Multer.File[];
+  },
+) {
+  const frontImage = files?.cinCardFrontImage?.[0];
+  const backImage = files?.cinCardBackImage?.[0];
 
-    if (!frontImage || !backImage) {
-      throw new BadRequestException(
-        'Les deux images de la CIN sont obligatoires',
-      );
+  // ❌ SUPPRESSION DE LA VÉRIFICATION OBLIGATOIRE
+  // if (!frontImage || !backImage) {
+  //   throw new BadRequestException(
+  //     'Les deux images de la CIN sont obligatoires',
+  //   );
+  // }
+
+  // ✅ On valide uniquement si les images sont fournies
+  if (frontImage) this.validateImage(frontImage);
+  if (backImage) this.validateImage(backImage);
+
+  let frontImageUrl: string | undefined;
+  let backImageUrl: string | undefined;
+
+  try {
+    // ✅ On sauvegarde uniquement si l'image existe
+    if (frontImage) {
+      frontImageUrl = await this.saveImage(frontImage);
+    }
+    if (backImage) {
+      backImageUrl = await this.saveImage(backImage);
     }
 
-    // Vérifier les deux images avant de les envoyer.
-    this.validateImage(frontImage);
-    this.validateImage(backImage);
-
-    let frontImageUrl: string | undefined;
-    let backImageUrl: string | undefined;
-
-    try {
-      frontImageUrl = await this.saveImage(frontImage);
-      backImageUrl = await this.saveImage(backImage);
-
-      return await this.prisma.employee.create({
-        data: {
-          ...createEmployeeDto,
-          cinCardFrontImage: frontImageUrl,
-          cinCardBackImage: backImageUrl,
-          addedById,
-        },
-        include: {
-          addedBy: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
-              role: true,
-            },
+    return await this.prisma.employee.create({
+      data: {
+        ...createEmployeeDto,
+        // Les champs seront `null` si aucune image n'est fournie
+        cinCardFrontImage: frontImageUrl ?? null,
+        cinCardBackImage: backImageUrl ?? null,
+        addedById,
+      },
+      include: {
+        addedBy: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
           },
         },
-      });
-    } catch (error) {
-      // Éviter de conserver les images si la création échoue.
-      await Promise.allSettled([
-        this.deleteBlobImage(frontImageUrl),
-        this.deleteBlobImage(backImageUrl),
-      ]);
+      },
+    });
+  } catch (error) {
+    // Nettoyage en cas d'erreur (uniquement pour les images qui ont été uploadées)
+    await Promise.allSettled([
+      this.deleteBlobImage(frontImageUrl),
+      this.deleteBlobImage(backImageUrl),
+    ]);
 
-      throw error;
-    }
+    throw error;
   }
+}
 
   async findAll() {
     return this.prisma.employee.findMany({
