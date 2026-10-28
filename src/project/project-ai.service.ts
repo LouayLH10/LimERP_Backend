@@ -93,128 +93,122 @@ export class ProjectAiService {
   /**
    * Traitement du fichier uploadé directement sur Vercel (Presigned URL)
    */
- async processSpecificationFromVercel(
-  projectId: string,
-  blobUrl: string,       // 👈 L'URL exacte envoyée par le frontend
-  originalName: string,
-  mimeType: string,
-) {
-  // 1. Vérifier que le projet existe
-  const project = await this.prisma.project.findUnique({
-    where: { id: projectId },
-  });
-  if (!project) {
-    throw new NotFoundException('Projet introuvable.');
-  }
-
-  let extractedText = '';
-  let fileBuffer: Buffer;
-
-  // 2. Télécharger le fichier privé depuis Vercel Blob
-  try {
-    console.log(`[Project AI] Téléchargement du fichier depuis Vercel Blob : ${blobUrl}`);
-    
-    const result = await get(blobUrl, {
-      access: 'private',
-      token: this.getBlobToken(),
+  async processSpecificationFromVercel(
+    projectId: string,
+    blobUrl: string,
+    originalName: string,
+    mimeType: string,
+  ) {
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
     });
-
-    if (!result || result.statusCode !== 200 || !result.stream) {
-      throw new Error('Fichier introuvable sur Vercel.');
+    if (!project) {
+      throw new NotFoundException('Projet introuvable.');
     }
 
-    const chunks: Buffer[] = [];
-    for await (const chunk of result.stream) {
-      chunks.push(Buffer.from(chunk));
-    }
-    fileBuffer = Buffer.concat(chunks);
-    
-    console.log(`[Project AI] ✅ Fichier téléchargé (${fileBuffer.length} octets)`);
-  } catch (error: any) {
-    console.error('[Project AI] Erreur de téléchargement:', error);
-    throw new BadRequestException(
-      'Impossible de lire le document depuis Vercel Blob.',
-    );
-  }
+    let extractedText = '';
+    let fileBuffer: Buffer;
 
-  // 3. Extraire le texte selon l'extension
-  const extension = extname(originalName).toLowerCase(); // 👈 Utilisation de originalName
-  try {
-    if (extension === '.pdf') {
-      const pdf = await pdfParse(fileBuffer);
-      extractedText = pdf.text?.trim() ?? '';
-    } else {
-      const resultDocx = await mammoth.extractRawText({ buffer: fileBuffer });
-      extractedText = resultDocx.value.trim();
-    }
-  } catch (error) {
-    console.error('[Project AI] Erreur d\'extraction du texte:', error);
-    throw new BadRequestException('Erreur lors de la lecture du document.');
-  }
-
-  if (!extractedText) {
-    throw new BadRequestException(
-      'Aucun texte extractible. Un OCR peut être nécessaire.',
-    );
-  }
-
-  // 4. Sauvegarder en base de données
-  try {
-    const previous = await this.prisma.projectSpecification.findUnique({
-      where: { projectId },
-      select: { id: true, storagePath: true },
-    });
-
-    const specification = await this.prisma.$transaction(async (tx) => {
-      // Supprimer les anciennes analyses IA liées au projet
-      await tx.projectAIAnalysis.deleteMany({ where: { projectId } });
-
-      // Extraire un nom de fichier propre depuis l'URL
-      const generatedFileName =
-        blobUrl.split('/').pop() || `${randomUUID()}${extension}`;
-
-      return tx.projectSpecification.upsert({
-        where: { projectId },
-        create: {
-          projectId,
-          fileName: generatedFileName,
-          originalName: originalName, // 👈 Utilisation de originalName
-          mimeType,
-          fileSize: fileBuffer.length,
-          storagePath: blobUrl,       // 👈 On enregistre l'URL exacte
-          extractedText,
-        },
-        update: {
-          fileName: generatedFileName,
-          originalName: originalName, // 👈 Utilisation de originalName
-          mimeType,
-          fileSize: fileBuffer.length,
-          storagePath: blobUrl,       // 👈 On enregistre l'URL exacte
-          extractedText,
-        },
+    try {
+      console.log(`[Project AI] Téléchargement du fichier depuis Vercel Blob : ${blobUrl}`);
+      
+      const result = await get(blobUrl, {
+        access: 'private',
+        token: this.getBlobToken(),
       });
-    });
 
-    // 5. Nettoyer l'ancien fichier sur Vercel si l'URL a changé
-    if (previous?.storagePath && previous.storagePath !== blobUrl) {
-      if (previous.storagePath.includes('.blob.vercel-storage.com/')) {
-        await del(previous.storagePath, { token: this.getBlobToken() }).catch(
-          (err) => console.warn('[Project AI] Impossible de supprimer l\'ancien blob:', err.message),
-        );
+      if (!result || result.statusCode !== 200 || !result.stream) {
+        throw new Error('Fichier introuvable sur Vercel.');
       }
+
+      const chunks: Buffer[] = [];
+      for await (const chunk of result.stream) {
+        chunks.push(Buffer.from(chunk));
+      }
+      fileBuffer = Buffer.concat(chunks);
+      
+      console.log(`[Project AI] ✅ Fichier téléchargé (${fileBuffer.length} octets)`);
+    } catch (error: any) {
+      console.error('[Project AI] Erreur de téléchargement:', error);
+      throw new BadRequestException(
+        'Impossible de lire le document depuis Vercel Blob.',
+      );
     }
 
-    return {
-      message: 'Cahier des charges importé et texte extrait.',
-      specification,
-      extractedCharacters: extractedText.length,
-    };
-  } catch (error) {
-    throw error;
+    const extension = extname(originalName).toLowerCase();
+    try {
+      if (extension === '.pdf') {
+        const pdf = await pdfParse(fileBuffer);
+        extractedText = pdf.text?.trim() ?? '';
+      } else {
+        const resultDocx = await mammoth.extractRawText({ buffer: fileBuffer });
+        extractedText = resultDocx.value.trim();
+      }
+    } catch (error) {
+      console.error('[Project AI] Erreur d\'extraction du texte:', error);
+      throw new BadRequestException('Erreur lors de la lecture du document.');
+    }
+
+    if (!extractedText) {
+      throw new BadRequestException(
+        'Aucun texte extractible. Un OCR peut être nécessaire.',
+      );
+    }
+
+    try {
+      const previous = await this.prisma.projectSpecification.findUnique({
+        where: { projectId },
+        select: { id: true, storagePath: true },
+      });
+
+      const specification = await this.prisma.$transaction(async (tx) => {
+        await tx.projectAIAnalysis.deleteMany({ where: { projectId } });
+
+        const generatedFileName =
+          blobUrl.split('/').pop() || `${randomUUID()}${extension}`;
+
+        return tx.projectSpecification.upsert({
+          where: { projectId },
+          create: {
+            projectId,
+            fileName: generatedFileName,
+            originalName: originalName,
+            mimeType,
+            fileSize: fileBuffer.length,
+            storagePath: blobUrl,
+            extractedText,
+          },
+          update: {
+            fileName: generatedFileName,
+            originalName: originalName,
+            mimeType,
+            fileSize: fileBuffer.length,
+            storagePath: blobUrl,
+            extractedText,
+          },
+        });
+      });
+
+      if (previous?.storagePath && previous.storagePath !== blobUrl) {
+        if (previous.storagePath.includes('.blob.vercel-storage.com/')) {
+          await del(previous.storagePath, { token: this.getBlobToken() }).catch(
+            (err) => console.warn('[Project AI] Impossible de supprimer l\'ancien blob:', err.message),
+          );
+        }
+      }
+
+      return {
+        message: 'Cahier des charges importé et texte extrait.',
+        specification,
+        extractedCharacters: extractedText.length,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
-}
+
   /**
-   * Télécharger un fichier privé depuis Vercel Blob (pour la route de téléchargement)
+   * Télécharger un fichier privé depuis Vercel Blob
    */
   async getPrivateFile(fileUrl: string): Promise<Buffer> {
     if (
@@ -306,6 +300,7 @@ export class ProjectAiService {
       this.validateAnalysisResult(analysisResult);
       console.log('[Project AI] Validation analyse terminée.');
 
+      // 👇 LA CORRECTION EST ICI : On utilise l'enum complet
       const validPositions = new Set<string>(Object.values(EmployeePosition));
 
       const workforce = analysisResult.workforce
@@ -509,6 +504,9 @@ export class ProjectAiService {
     const apiKey = this.getGroqApiKey();
     const url = `${this.groqBaseUrl}/chat/completions`;
 
+    // 👇 On dynamise l'enum pour que l'IA propose les nouveaux postes
+    const availablePositions = Object.values(EmployeePosition).join(', ');
+
     const prompt = `
 Tu es un ingénieur expert en maintenance industrielle et préparation
 de devis pour une entreprise tunisienne.
@@ -521,8 +519,8 @@ Retourne exclusivement un objet JSON valide, sans Markdown.
 Règles :
 - N'invente aucune caractéristique technique absente du document.
 - Propose les tâches, les phases, la durée et les effectifs nécessaires.
-- Les postes doivent correspondre aux valeurs de cet enum :
-  ${Object.values(EmployeePosition).join(', ')}
+- Les postes (workforce) doivent obligatoirement correspondre à l'une des valeurs de cet enum :
+  ${availablePositions}
 - Les prix sont des hypothèses indicatives, jamais des tarifs réels garantis.
 - La devise est TND.
 - Si les données sont insuffisantes, indique-le dans missingInformation.
