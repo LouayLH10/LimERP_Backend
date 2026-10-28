@@ -82,6 +82,16 @@ enum EmployeePosition {
   WELDER
   ENGINEER
   TECHNICIAN
+  MECHANIC
+  BOILERMAKER
+  PIPEFITTER
+  HSE_OFFICER
+  HELPER
+  ELECTRICIAN
+  STOREKEEPER
+  LOGISTICS_MANAGER
+  SALES_REPRESENTATIVE
+  SUPERVISOR
 }
 
 model Employee {
@@ -94,6 +104,9 @@ model Employee {
 
   position EmployeePosition
 
+  // 👇 Nouveaux champs ajoutés (basés sur le fichier Excel)
+  cnssNumber String? 
+  
   cinNumber         String? @unique
   cinCardFrontImage String?
   cinCardBackImage  String?
