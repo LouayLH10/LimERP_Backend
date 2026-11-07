@@ -831,7 +831,7 @@ RÈGLES STRICTES POUR LE CALCUL DES PRIX ET QUANTITÉS (TRÈS IMPORTANT) :
         headers: {
           'Content-Type': 'application/json',
         },
-        signal: AbortSignal.timeout(120_000),
+        signal: AbortSignal.timeout(300_000),
         body: JSON.stringify({
           contents: [{
             parts: [{ text: prompt }]
