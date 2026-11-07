@@ -181,4 +181,23 @@ async processSpecification(
   ) {
     return this.projectAiService.getAnalysis(id, analysisId);
   }
+  // =========================
+  // DOWNLOAD PRICE SCHEDULE PDF
+  // =========================
+  @Get(':id/ai-analysis/:analysisId/price-schedule/pdf')
+  async downloadPriceSchedulePdf(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('analysisId', ParseUUIDPipe) analysisId: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const pdfBuffer = await this.projectAiService.generatePriceSchedulePdf(analysisId, id);
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="Bordereau-Prix-${analysisId}.pdf"`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      throw new NotFoundException('Impossible de générer le bordereau de prix');
+    }
+  }
 }
