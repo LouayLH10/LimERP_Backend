@@ -289,7 +289,9 @@ export class ProjectAiService {
 
       let totalHT = 0;
       const workPhases = analysisResult.workPhases.map((phase, index) => {
-        const estimatedCost = phase.estimatedCost ?? (phase.durationDays * 1000);
+        // 👇 On s'assure d'avoir un coût minimum par phase (ex: 1000 TND / jour)
+        const baseCost = phase.durationDays * 1500; 
+        const estimatedCost = phase.estimatedCost ?? baseCost;
         totalHT += estimatedCost;
 
         return {
@@ -464,7 +466,7 @@ export class ProjectAiService {
       include: {
         priceSchedule: true,
         workPhases: { orderBy: { order: 'asc' } },
-        estimation: true, // 👈 Ajouté pour corriger l'erreur TS
+        estimation: true,
         specification: { 
           include: { 
             project: { 
@@ -628,7 +630,6 @@ export class ProjectAiService {
       </html>
     `;
 
-    // 👇 Correction du type pour accepter les Decimal
     const formatMoney = (value: number | string | any | null | undefined): string =>
       Number(value ?? 0).toLocaleString('fr-TN', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
@@ -667,7 +668,6 @@ export class ProjectAiService {
     const browser = await puppeteer.launch({
       args: chromium.args,
       executablePath: await chromium.executablePath(),
-      // headless: chromium.headless, // 👈 Supprimé car n'existe pas dans les types
     });
 
     try {
@@ -708,19 +708,15 @@ français, en arabe ou en anglais. Réponds toujours en français.
 
 Retourne exclusivement un objet JSON valide, sans Markdown.
 
-Règles :
-- N'invente aucune caractéristique technique absente du document.
-- Propose les tâches, les phases, la durée et les effectifs nécessaires.
-- Les postes (workforce) doivent obligatoirement correspondre à l'une des valeurs de cet enum :
+RÈGLES STRICTES POUR L'ESTIMATION DES COÛTS ET DURÉES :
+1. Si le document mentionne une durée d'arrêt (ex: 18 jours) et des horaires (ex: 12h/jour), tu DOIS utiliser ces données.
+2. Pour estimer le coût d'une phase, base-toi sur le nombre de jours x 12h x 3 techniciens x (taux horaire moyen de 35 TND) = environ 1500 TND par jour.
+3. N'invente pas de prix trop bas. Un grand ensemble industriel coûte au minimum 10 000 TND en main-d'œuvre.
+4. Propose les tâches, les phases, la durée et les effectifs nécessaires.
+5. Les postes (workforce) doivent obligatoirement correspondre à l'une des valeurs de cet enum :
   ${availablePositions}
-- Les prix sont des hypothèses indicatives, jamais des tarifs réels garantis.
-- La devise est TND.
-- Si les données sont insuffisantes, indique-le dans missingInformation.
-- estimatedPrice, durationDays, workPhases et workforce doivent être présents.
-- estimatedPrice est une estimation globale en TND, pas un prix contractuel.
-- La confiance est un nombre entre 0 et 100.
-- Ne crée pas de devis commercial définitif.
-- Les coûts des phases doivent être des nombres ou null.
+6. Si les données sont insuffisantes, indique-le dans missingInformation.
+7. estimatedPrice, durationDays, workPhases et workforce doivent être présents.
 
 Structure obligatoire :
 {
@@ -776,7 +772,7 @@ Fin du cahier des charges.
   }
 
   /**
-   * 👇 PROMPT DU DEVIS CORRIGÉ POUR ÉVITER LES ERREURS DE CALCUL
+   * 👇 PROMPT DU DEVIS CORRIGÉ POUR ÉVITER LES ERREURS DE CALCUL ET AUGMENTER LES PRIX
    */
   private async callGroqForQuote(analysis: AIResult): Promise<AIQuote> {
     const apiKey = this.getGroqApiKey();
@@ -809,11 +805,12 @@ RÈGLES STRICTES POUR LE CALCUL DES PRIX ET QUANTITÉS (TRÈS IMPORTANT) :
 1. Regroupe les travaux par GRAND ENSEMBLE (ex: "Refroidisseur Polytrack", "Concasseur à rouleaux", "Ventilateur", etc.).
 2. La quantité (quantity) doit TOUJOURS être de "1" pour chaque grand ensemble. C'est un forfait global.
 3. NE MULTIPLIE JAMAIS la quantité par le nombre de pièces mentionnées (ex: s'il y a 12 vérins ou 9 ventilateurs, ne fais pas 1 x 12 ou 1 x 9). Le prix unitaire doit déjà englober la totalité des pièces du lot.
-4. Le prix unitaire (unitPrice) doit être une estimation globale et forfaitaire pour tout le lot de travaux, et non un prix à l'unité.
-5. "lines" doit contenir au moins 3 lignes cohérentes avec les phases.
-6. Chaque quantity = 1, unitPrice >= 0, taxRate = 19.
-7. Ne JAMAIS ajouter de champs comme materials, labor, transport.
-8. La date "validUntil" doit être dans le futur.
+4. Le prix unitaire (unitPrice) doit être une estimation GLOBALE et FORFAITAIRE pour tout le lot de travaux, et non un prix à l'unité.
+5. ⚠️ ATTENTION : Un grand ensemble de maintenance industrielle coûte AU MINIMUM 15 000 TND (main-d'œuvre + outillage + risques). Si tu mets moins de 10 000 TND, ton estimation est fausse.
+6. "lines" doit contenir au moins 3 lignes cohérentes avec les phases.
+7. Chaque quantity = 1, unitPrice >= 15000, taxRate = 19.
+8. Ne JAMAIS ajouter de champs comme materials, labor, transport.
+9. La date "validUntil" doit être dans le futur.
 `;
 
     const quoteResult = await this.callGroqApi({
@@ -951,9 +948,6 @@ RÈGLES STRICTES POUR LE CALCUL DES PRIX ET QUANTITÉS (TRÈS IMPORTANT) :
     }
   }
 
-  /**
-   * 👇 VALIDATION CORRIGÉE : Tolérante aux erreurs de formatage de l'IA
-   */
   private validateAnalysisResult(result: AIResult): void {
     if (
       !result ||
