@@ -62,8 +62,9 @@ type AIResult = {
 
 @Injectable()
 export class ProjectAiService {
-  private readonly groqBaseUrl = 'https://api.groq.com/openai/v1';
-  private readonly groqModel = 'deepseek-r1-distill-llama-70b';
+  // 👇 Configuration Gemini
+  private readonly geminiBaseUrl = 'https://generativelanguage.googleapis.com/v1beta';
+  private readonly geminiModel = 'gemini-2.5-flash'; // Modèle gratuit et performant
 
   constructor(
     private readonly prisma: PrismaService,
@@ -71,16 +72,16 @@ export class ProjectAiService {
     private readonly quotesService: QuotesService,
   ) {}
 
-  private getGroqApiKey(): string {
-    const apiKey = this.config.get<string>('GROQ_API');
+   private getGeminiApiKey(): string {
+    const apiKey = this.config.get<string>('GEMINI_API_KEY'); // 👈 Uniquement depuis le .env
+    
     if (!apiKey?.trim()) {
       throw new InternalServerErrorException(
-        "La clé API Groq n'est pas configurée. Ajoute GROQ_API dans le fichier .env.",
+        "La clé API Gemini n'est pas configurée. Ajoute GEMINI_API_KEY dans le fichier .env.",
       );
     }
     return apiKey.trim();
   }
-
   private getBlobToken(): string {
     const token = process.env.BLOB_READ_WRITE_TOKEN;
     if (!token) {
@@ -260,7 +261,7 @@ export class ProjectAiService {
     try {
       console.log(`[Project AI] Début de l'analyse : ${projectId}`);
 
-      const analysisResult = await this.callGroqForAnalysis({
+      const analysisResult = await this.callGeminiForAnalysis({
         projectName: project.name,
         projectDescription: project.description ?? '',
         location: project.location ?? '',
@@ -289,7 +290,6 @@ export class ProjectAiService {
 
       let totalHT = 0;
       const workPhases = analysisResult.workPhases.map((phase, index) => {
-        // 👇 On s'assure d'avoir un coût minimum par phase (ex: 1000 TND / jour)
         const baseCost = phase.durationDays * 1500; 
         const estimatedCost = phase.estimatedCost ?? baseCost;
         totalHT += estimatedCost;
@@ -352,7 +352,7 @@ export class ProjectAiService {
       > | null = null;
 
       try {
-        const quote = await this.callGroqForQuote(analysisResult);
+        const quote = await this.callGeminiForQuote(analysisResult);
 
         if (quote && quote.lines?.length > 0) {
           let validUntil = new Date(quote.validUntil);
@@ -687,16 +687,14 @@ export class ProjectAiService {
     }
   }
 
-  private async callGroqForAnalysis(input: {
+  // 👇 Appel Gemini pour l'analyse
+  private async callGeminiForAnalysis(input: {
     projectName: string;
     projectDescription: string;
     location: string;
     clientName: string;
     extractedText: string;
   }): Promise<AIResult> {
-    const apiKey = this.getGroqApiKey();
-    const url = `${this.groqBaseUrl}/chat/completions`;
-
     const availablePositions = Object.values(EmployeePosition).join(', ');
 
     const prompt = `
@@ -760,24 +758,16 @@ ${input.extractedText.slice(0, 15000)}
 Fin du cahier des charges.
 `;
 
-    return this.callGroqApi({
-      url,
-      apiKey,
+    return this.callGeminiApi({
       prompt,
-       maxTokens: 4000,
-      model: this.groqModel,
+      maxTokens: 4000,
       systemPrompt:
         'Tu es un assistant d’ingénierie industrielle. Réponds uniquement en JSON valide et en français.',
     });
   }
 
-  /**
-   * 👇 PROMPT DU DEVIS CORRIGÉ POUR ÉVITER LES ERREURS DE CALCUL ET AUGMENTER LES PRIX
-   */
-  private async callGroqForQuote(analysis: AIResult): Promise<AIQuote> {
-    const apiKey = this.getGroqApiKey();
-    const url = `${this.groqBaseUrl}/chat/completions`;
-
+  // 👇 Appel Gemini pour le devis
+  private async callGeminiForQuote(analysis: AIResult): Promise<AIQuote> {
     const prompt = `
 Tu es un ingénieur expert en préparation de devis pour une entreprise tunisienne.
 
@@ -813,12 +803,9 @@ RÈGLES STRICTES POUR LE CALCUL DES PRIX ET QUANTITÉS (TRÈS IMPORTANT) :
 9. La date "validUntil" doit être dans le futur.
 `;
 
-    const quoteResult = await this.callGroqApi({
-      url,
-      apiKey,
+    const quoteResult = await this.callGeminiApi({
       prompt,
       maxTokens: 4000,
-      model: this.groqModel,
       systemPrompt:
         'Tu es un assistant d’ingénierie. Réponds en JSON valide et en français.',
     });
@@ -826,15 +813,16 @@ RÈGLES STRICTES POUR LE CALCUL DES PRIX ET QUANTITÉS (TRÈS IMPORTANT) :
     return quoteResult as AIQuote;
   }
 
-  private async callGroqApi(params: {
-    url: string;
-    apiKey: string;
+  // 👇 Méthode générique pour appeler l'API Gemini
+  private async callGeminiApi(params: {
     prompt: string;
     maxTokens: number;
-    model: string;
     systemPrompt: string;
   }): Promise<any> {
-    const { url, apiKey, prompt, maxTokens, model, systemPrompt } = params;
+    const { prompt, maxTokens, systemPrompt } = params;
+    const apiKey = this.getGeminiApiKey();
+    
+    const url = `${this.geminiBaseUrl}/models/${this.geminiModel}:generateContent?key=${apiKey}`;
 
     let response: Response;
     try {
@@ -842,108 +830,70 @@ RÈGLES STRICTES POUR LE CALCUL DES PRIX ET QUANTITÉS (TRÈS IMPORTANT) :
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
         },
         signal: AbortSignal.timeout(120_000),
         body: JSON.stringify({
-          model,
-          temperature: 0.1,
-          max_tokens: maxTokens,
-          response_format: { type: 'json_object' },
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: prompt },
-          ],
+          contents: [{
+            parts: [{ text: prompt }]
+          }],
+          systemInstruction: {
+            parts: [{ text: systemPrompt }]
+          },
+          generationConfig: {
+            temperature: 0.1,
+            maxOutputTokens: maxTokens,
+            responseMimeType: "application/json",
+          }
         }),
       });
     } catch (error) {
-      console.error('[Groq] Échec de la requête HTTP.', {
-        url,
-        model,
-        error:
-          error instanceof Error
-            ? { name: error.name, message: error.message, cause: error.cause }
-            : error,
-      });
+      console.error('[Gemini] Échec de la requête HTTP.', { error });
       throw new InternalServerErrorException(
-        'Impossible de communiquer avec Groq ou délai d’attente dépassé.',
+        'Impossible de communiquer avec Gemini ou délai d’attente dépassé.',
       );
     }
 
-    console.log('[Groq] Statut HTTP :', response.status);
+    console.log('[Gemini] Statut HTTP :', response.status);
 
     if (!response.ok) {
       const errorBody = await response.text().catch(() => '');
-      console.error('[Groq] Réponse HTTP en erreur :', {
+      console.error('[Gemini] Réponse HTTP en erreur :', {
         status: response.status,
         body: errorBody.slice(0, 2000),
       });
-
-      if (response.status === 401) {
-        throw new InternalServerErrorException(
-          'Clé API Groq invalide. Vérifie GROQ_API dans le fichier .env.',
-        );
-      }
-      if (response.status === 429) {
-        throw new InternalServerErrorException(
-          'Limite de débit Groq atteinte. Réessaie dans quelques instants.',
-        );
-      }
-      if (response.status === 413) {
-        throw new InternalServerErrorException(
-          'Requête trop volumineuse pour Groq. Réduis la taille du cahier des charges.',
-        );
-      }
-
       throw new InternalServerErrorException(
-        `Groq a répondu avec le statut ${response.status}. Consulte les logs pour plus de détails.`,
+        `Gemini a répondu avec le statut ${response.status}.`,
       );
     }
 
-    let payload: {
-      choices?: Array<{ message?: { content?: string } }>;
-      error?: { message?: string };
-    };
-
+    let payload: any;
     try {
-      payload = (await response.json()) as typeof payload;
+      payload = await response.json();
     } catch (error) {
-      console.error('[Groq] Impossible de lire la réponse JSON HTTP :', error);
+      console.error('[Gemini] Impossible de lire la réponse JSON HTTP :', error);
       throw new InternalServerErrorException(
-        'Impossible de lire la réponse JSON retournée par Groq.',
+        'Impossible de lire la réponse JSON retournée par Gemini.',
       );
     }
 
-    if (payload.error?.message) {
-      console.error(
-        '[Groq] Erreur signalée par le serveur :',
-        payload.error.message,
-      );
-      throw new InternalServerErrorException(
-        'Groq a signalé une erreur pendant la génération.',
-      );
-    }
-
-    const content = payload.choices?.[0]?.message?.content;
+    const content = payload.candidates?.[0]?.content?.parts?.[0]?.text;
+    
     if (!content?.trim()) {
-      console.error('[Groq] Réponse reçue sans contenu exploitable.', payload);
+      console.error('[Gemini] Réponse reçue sans contenu exploitable.', payload);
       throw new InternalServerErrorException(
-        'Groq a retourné une réponse vide.',
+        'Gemini a retourné une réponse vide.',
       );
     }
 
     try {
       const parsed = JSON.parse(content);
-      console.log('[Groq] JSON décodé avec succès.');
+      console.log('[Gemini] JSON décodé avec succès.');
       return parsed;
     } catch (error) {
-      console.error(
-        '[Groq] Le contenu généré n’est pas un JSON valide :',
-        error,
-      );
-      console.error('[Groq] Début du contenu reçu :', content.slice(0, 1500));
+      console.error('[Gemini] Le contenu généré n’est pas un JSON valide :', error);
+      console.error('[Gemini] Début du contenu reçu :', content.slice(0, 1500));
       throw new InternalServerErrorException(
-        'La réponse de Groq ne contient pas de JSON valide. Essaie de relancer l’analyse.',
+        'La réponse de Gemini ne contient pas de JSON valide.',
       );
     }
   }
