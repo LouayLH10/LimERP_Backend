@@ -64,7 +64,7 @@ type AIResult = {
 export class ProjectAiService {
   // 👇 Configuration Gemini
   private readonly geminiBaseUrl = 'https://generativelanguage.googleapis.com/v1beta';
-private readonly geminiModel = 'gemini-3.8-flash';// Modèle gratuit et performant
+private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et performant
 
   constructor(
     private readonly prisma: PrismaService,
