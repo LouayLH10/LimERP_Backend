@@ -63,7 +63,7 @@ type AIResult = {
 @Injectable()
 export class ProjectAiService {
   private readonly groqBaseUrl = 'https://api.groq.com/openai/v1';
-  private readonly groqModel = 'openai/gpt-oss-120b';
+  private readonly groqModel = 'llama-3.3-70b-versatile';
 
   constructor(
     private readonly prisma: PrismaService,
