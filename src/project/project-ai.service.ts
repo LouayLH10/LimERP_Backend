@@ -489,7 +489,7 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
       include: { style: true },
     });
 
-    const templateSource = `
+     const templateSource = `
       <!DOCTYPE html>
       <html lang="fr">
       <head>
@@ -497,6 +497,7 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
         <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
         <style>
           @page { size: A4; margin: 0; }
+          
           body {
             font-family: 'Cairo', '{{style.fontFamily}}', Arial, sans-serif;
             color: {{style.textColor}};
@@ -504,8 +505,10 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
             background: {{style.backgroundColor}};
             position: relative;
             -webkit-print-color-adjust: exact;
-            padding-bottom: 140px;
+            /* 👇 Marge de sécurité pour le footer */
+            padding-bottom: 150px; 
           }
+          
           .watermark {
             position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%) rotate(-30deg);
@@ -513,7 +516,9 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
             color: {{style.primaryColor}}; opacity: 0.04;
             z-index: -1; letter-spacing: 10px; white-space: nowrap;
           }
+          
           .page-container { padding: 40px 50px; }
+          
           .header-main { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
           .header-logo-left { flex: 0 0 150px; }
           .header-logo-left img { height: 70px; object-fit: contain; }
@@ -523,9 +528,11 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
           .header-logo-right { flex: 0 0 150px; text-align: right; }
           .header-logo-right img { height: 70px; object-fit: contain; }
           .header-line { border-bottom: 2px solid {{style.primaryColor}}; margin-bottom: 20px; }
+          
           .doc-bar { background: {{style.primaryColor}}; color: white; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; border-radius: {{style.borderRadius}}px; margin-bottom: 30px; }
           .doc-bar h2 { margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; }
           .doc-bar .doc-number { font-size: 16px; font-weight: bold; }
+          
           .info-section { display: flex; justify-content: space-between; margin-bottom: 40px; }
           .client-info { width: 45%; background: #f8fafc; padding: 15px; border-radius: {{style.borderRadius}}px; border-left: 4px solid {{style.accentColor}}; }
           .client-info h3 { margin: 0 0 10px 0; font-size: 14px; color: {{style.secondaryColor}}; text-transform: uppercase; }
@@ -533,13 +540,18 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
           .project-info { width: 45%; text-align: right; }
           .project-info p { margin: 5px 0; font-size: 13px; }
           .project-info strong { color: {{style.primaryColor}}; }
-          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+          
+          /* 👇 Tableau Anti-Coupure */
+          table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
           th { background: {{style.primaryColor}}; color: white; padding: 12px; text-align: left; font-size: 13px; text-transform: uppercase; }
           td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
-          tr { page-break-inside: avoid; }
+          tr { page-break-inside: avoid; } 
           thead { display: table-header-group; }
+          
           .text-right { text-align: right; }
           .text-center { text-align: center; }
+          
+          /* 👇 Totaux collés au tableau */
           .totals-wrapper {
             page-break-inside: avoid;
             break-inside: avoid;
@@ -550,6 +562,8 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
           .totals td { padding: 8px 12px; }
           .totals .total-row { background: {{style.primaryColor}}; color: white; font-weight: bold; font-size: 15px; }
           .totals .total-row td { border-bottom: none; }
+          
+          /* 👇 Pied de page FIXE */
           footer {
             position: fixed; bottom: 0; left: 0; right: 0;
             padding: 15px 50px; background: {{style.backgroundColor}};
@@ -561,6 +575,7 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
       </head>
       <body>
         <div class="watermark">LIM</div>
+        
         <div class="page-container">
           <div class="header-main">
             <div class="header-logo-left"><img src="https://i.ibb.co/vCC87Tky/logo.png" alt="Logo LIM" /></div>
@@ -570,11 +585,14 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
             </div>
             <div class="header-logo-right"><img src="https://i.ibb.co/21RN2hdL/ICM-ISO-Certification-Logo.png" alt="ISO" /></div>
           </div>
+          
           <div class="header-line"></div>
+          
           <div class="doc-bar">
             <h2>BORDEREAU DE PRIX DÉTAILLÉ</h2>
             <span class="doc-number">Projet : {{project.name}}</span>
           </div>
+          
           <div class="info-section">
             <div class="client-info">
               <h3>Client</h3>
@@ -587,13 +605,14 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
               <p><strong>Durée estimée :</strong> {{durationDays}} jours</p>
             </div>
           </div>
+          
           <table>
             <thead>
               <tr>
-                <th>#</th>
+                <th style="width: 50px;">#</th>
                 <th>Désignation des travaux</th>
-                <th class="text-center">Durée</th>
-                <th class="text-right">Montant HT</th>
+                <th class="text-center" style="width: 80px;">Durée</th>
+                <th class="text-right" style="width: 120px;">Montant HT</th>
               </tr>
             </thead>
             <tbody>
@@ -610,6 +629,7 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
               {{/each}}
             </tbody>
           </table>
+          
           <div class="totals-wrapper">
             <div class="totals">
               <table>
@@ -620,6 +640,8 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
             </div>
           </div>
         </div>
+        
+        <!-- 👇 Footer en dehors de page-container -->
         <footer>
           <div class="company-name"><bdi>شركة لؤي للصناعة و الصيانة</bdi> - SOCIETE LOUAY INDUSTRIE ET MAINTENANCE</div>
           <div>Rue Ali Dargouth, Imm El Moustakbal 5, 1001 Tunis 1er étage BN 10 | Bureaux de Gabès : N° 08 Rue al anbar, 1er étage Gabès Ville 6040</div>
