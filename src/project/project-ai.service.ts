@@ -10,6 +10,7 @@ import { extname } from 'path';
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
 import { get, del } from '@vercel/blob';
+import Handlebars from 'handlebars';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { EmployeePosition } from '../generated/prisma/enums';
@@ -90,9 +91,6 @@ export class ProjectAiService {
     return token;
   }
 
-  /**
-   * Traitement du fichier uploadé directement sur Vercel (Presigned URL)
-   */
   async processSpecificationFromVercel(
     projectId: string,
     blobUrl: string,
@@ -110,8 +108,6 @@ export class ProjectAiService {
     let fileBuffer: Buffer;
 
     try {
-      console.log(`[Project AI] Téléchargement du fichier depuis Vercel Blob : ${blobUrl}`);
-      
       const result = await get(blobUrl, {
         access: 'private',
         token: this.getBlobToken(),
@@ -126,8 +122,6 @@ export class ProjectAiService {
         chunks.push(Buffer.from(chunk));
       }
       fileBuffer = Buffer.concat(chunks);
-      
-      console.log(`[Project AI] ✅ Fichier téléchargé (${fileBuffer.length} octets)`);
     } catch (error: any) {
       console.error('[Project AI] Erreur de téléchargement:', error);
       throw new BadRequestException(
@@ -207,9 +201,6 @@ export class ProjectAiService {
     }
   }
 
-  /**
-   * Télécharger un fichier privé depuis Vercel Blob
-   */
   async getPrivateFile(fileUrl: string): Promise<Buffer> {
     if (
       !fileUrl.startsWith('https://') ||
@@ -235,18 +226,12 @@ export class ProjectAiService {
     return Buffer.concat(chunks);
   }
 
-  /**
-   * Récupérer les infos d'une spécification
-   */
   async getSpecification(projectId: string) {
     return this.prisma.projectSpecification.findUnique({
       where: { projectId },
     });
   }
 
-  /**
-   * Analyser le cahier des charges avec Groq.
-   */
   async analyzeProject(projectId: string) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
@@ -274,10 +259,6 @@ export class ProjectAiService {
 
     try {
       console.log(`[Project AI] Début de l'analyse : ${projectId}`);
-      console.log(
-        `[Project AI] Longueur du cahier des charges : ${specification.extractedText.length} caractères`,
-      );
-      console.log('[Project AI] Appel à Groq (analyse)...');
 
       const analysisResult = await this.callGroqForAnalysis({
         projectName: project.name,
@@ -287,20 +268,10 @@ export class ProjectAiService {
         extractedText: specification.extractedText,
       });
 
-      console.log('[Project AI] Réponse analyse reçue.');
-      console.log('[Project AI] Résumé :', {
-        resumeProjet: analysisResult?.resumeProjet,
-        estimatedPrice: analysisResult?.estimatedPrice,
-        durationDays: analysisResult?.durationDays,
-        workPhasesCount: analysisResult?.workPhases?.length,
-        workforceCount: analysisResult?.workforce?.length,
-      });
-
       console.log('[Project AI] Validation des données (analyse)...');
       this.validateAnalysisResult(analysisResult);
       console.log('[Project AI] Validation analyse terminée.');
 
-      // 👇 LA CORRECTION EST ICI : On utilise l'enum complet
       const validPositions = new Set<string>(Object.values(EmployeePosition));
 
       const workforce = analysisResult.workforce
@@ -316,19 +287,23 @@ export class ProjectAiService {
         }))
         .filter((item) => item.quantity > 0);
 
-      const workPhases = analysisResult.workPhases.map((phase, index) => ({
-        name: phase.name,
-        description: phase.description ?? null,
-        order: phase.order ?? index + 1,
-        durationDays: phase.durationDays,
-        estimatedCost: phase.estimatedCost ?? null,
-      }));
+      let totalHT = 0;
+      const workPhases = analysisResult.workPhases.map((phase, index) => {
+        const estimatedCost = phase.estimatedCost ?? (phase.durationDays * 1000);
+        totalHT += estimatedCost;
 
-      console.log('[Project AI] Début de la sauvegarde Prisma...', {
-        analysisId: analysis.id,
-        workPhasesCount: workPhases.length,
-        workforceCount: workforce.length,
+        return {
+          name: phase.name,
+          description: phase.description ?? null,
+          order: phase.order ?? index + 1,
+          durationDays: phase.durationDays,
+          estimatedCost: estimatedCost,
+        };
       });
+
+      const tvaRate = 0.19;
+      const totalTVA = totalHT * tvaRate;
+      const totalTTC = totalHT + totalTVA;
 
       const saved = await this.prisma.projectAIAnalysis.update({
         where: { id: analysis.id },
@@ -354,16 +329,20 @@ export class ProjectAiService {
           },
           workPhases: { create: workPhases },
           workforce: { create: workforce },
+          priceSchedule: {
+            create: {
+              totalHT,
+              totalTVA,
+              totalTTC,
+            }
+          }
         },
         include: {
           estimation: true,
           workPhases: { orderBy: { order: 'asc' } },
           workforce: true,
+          priceSchedule: true,
         },
-      });
-
-      console.log('[Project AI] Analyse sauvegardée avec succès.', {
-        analysisId: saved.id,
       });
 
       let createdQuote: Awaited<
@@ -371,7 +350,6 @@ export class ProjectAiService {
       > | null = null;
 
       try {
-        console.log('[Project AI] Appel à Groq (génération du devis)...');
         const quote = await this.callGroqForQuote(analysisResult);
 
         if (quote && quote.lines?.length > 0) {
@@ -380,13 +358,6 @@ export class ProjectAiService {
             validUntil = new Date();
             validUntil.setDate(validUntil.getDate() + 30);
           }
-
-          console.log('[Project AI] Création automatique du devis...', {
-            clientId: project.clientId,
-            projectId: project.id,
-            validUntil: validUntil.toISOString(),
-            linesCount: quote.lines.length,
-          });
 
           createdQuote = await this.quotesService.create({
             clientId: project.clientId,
@@ -402,15 +373,6 @@ export class ProjectAiService {
               taxRate: line.taxRate,
             })),
           });
-
-          console.log('[Project AI] Devis créé automatiquement :', {
-            quoteId: createdQuote.id,
-            number: createdQuote.number,
-            total: createdQuote.total,
-            linesCount: createdQuote.lines.length,
-          });
-        } else {
-          console.warn('[Project AI] Devis vide retourné par Groq.');
         }
       } catch (quoteError) {
         console.error(
@@ -472,6 +434,7 @@ export class ProjectAiService {
         estimation: true,
         workPhases: { orderBy: { order: 'asc' } },
         workforce: true,
+        priceSchedule: true,
       },
     });
   }
@@ -483,6 +446,7 @@ export class ProjectAiService {
         estimation: true,
         workPhases: { orderBy: { order: 'asc' } },
         workforce: true,
+        priceSchedule: true,
         specification: { select: { id: true, originalName: true } },
       },
     });
@@ -492,6 +456,235 @@ export class ProjectAiService {
     }
 
     return analysis;
+  }
+
+  async generatePriceSchedulePdf(analysisId: string, projectId: string): Promise<Buffer> {
+    const analysis = await this.prisma.projectAIAnalysis.findUnique({
+      where: { id: analysisId },
+      include: {
+        priceSchedule: true,
+        workPhases: { orderBy: { order: 'asc' } },
+        estimation: true, // 👈 Ajouté pour corriger l'erreur TS
+        specification: { 
+          include: { 
+            project: { 
+              include: { client: true } 
+            } 
+          } 
+        }
+      }
+    });
+
+    if (!analysis || !analysis.priceSchedule) {
+      throw new NotFoundException('Bordereau de prix introuvable pour cette analyse.');
+    }
+
+    const project = analysis.specification.project;
+    const client = project.client;
+
+    const template = await this.prisma.documentTemplate.findFirst({
+      where: { type: 'QUOTE', isDefault: true, isActive: true },
+      include: { style: true },
+    });
+
+    const templateSource = `
+      <!DOCTYPE html>
+      <html lang="fr">
+      <head>
+        <meta charset="UTF-8">
+        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+        <style>
+          @page { size: A4; margin: 0; }
+          body {
+            font-family: 'Cairo', '{{style.fontFamily}}', Arial, sans-serif;
+            color: {{style.textColor}};
+            margin: 0; padding: 0;
+            background: {{style.backgroundColor}};
+            position: relative;
+            -webkit-print-color-adjust: exact;
+            padding-bottom: 140px;
+          }
+          .watermark {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 150px; font-weight: bold;
+            color: {{style.primaryColor}}; opacity: 0.04;
+            z-index: -1; letter-spacing: 10px; white-space: nowrap;
+          }
+          .page-container { padding: 40px 50px; }
+          .header-main { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
+          .header-logo-left { flex: 0 0 150px; }
+          .header-logo-left img { height: 70px; object-fit: contain; }
+          .header-center { flex: 1; text-align: center; padding: 0 20px; }
+          .header-center h1 { color: {{style.primaryColor}}; margin: 0; font-size: 24px; font-weight: 700; }
+          .header-center p { margin: 5px 0 0 0; font-size: 13px; color: {{style.secondaryColor}}; letter-spacing: 1px; }
+          .header-logo-right { flex: 0 0 150px; text-align: right; }
+          .header-logo-right img { height: 70px; object-fit: contain; }
+          .header-line { border-bottom: 2px solid {{style.primaryColor}}; margin-bottom: 20px; }
+          .doc-bar { background: {{style.primaryColor}}; color: white; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; border-radius: {{style.borderRadius}}px; margin-bottom: 30px; }
+          .doc-bar h2 { margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; }
+          .doc-bar .doc-number { font-size: 16px; font-weight: bold; }
+          .info-section { display: flex; justify-content: space-between; margin-bottom: 40px; }
+          .client-info { width: 45%; background: #f8fafc; padding: 15px; border-radius: {{style.borderRadius}}px; border-left: 4px solid {{style.accentColor}}; }
+          .client-info h3 { margin: 0 0 10px 0; font-size: 14px; color: {{style.secondaryColor}}; text-transform: uppercase; }
+          .client-info p { margin: 3px 0; font-size: 13px; }
+          .project-info { width: 45%; text-align: right; }
+          .project-info p { margin: 5px 0; font-size: 13px; }
+          .project-info strong { color: {{style.primaryColor}}; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+          th { background: {{style.primaryColor}}; color: white; padding: 12px; text-align: left; font-size: 13px; text-transform: uppercase; }
+          td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+          tr { page-break-inside: avoid; }
+          thead { display: table-header-group; }
+          .text-right { text-align: right; }
+          .text-center { text-align: center; }
+          .totals-wrapper {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            margin-top: 10px;
+          }
+          .totals { width: 40%; margin-left: auto; }
+          .totals table { margin-bottom: 0; }
+          .totals td { padding: 8px 12px; }
+          .totals .total-row { background: {{style.primaryColor}}; color: white; font-weight: bold; font-size: 15px; }
+          .totals .total-row td { border-bottom: none; }
+          footer {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            padding: 15px 50px; background: {{style.backgroundColor}};
+            border-top: 1px solid #e2e8f0; font-size: 9px;
+            text-align: center; color: #64748b; line-height: 1.5; z-index: 100;
+          }
+          footer .company-name { font-weight: bold; color: {{style.primaryColor}}; font-size: 11px; margin-bottom: 5px; }
+        </style>
+      </head>
+      <body>
+        <div class="watermark">LIM</div>
+        <div class="page-container">
+          <div class="header-main">
+            <div class="header-logo-left"><img src="https://i.ibb.co/vCC87Tky/logo.png" alt="Logo LIM" /></div>
+            <div class="header-center">
+              <h1><bdi>شركة لؤي للصناعة و الصيانة</bdi></h1>
+              <p>SOCIETE LOUAY INDUSTRIE ET MAINTENANCE</p>
+            </div>
+            <div class="header-logo-right"><img src="https://i.ibb.co/21RN2hdL/ICM-ISO-Certification-Logo.png" alt="ISO" /></div>
+          </div>
+          <div class="header-line"></div>
+          <div class="doc-bar">
+            <h2>BORDEREAU DE PRIX DÉTAILLÉ</h2>
+            <span class="doc-number">Projet : {{project.name}}</span>
+          </div>
+          <div class="info-section">
+            <div class="client-info">
+              <h3>Client</h3>
+              <p><strong>{{client.companyName}}</strong></p>
+              {{#if client.address}}<p>{{client.address}}</p>{{/if}}
+              {{#if client.phone}}<p>Tél : {{client.phone}}</p>{{/if}}
+            </div>
+            <div class="project-info">
+              <p><strong>Date d'analyse :</strong> {{analysisDate}}</p>
+              <p><strong>Durée estimée :</strong> {{durationDays}} jours</p>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Désignation des travaux</th>
+                <th class="text-center">Durée</th>
+                <th class="text-right">Montant HT</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each workPhases}}
+              <tr>
+                <td>{{this.order}}</td>
+                <td>
+                  <strong>{{this.name}}</strong>
+                  {{#if this.description}}<br><small style="color:#64748b">{{this.description}}</small>{{/if}}
+                </td>
+                <td class="text-center">{{this.durationDays}} j</td>
+                <td class="text-right">{{this.estimatedCost}} TND</td>
+              </tr>
+              {{/each}}
+            </tbody>
+          </table>
+          <div class="totals-wrapper">
+            <div class="totals">
+              <table>
+                <tr><td>Total HT</td><td class="text-right">{{totalHT}} TND</td></tr>
+                <tr><td>TVA (19%)</td><td class="text-right">{{totalTVA}} TND</td></tr>
+                <tr class="total-row"><td>Total TTC</td><td class="text-right">{{totalTTC}} TND</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+        <footer>
+          <div class="company-name"><bdi>شركة لؤي للصناعة و الصيانة</bdi> - SOCIETE LOUAY INDUSTRIE ET MAINTENANCE</div>
+          <div>Rue Ali Dargouth, Imm El Moustakbal 5, 1001 Tunis 1er étage BN 10 | Bureaux de Gabès : N° 08 Rue al anbar, 1er étage Gabès Ville 6040</div>
+          <div>Tel fixe : 00 216 70038568 | GSM : (00216) 28 815 988 | Mail : lim_commercial@outlook.com / samirhcine@hotmail.com</div>
+          <div>WWW.LIM.TN | SARL Capital 210 000 DT | Code TVA 929854/AAM/000</div>
+        </footer>
+      </body>
+      </html>
+    `;
+
+    // 👇 Correction du type pour accepter les Decimal
+    const formatMoney = (value: number | string | any | null | undefined): string =>
+      Number(value ?? 0).toLocaleString('fr-TN', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+
+    const templateData = {
+      project: { name: project.name },
+      client: { 
+        companyName: client.companyName, 
+        address: client.address, 
+        phone: client.phone 
+      },
+      analysisDate: new Date(analysis.createdAt).toLocaleDateString('fr-FR'),
+      durationDays: analysis.estimation?.durationDays || 0,
+      workPhases: analysis.workPhases.map(phase => ({
+        ...phase,
+        estimatedCost: formatMoney(phase.estimatedCost)
+      })),
+      totalHT: formatMoney(analysis.priceSchedule.totalHT),
+      totalTVA: formatMoney(analysis.priceSchedule.totalTVA),
+      totalTTC: formatMoney(analysis.priceSchedule.totalTTC),
+      style: template?.style || {
+        primaryColor: '#1F2937',
+        secondaryColor: '#6B7280',
+        accentColor: '#2563EB',
+        textColor: '#111827',
+        backgroundColor: '#FFFFFF',
+        fontFamily: 'Arial',
+        borderRadius: 0,
+      },
+    };
+
+    const html = Handlebars.compile(templateSource)(templateData);
+
+    const puppeteer = (await import('puppeteer-core')).default;
+    const chromium = (await import('@sparticuz/chromium')).default;
+
+    const browser = await puppeteer.launch({
+      args: chromium.args,
+      executablePath: await chromium.executablePath(),
+      // headless: chromium.headless, // 👈 Supprimé car n'existe pas dans les types
+    });
+
+    try {
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: 'load' });
+
+      const pdf = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        preferCSSPageSize: true,
+        margin: { top: '12mm', right: '12mm', bottom: '12mm', left: '12mm' },
+      });
+
+      return Buffer.from(pdf);
+    } finally {
+      await browser.close();
+    }
   }
 
   private async callGroqForAnalysis(input: {
@@ -504,7 +697,6 @@ export class ProjectAiService {
     const apiKey = this.getGroqApiKey();
     const url = `${this.groqBaseUrl}/chat/completions`;
 
-    // 👇 On dynamise l'enum pour que l'IA propose les nouveaux postes
     const availablePositions = Object.values(EmployeePosition).join(', ');
 
     const prompt = `
@@ -583,6 +775,9 @@ Fin du cahier des charges.
     });
   }
 
+  /**
+   * 👇 PROMPT DU DEVIS CORRIGÉ POUR ÉVITER LES ERREURS DE CALCUL
+   */
   private async callGroqForQuote(analysis: AIResult): Promise<AIQuote> {
     const apiKey = this.getGroqApiKey();
     const url = `${this.groqBaseUrl}/chat/completions`;
@@ -610,11 +805,15 @@ Retourne EXACTEMENT ce format, sans aucun autre champ :
   ]
 }
 
-Règles :
-- "lines" doit contenir au moins 3 lignes cohérentes avec les phases.
-- Chaque quantity > 0, unitPrice >= 0, taxRate = 19.
-- Ne JAMAIS ajouter de champs comme materials, labor, transport.
-- La date "validUntil" doit être dans le futur.
+RÈGLES STRICTES POUR LE CALCUL DES PRIX ET QUANTITÉS (TRÈS IMPORTANT) :
+1. Regroupe les travaux par GRAND ENSEMBLE (ex: "Refroidisseur Polytrack", "Concasseur à rouleaux", "Ventilateur", etc.).
+2. La quantité (quantity) doit TOUJOURS être de "1" pour chaque grand ensemble. C'est un forfait global.
+3. NE MULTIPLIE JAMAIS la quantité par le nombre de pièces mentionnées (ex: s'il y a 12 vérins ou 9 ventilateurs, ne fais pas 1 x 12 ou 1 x 9). Le prix unitaire doit déjà englober la totalité des pièces du lot.
+4. Le prix unitaire (unitPrice) doit être une estimation globale et forfaitaire pour tout le lot de travaux, et non un prix à l'unité.
+5. "lines" doit contenir au moins 3 lignes cohérentes avec les phases.
+6. Chaque quantity = 1, unitPrice >= 0, taxRate = 19.
+7. Ne JAMAIS ajouter de champs comme materials, labor, transport.
+8. La date "validUntil" doit être dans le futur.
 `;
 
     const quoteResult = await this.callGroqApi({
@@ -752,14 +951,13 @@ Règles :
     }
   }
 
+  /**
+   * 👇 VALIDATION CORRIGÉE : Tolérante aux erreurs de formatage de l'IA
+   */
   private validateAnalysisResult(result: AIResult): void {
     if (
       !result ||
       typeof result.resumeProjet !== 'string' ||
-      !Number.isFinite(result.estimatedPrice) ||
-      result.estimatedPrice < 0 ||
-      !Number.isInteger(result.durationDays) ||
-      result.durationDays < 1 ||
       !Array.isArray(result.workPhases) ||
       !Array.isArray(result.workforce)
     ) {
@@ -769,24 +967,29 @@ Règles :
     }
 
     for (const phase of result.workPhases) {
-      if (
-        typeof phase.name !== 'string' ||
-        !Number.isInteger(phase.durationDays) ||
-        phase.durationDays < 1 ||
-        (phase.estimatedCost != null &&
-          (!Number.isFinite(phase.estimatedCost) || phase.estimatedCost < 0))
-      ) {
+      if (typeof phase.name !== 'string' || !phase.name.trim()) {
         throw new BadRequestException(
-          'Une phase de travail retournée par l’IA est invalide.',
+          'Une phase de travail n\'a pas de nom.',
         );
+      }
+
+      phase.durationDays = parseInt(String(phase.durationDays), 10);
+      if (isNaN(phase.durationDays) || phase.durationDays < 1) {
+        phase.durationDays = 1;
+      }
+
+      if (phase.estimatedCost != null) {
+        phase.estimatedCost = Number(phase.estimatedCost);
+        if (isNaN(phase.estimatedCost) || phase.estimatedCost < 0) {
+          phase.estimatedCost = null;
+        }
       }
     }
 
     for (const person of result.workforce) {
-      if (!Number.isInteger(person.quantity) || person.quantity < 1) {
-        throw new BadRequestException(
-          'Un effectif recommandé par l’IA est invalide.',
-        );
+      person.quantity = parseInt(String(person.quantity), 10);
+      if (isNaN(person.quantity) || person.quantity < 1) {
+        person.quantity = 1;
       }
     }
 
@@ -796,9 +999,7 @@ Règles :
         result.confidence < 0 ||
         result.confidence > 100)
     ) {
-      throw new BadRequestException(
-        'La confiance retournée par l’IA doit être comprise entre 0 et 100.',
-      );
+      result.confidence = 50;
     }
   }
 
@@ -821,8 +1022,6 @@ Règles :
           `Seuls validUntil, notes et lines sont autorisés.`,
       );
     }
-
-    console.log('[Project AI] Validation du devis généré par l’IA :', quote);
 
     if (
       !quote.validUntil ||

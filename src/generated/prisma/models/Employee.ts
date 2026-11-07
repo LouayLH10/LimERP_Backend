@@ -41,6 +41,7 @@ export type EmployeeMinAggregateOutputType = {
   email: string | null
   phone: string | null
   position: $Enums.EmployeePosition | null
+  cnssNumber: string | null
   cinNumber: string | null
   cinCardFrontImage: string | null
   cinCardBackImage: string | null
@@ -58,6 +59,7 @@ export type EmployeeMaxAggregateOutputType = {
   email: string | null
   phone: string | null
   position: $Enums.EmployeePosition | null
+  cnssNumber: string | null
   cinNumber: string | null
   cinCardFrontImage: string | null
   cinCardBackImage: string | null
@@ -75,6 +77,7 @@ export type EmployeeCountAggregateOutputType = {
   email: number
   phone: number
   position: number
+  cnssNumber: number
   cinNumber: number
   cinCardFrontImage: number
   cinCardBackImage: number
@@ -102,6 +105,7 @@ export type EmployeeMinAggregateInputType = {
   email?: true
   phone?: true
   position?: true
+  cnssNumber?: true
   cinNumber?: true
   cinCardFrontImage?: true
   cinCardBackImage?: true
@@ -119,6 +123,7 @@ export type EmployeeMaxAggregateInputType = {
   email?: true
   phone?: true
   position?: true
+  cnssNumber?: true
   cinNumber?: true
   cinCardFrontImage?: true
   cinCardBackImage?: true
@@ -136,6 +141,7 @@ export type EmployeeCountAggregateInputType = {
   email?: true
   phone?: true
   position?: true
+  cnssNumber?: true
   cinNumber?: true
   cinCardFrontImage?: true
   cinCardBackImage?: true
@@ -240,6 +246,7 @@ export type EmployeeGroupByOutputType = {
   email: string | null
   phone: string | null
   position: $Enums.EmployeePosition
+  cnssNumber: string | null
   cinNumber: string | null
   cinCardFrontImage: string | null
   cinCardBackImage: string | null
@@ -280,6 +287,7 @@ export type EmployeeWhereInput = {
   email?: Prisma.StringNullableFilter<"Employee"> | string | null
   phone?: Prisma.StringNullableFilter<"Employee"> | string | null
   position?: Prisma.EnumEmployeePositionFilter<"Employee"> | $Enums.EmployeePosition
+  cnssNumber?: Prisma.StringNullableFilter<"Employee"> | string | null
   cinNumber?: Prisma.StringNullableFilter<"Employee"> | string | null
   cinCardFrontImage?: Prisma.StringNullableFilter<"Employee"> | string | null
   cinCardBackImage?: Prisma.StringNullableFilter<"Employee"> | string | null
@@ -300,6 +308,7 @@ export type EmployeeOrderByWithRelationInput = {
   email?: Prisma.SortOrderInput | Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   position?: Prisma.SortOrder
+  cnssNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   cinNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   cinCardFrontImage?: Prisma.SortOrderInput | Prisma.SortOrder
   cinCardBackImage?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -324,6 +333,7 @@ export type EmployeeWhereUniqueInput = Prisma.AtLeast<{
   lastName?: Prisma.StringFilter<"Employee"> | string
   phone?: Prisma.StringNullableFilter<"Employee"> | string | null
   position?: Prisma.EnumEmployeePositionFilter<"Employee"> | $Enums.EmployeePosition
+  cnssNumber?: Prisma.StringNullableFilter<"Employee"> | string | null
   cinCardFrontImage?: Prisma.StringNullableFilter<"Employee"> | string | null
   cinCardBackImage?: Prisma.StringNullableFilter<"Employee"> | string | null
   addedById?: Prisma.StringFilter<"Employee"> | string
@@ -343,6 +353,7 @@ export type EmployeeOrderByWithAggregationInput = {
   email?: Prisma.SortOrderInput | Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   position?: Prisma.SortOrder
+  cnssNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   cinNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   cinCardFrontImage?: Prisma.SortOrderInput | Prisma.SortOrder
   cinCardBackImage?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -368,6 +379,7 @@ export type EmployeeScalarWhereWithAggregatesInput = {
   email?: Prisma.StringNullableWithAggregatesFilter<"Employee"> | string | null
   phone?: Prisma.StringNullableWithAggregatesFilter<"Employee"> | string | null
   position?: Prisma.EnumEmployeePositionWithAggregatesFilter<"Employee"> | $Enums.EmployeePosition
+  cnssNumber?: Prisma.StringNullableWithAggregatesFilter<"Employee"> | string | null
   cinNumber?: Prisma.StringNullableWithAggregatesFilter<"Employee"> | string | null
   cinCardFrontImage?: Prisma.StringNullableWithAggregatesFilter<"Employee"> | string | null
   cinCardBackImage?: Prisma.StringNullableWithAggregatesFilter<"Employee"> | string | null
@@ -385,6 +397,7 @@ export type EmployeeCreateInput = {
   email?: string | null
   phone?: string | null
   position: $Enums.EmployeePosition
+  cnssNumber?: string | null
   cinNumber?: string | null
   cinCardFrontImage?: string | null
   cinCardBackImage?: string | null
@@ -404,6 +417,7 @@ export type EmployeeUncheckedCreateInput = {
   email?: string | null
   phone?: string | null
   position: $Enums.EmployeePosition
+  cnssNumber?: string | null
   cinNumber?: string | null
   cinCardFrontImage?: string | null
   cinCardBackImage?: string | null
@@ -423,6 +437,7 @@ export type EmployeeUpdateInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   position?: Prisma.EnumEmployeePositionFieldUpdateOperationsInput | $Enums.EmployeePosition
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardFrontImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardBackImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -442,6 +457,7 @@ export type EmployeeUncheckedUpdateInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   position?: Prisma.EnumEmployeePositionFieldUpdateOperationsInput | $Enums.EmployeePosition
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardFrontImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardBackImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -461,6 +477,7 @@ export type EmployeeCreateManyInput = {
   email?: string | null
   phone?: string | null
   position: $Enums.EmployeePosition
+  cnssNumber?: string | null
   cinNumber?: string | null
   cinCardFrontImage?: string | null
   cinCardBackImage?: string | null
@@ -478,6 +495,7 @@ export type EmployeeUpdateManyMutationInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   position?: Prisma.EnumEmployeePositionFieldUpdateOperationsInput | $Enums.EmployeePosition
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardFrontImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardBackImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -494,6 +512,7 @@ export type EmployeeUncheckedUpdateManyInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   position?: Prisma.EnumEmployeePositionFieldUpdateOperationsInput | $Enums.EmployeePosition
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardFrontImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardBackImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -521,6 +540,7 @@ export type EmployeeCountOrderByAggregateInput = {
   email?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   position?: Prisma.SortOrder
+  cnssNumber?: Prisma.SortOrder
   cinNumber?: Prisma.SortOrder
   cinCardFrontImage?: Prisma.SortOrder
   cinCardBackImage?: Prisma.SortOrder
@@ -542,6 +562,7 @@ export type EmployeeMaxOrderByAggregateInput = {
   email?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   position?: Prisma.SortOrder
+  cnssNumber?: Prisma.SortOrder
   cinNumber?: Prisma.SortOrder
   cinCardFrontImage?: Prisma.SortOrder
   cinCardBackImage?: Prisma.SortOrder
@@ -559,6 +580,7 @@ export type EmployeeMinOrderByAggregateInput = {
   email?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   position?: Prisma.SortOrder
+  cnssNumber?: Prisma.SortOrder
   cinNumber?: Prisma.SortOrder
   cinCardFrontImage?: Prisma.SortOrder
   cinCardBackImage?: Prisma.SortOrder
@@ -667,6 +689,7 @@ export type EmployeeCreateWithoutAddedByInput = {
   email?: string | null
   phone?: string | null
   position: $Enums.EmployeePosition
+  cnssNumber?: string | null
   cinNumber?: string | null
   cinCardFrontImage?: string | null
   cinCardBackImage?: string | null
@@ -685,6 +708,7 @@ export type EmployeeUncheckedCreateWithoutAddedByInput = {
   email?: string | null
   phone?: string | null
   position: $Enums.EmployeePosition
+  cnssNumber?: string | null
   cinNumber?: string | null
   cinCardFrontImage?: string | null
   cinCardBackImage?: string | null
@@ -732,6 +756,7 @@ export type EmployeeScalarWhereInput = {
   email?: Prisma.StringNullableFilter<"Employee"> | string | null
   phone?: Prisma.StringNullableFilter<"Employee"> | string | null
   position?: Prisma.EnumEmployeePositionFilter<"Employee"> | $Enums.EmployeePosition
+  cnssNumber?: Prisma.StringNullableFilter<"Employee"> | string | null
   cinNumber?: Prisma.StringNullableFilter<"Employee"> | string | null
   cinCardFrontImage?: Prisma.StringNullableFilter<"Employee"> | string | null
   cinCardBackImage?: Prisma.StringNullableFilter<"Employee"> | string | null
@@ -749,6 +774,7 @@ export type EmployeeCreateWithoutTimeEntriesInput = {
   email?: string | null
   phone?: string | null
   position: $Enums.EmployeePosition
+  cnssNumber?: string | null
   cinNumber?: string | null
   cinCardFrontImage?: string | null
   cinCardBackImage?: string | null
@@ -767,6 +793,7 @@ export type EmployeeUncheckedCreateWithoutTimeEntriesInput = {
   email?: string | null
   phone?: string | null
   position: $Enums.EmployeePosition
+  cnssNumber?: string | null
   cinNumber?: string | null
   cinCardFrontImage?: string | null
   cinCardBackImage?: string | null
@@ -801,6 +828,7 @@ export type EmployeeUpdateWithoutTimeEntriesInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   position?: Prisma.EnumEmployeePositionFieldUpdateOperationsInput | $Enums.EmployeePosition
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardFrontImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardBackImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -819,6 +847,7 @@ export type EmployeeUncheckedUpdateWithoutTimeEntriesInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   position?: Prisma.EnumEmployeePositionFieldUpdateOperationsInput | $Enums.EmployeePosition
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardFrontImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardBackImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -837,6 +866,7 @@ export type EmployeeCreateWithoutProjectAssignmentsInput = {
   email?: string | null
   phone?: string | null
   position: $Enums.EmployeePosition
+  cnssNumber?: string | null
   cinNumber?: string | null
   cinCardFrontImage?: string | null
   cinCardBackImage?: string | null
@@ -855,6 +885,7 @@ export type EmployeeUncheckedCreateWithoutProjectAssignmentsInput = {
   email?: string | null
   phone?: string | null
   position: $Enums.EmployeePosition
+  cnssNumber?: string | null
   cinNumber?: string | null
   cinCardFrontImage?: string | null
   cinCardBackImage?: string | null
@@ -889,6 +920,7 @@ export type EmployeeUpdateWithoutProjectAssignmentsInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   position?: Prisma.EnumEmployeePositionFieldUpdateOperationsInput | $Enums.EmployeePosition
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardFrontImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardBackImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -907,6 +939,7 @@ export type EmployeeUncheckedUpdateWithoutProjectAssignmentsInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   position?: Prisma.EnumEmployeePositionFieldUpdateOperationsInput | $Enums.EmployeePosition
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardFrontImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardBackImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -925,6 +958,7 @@ export type EmployeeCreateManyAddedByInput = {
   email?: string | null
   phone?: string | null
   position: $Enums.EmployeePosition
+  cnssNumber?: string | null
   cinNumber?: string | null
   cinCardFrontImage?: string | null
   cinCardBackImage?: string | null
@@ -941,6 +975,7 @@ export type EmployeeUpdateWithoutAddedByInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   position?: Prisma.EnumEmployeePositionFieldUpdateOperationsInput | $Enums.EmployeePosition
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardFrontImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardBackImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -959,6 +994,7 @@ export type EmployeeUncheckedUpdateWithoutAddedByInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   position?: Prisma.EnumEmployeePositionFieldUpdateOperationsInput | $Enums.EmployeePosition
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardFrontImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardBackImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -977,6 +1013,7 @@ export type EmployeeUncheckedUpdateManyWithoutAddedByInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   position?: Prisma.EnumEmployeePositionFieldUpdateOperationsInput | $Enums.EmployeePosition
+  cnssNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardFrontImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cinCardBackImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1033,6 +1070,7 @@ export type EmployeeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   email?: boolean
   phone?: boolean
   position?: boolean
+  cnssNumber?: boolean
   cinNumber?: boolean
   cinCardFrontImage?: boolean
   cinCardBackImage?: boolean
@@ -1054,6 +1092,7 @@ export type EmployeeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   email?: boolean
   phone?: boolean
   position?: boolean
+  cnssNumber?: boolean
   cinNumber?: boolean
   cinCardFrontImage?: boolean
   cinCardBackImage?: boolean
@@ -1072,6 +1111,7 @@ export type EmployeeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   email?: boolean
   phone?: boolean
   position?: boolean
+  cnssNumber?: boolean
   cinNumber?: boolean
   cinCardFrontImage?: boolean
   cinCardBackImage?: boolean
@@ -1090,6 +1130,7 @@ export type EmployeeSelectScalar = {
   email?: boolean
   phone?: boolean
   position?: boolean
+  cnssNumber?: boolean
   cinNumber?: boolean
   cinCardFrontImage?: boolean
   cinCardBackImage?: boolean
@@ -1100,7 +1141,7 @@ export type EmployeeSelectScalar = {
   updatedAt?: boolean
 }
 
-export type EmployeeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "firstName" | "lastName" | "email" | "phone" | "position" | "cinNumber" | "cinCardFrontImage" | "cinCardBackImage" | "addedById" | "isActive" | "dailyRate" | "createdAt" | "updatedAt", ExtArgs["result"]["employee"]>
+export type EmployeeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "firstName" | "lastName" | "email" | "phone" | "position" | "cnssNumber" | "cinNumber" | "cinCardFrontImage" | "cinCardBackImage" | "addedById" | "isActive" | "dailyRate" | "createdAt" | "updatedAt", ExtArgs["result"]["employee"]>
 export type EmployeeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   addedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   projectAssignments?: boolean | Prisma.Employee$projectAssignmentsArgs<ExtArgs>
@@ -1128,6 +1169,7 @@ export type $EmployeePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     email: string | null
     phone: string | null
     position: $Enums.EmployeePosition
+    cnssNumber: string | null
     cinNumber: string | null
     cinCardFrontImage: string | null
     cinCardBackImage: string | null
@@ -1568,6 +1610,7 @@ export interface EmployeeFieldRefs {
   readonly email: Prisma.FieldRef<"Employee", 'String'>
   readonly phone: Prisma.FieldRef<"Employee", 'String'>
   readonly position: Prisma.FieldRef<"Employee", 'EmployeePosition'>
+  readonly cnssNumber: Prisma.FieldRef<"Employee", 'String'>
   readonly cinNumber: Prisma.FieldRef<"Employee", 'String'>
   readonly cinCardFrontImage: Prisma.FieldRef<"Employee", 'String'>
   readonly cinCardBackImage: Prisma.FieldRef<"Employee", 'String'>

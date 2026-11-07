@@ -165,6 +165,11 @@ export type CompanySettings = Prisma.CompanySettingsModel
  */
 export type ProjectSpecification = Prisma.ProjectSpecificationModel
 /**
+ * Model PriceSchedule
+ * 
+ */
+export type PriceSchedule = Prisma.PriceScheduleModel
+/**
  * Model ProjectAIAnalysis
  * 
  */

@@ -32,7 +32,6 @@ export type ClientMinAggregateOutputType = {
   address: string | null
   city: string | null
   country: string | null
-  taxId: string | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -46,7 +45,6 @@ export type ClientMaxAggregateOutputType = {
   address: string | null
   city: string | null
   country: string | null
-  taxId: string | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -60,7 +58,6 @@ export type ClientCountAggregateOutputType = {
   address: number
   city: number
   country: number
-  taxId: number
   isActive: number
   createdAt: number
   updatedAt: number
@@ -76,7 +73,6 @@ export type ClientMinAggregateInputType = {
   address?: true
   city?: true
   country?: true
-  taxId?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -90,7 +86,6 @@ export type ClientMaxAggregateInputType = {
   address?: true
   city?: true
   country?: true
-  taxId?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -104,7 +99,6 @@ export type ClientCountAggregateInputType = {
   address?: true
   city?: true
   country?: true
-  taxId?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -191,7 +185,6 @@ export type ClientGroupByOutputType = {
   address: string | null
   city: string | null
   country: string | null
-  taxId: string | null
   isActive: boolean
   createdAt: Date
   updatedAt: Date
@@ -226,7 +219,6 @@ export type ClientWhereInput = {
   address?: Prisma.StringNullableFilter<"Client"> | string | null
   city?: Prisma.StringNullableFilter<"Client"> | string | null
   country?: Prisma.StringNullableFilter<"Client"> | string | null
-  taxId?: Prisma.StringNullableFilter<"Client"> | string | null
   isActive?: Prisma.BoolFilter<"Client"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Client"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Client"> | Date | string
@@ -247,7 +239,6 @@ export type ClientOrderByWithRelationInput = {
   address?: Prisma.SortOrderInput | Prisma.SortOrder
   city?: Prisma.SortOrderInput | Prisma.SortOrder
   country?: Prisma.SortOrderInput | Prisma.SortOrder
-  taxId?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -262,7 +253,6 @@ export type ClientOrderByWithRelationInput = {
 
 export type ClientWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  taxId?: string
   AND?: Prisma.ClientWhereInput | Prisma.ClientWhereInput[]
   OR?: Prisma.ClientWhereInput[]
   NOT?: Prisma.ClientWhereInput | Prisma.ClientWhereInput[]
@@ -282,7 +272,7 @@ export type ClientWhereUniqueInput = Prisma.AtLeast<{
   deliveries?: Prisma.DeliveryListRelationFilter
   invoices?: Prisma.InvoiceListRelationFilter
   creditNotes?: Prisma.CreditNoteListRelationFilter
-}, "id" | "taxId">
+}, "id">
 
 export type ClientOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -292,7 +282,6 @@ export type ClientOrderByWithAggregationInput = {
   address?: Prisma.SortOrderInput | Prisma.SortOrder
   city?: Prisma.SortOrderInput | Prisma.SortOrder
   country?: Prisma.SortOrderInput | Prisma.SortOrder
-  taxId?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -312,7 +301,6 @@ export type ClientScalarWhereWithAggregatesInput = {
   address?: Prisma.StringNullableWithAggregatesFilter<"Client"> | string | null
   city?: Prisma.StringNullableWithAggregatesFilter<"Client"> | string | null
   country?: Prisma.StringNullableWithAggregatesFilter<"Client"> | string | null
-  taxId?: Prisma.StringNullableWithAggregatesFilter<"Client"> | string | null
   isActive?: Prisma.BoolWithAggregatesFilter<"Client"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Client"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Client"> | Date | string
@@ -326,7 +314,6 @@ export type ClientCreateInput = {
   address?: string | null
   city?: string | null
   country?: string | null
-  taxId?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -347,7 +334,6 @@ export type ClientUncheckedCreateInput = {
   address?: string | null
   city?: string | null
   country?: string | null
-  taxId?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -368,7 +354,6 @@ export type ClientUpdateInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -389,7 +374,6 @@ export type ClientUncheckedUpdateInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -410,7 +394,6 @@ export type ClientCreateManyInput = {
   address?: string | null
   city?: string | null
   country?: string | null
-  taxId?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -424,7 +407,6 @@ export type ClientUpdateManyMutationInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -438,7 +420,6 @@ export type ClientUncheckedUpdateManyInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -452,7 +433,6 @@ export type ClientCountOrderByAggregateInput = {
   address?: Prisma.SortOrder
   city?: Prisma.SortOrder
   country?: Prisma.SortOrder
-  taxId?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -466,7 +446,6 @@ export type ClientMaxOrderByAggregateInput = {
   address?: Prisma.SortOrder
   city?: Prisma.SortOrder
   country?: Prisma.SortOrder
-  taxId?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -480,7 +459,6 @@ export type ClientMinOrderByAggregateInput = {
   address?: Prisma.SortOrder
   city?: Prisma.SortOrder
   country?: Prisma.SortOrder
-  taxId?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -597,7 +575,6 @@ export type ClientCreateWithoutContactsInput = {
   address?: string | null
   city?: string | null
   country?: string | null
-  taxId?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -617,7 +594,6 @@ export type ClientUncheckedCreateWithoutContactsInput = {
   address?: string | null
   city?: string | null
   country?: string | null
-  taxId?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -653,7 +629,6 @@ export type ClientUpdateWithoutContactsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -673,7 +648,6 @@ export type ClientUncheckedUpdateWithoutContactsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -693,7 +667,6 @@ export type ClientCreateWithoutProjectsInput = {
   address?: string | null
   city?: string | null
   country?: string | null
-  taxId?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -713,7 +686,6 @@ export type ClientUncheckedCreateWithoutProjectsInput = {
   address?: string | null
   city?: string | null
   country?: string | null
-  taxId?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -749,7 +721,6 @@ export type ClientUpdateWithoutProjectsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -769,7 +740,6 @@ export type ClientUncheckedUpdateWithoutProjectsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -789,7 +759,6 @@ export type ClientCreateWithoutQuotesInput = {
   address?: string | null
   city?: string | null
   country?: string | null
-  taxId?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -809,7 +778,6 @@ export type ClientUncheckedCreateWithoutQuotesInput = {
   address?: string | null
   city?: string | null
   country?: string | null
-  taxId?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -845,7 +813,6 @@ export type ClientUpdateWithoutQuotesInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -865,7 +832,6 @@ export type ClientUncheckedUpdateWithoutQuotesInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -885,7 +851,6 @@ export type ClientCreateWithoutOrdersInput = {
   address?: string | null
   city?: string | null
   country?: string | null
-  taxId?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -905,7 +870,6 @@ export type ClientUncheckedCreateWithoutOrdersInput = {
   address?: string | null
   city?: string | null
   country?: string | null
-  taxId?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -941,7 +905,6 @@ export type ClientUpdateWithoutOrdersInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -961,7 +924,6 @@ export type ClientUncheckedUpdateWithoutOrdersInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -981,7 +943,6 @@ export type ClientCreateWithoutDeliveriesInput = {
   address?: string | null
   city?: string | null
   country?: string | null
-  taxId?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1001,7 +962,6 @@ export type ClientUncheckedCreateWithoutDeliveriesInput = {
   address?: string | null
   city?: string | null
   country?: string | null
-  taxId?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1037,7 +997,6 @@ export type ClientUpdateWithoutDeliveriesInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1057,7 +1016,6 @@ export type ClientUncheckedUpdateWithoutDeliveriesInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1077,7 +1035,6 @@ export type ClientCreateWithoutInvoicesInput = {
   address?: string | null
   city?: string | null
   country?: string | null
-  taxId?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1097,7 +1054,6 @@ export type ClientUncheckedCreateWithoutInvoicesInput = {
   address?: string | null
   city?: string | null
   country?: string | null
-  taxId?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1133,7 +1089,6 @@ export type ClientUpdateWithoutInvoicesInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1153,7 +1108,6 @@ export type ClientUncheckedUpdateWithoutInvoicesInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1173,7 +1127,6 @@ export type ClientCreateWithoutCreditNotesInput = {
   address?: string | null
   city?: string | null
   country?: string | null
-  taxId?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1193,7 +1146,6 @@ export type ClientUncheckedCreateWithoutCreditNotesInput = {
   address?: string | null
   city?: string | null
   country?: string | null
-  taxId?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1229,7 +1181,6 @@ export type ClientUpdateWithoutCreditNotesInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1249,7 +1200,6 @@ export type ClientUncheckedUpdateWithoutCreditNotesInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1354,7 +1304,6 @@ export type ClientSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   address?: boolean
   city?: boolean
   country?: boolean
-  taxId?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1376,7 +1325,6 @@ export type ClientSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   address?: boolean
   city?: boolean
   country?: boolean
-  taxId?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1390,7 +1338,6 @@ export type ClientSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   address?: boolean
   city?: boolean
   country?: boolean
-  taxId?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1404,13 +1351,12 @@ export type ClientSelectScalar = {
   address?: boolean
   city?: boolean
   country?: boolean
-  taxId?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ClientOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "companyName" | "email" | "phone" | "address" | "city" | "country" | "taxId" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["client"]>
+export type ClientOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "companyName" | "email" | "phone" | "address" | "city" | "country" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["client"]>
 export type ClientInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   contacts?: boolean | Prisma.Client$contactsArgs<ExtArgs>
   projects?: boolean | Prisma.Client$projectsArgs<ExtArgs>
@@ -1443,7 +1389,6 @@ export type $ClientPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     address: string | null
     city: string | null
     country: string | null
-    taxId: string | null
     isActive: boolean
     createdAt: Date
     updatedAt: Date
@@ -1884,7 +1829,6 @@ export interface ClientFieldRefs {
   readonly address: Prisma.FieldRef<"Client", 'String'>
   readonly city: Prisma.FieldRef<"Client", 'String'>
   readonly country: Prisma.FieldRef<"Client", 'String'>
-  readonly taxId: Prisma.FieldRef<"Client", 'String'>
   readonly isActive: Prisma.FieldRef<"Client", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Client", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Client", 'DateTime'>

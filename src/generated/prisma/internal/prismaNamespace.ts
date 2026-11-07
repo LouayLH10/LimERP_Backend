@@ -422,6 +422,7 @@ export const ModelName = {
   TemplateStyle: 'TemplateStyle',
   CompanySettings: 'CompanySettings',
   ProjectSpecification: 'ProjectSpecification',
+  PriceSchedule: 'PriceSchedule',
   ProjectAIAnalysis: 'ProjectAIAnalysis',
   AIEstimation: 'AIEstimation',
   AIWorkPhase: 'AIWorkPhase',
@@ -441,7 +442,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "loginOtp" | "userSession" | "employee" | "employeeTimeEntry" | "projectEmployee" | "client" | "contact" | "project" | "quote" | "quoteLine" | "order" | "orderLine" | "delivery" | "deliveryLine" | "invoice" | "invoiceLine" | "creditNote" | "creditNoteLine" | "document" | "documentTemplate" | "templateVersion" | "templateStyle" | "companySettings" | "projectSpecification" | "projectAIAnalysis" | "aIEstimation" | "aIWorkPhase" | "aIWorkforceRecommendation"
+    modelProps: "user" | "loginOtp" | "userSession" | "employee" | "employeeTimeEntry" | "projectEmployee" | "client" | "contact" | "project" | "quote" | "quoteLine" | "order" | "orderLine" | "delivery" | "deliveryLine" | "invoice" | "invoiceLine" | "creditNote" | "creditNoteLine" | "document" | "documentTemplate" | "templateVersion" | "templateStyle" | "companySettings" | "projectSpecification" | "priceSchedule" | "projectAIAnalysis" | "aIEstimation" | "aIWorkPhase" | "aIWorkforceRecommendation"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2295,6 +2296,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PriceSchedule: {
+      payload: Prisma.$PriceSchedulePayload<ExtArgs>
+      fields: Prisma.PriceScheduleFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PriceScheduleFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PriceSchedulePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PriceScheduleFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PriceSchedulePayload>
+        }
+        findFirst: {
+          args: Prisma.PriceScheduleFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PriceSchedulePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PriceScheduleFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PriceSchedulePayload>
+        }
+        findMany: {
+          args: Prisma.PriceScheduleFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PriceSchedulePayload>[]
+        }
+        create: {
+          args: Prisma.PriceScheduleCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PriceSchedulePayload>
+        }
+        createMany: {
+          args: Prisma.PriceScheduleCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PriceScheduleCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PriceSchedulePayload>[]
+        }
+        delete: {
+          args: Prisma.PriceScheduleDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PriceSchedulePayload>
+        }
+        update: {
+          args: Prisma.PriceScheduleUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PriceSchedulePayload>
+        }
+        deleteMany: {
+          args: Prisma.PriceScheduleDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PriceScheduleUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PriceScheduleUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PriceSchedulePayload>[]
+        }
+        upsert: {
+          args: Prisma.PriceScheduleUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PriceSchedulePayload>
+        }
+        aggregate: {
+          args: Prisma.PriceScheduleAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePriceSchedule>
+        }
+        groupBy: {
+          args: Prisma.PriceScheduleGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PriceScheduleGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PriceScheduleCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PriceScheduleCountAggregateOutputType> | number
+        }
+      }
+    }
     ProjectAIAnalysis: {
       payload: Prisma.$ProjectAIAnalysisPayload<ExtArgs>
       fields: Prisma.ProjectAIAnalysisFieldRefs
@@ -2679,6 +2754,7 @@ export const EmployeeScalarFieldEnum = {
   email: 'email',
   phone: 'phone',
   position: 'position',
+  cnssNumber: 'cnssNumber',
   cinNumber: 'cinNumber',
   cinCardFrontImage: 'cinCardFrontImage',
   cinCardBackImage: 'cinCardBackImage',
@@ -2729,7 +2805,6 @@ export const ClientScalarFieldEnum = {
   address: 'address',
   city: 'city',
   country: 'country',
-  taxId: 'taxId',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -3025,6 +3100,19 @@ export const ProjectSpecificationScalarFieldEnum = {
 } as const
 
 export type ProjectSpecificationScalarFieldEnum = (typeof ProjectSpecificationScalarFieldEnum)[keyof typeof ProjectSpecificationScalarFieldEnum]
+
+
+export const PriceScheduleScalarFieldEnum = {
+  id: 'id',
+  analysisId: 'analysisId',
+  totalHT: 'totalHT',
+  totalTVA: 'totalTVA',
+  totalTTC: 'totalTTC',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PriceScheduleScalarFieldEnum = (typeof PriceScheduleScalarFieldEnum)[keyof typeof PriceScheduleScalarFieldEnum]
 
 
 export const ProjectAIAnalysisScalarFieldEnum = {
@@ -3493,6 +3581,7 @@ export type GlobalOmitConfig = {
   templateStyle?: Prisma.TemplateStyleOmit
   companySettings?: Prisma.CompanySettingsOmit
   projectSpecification?: Prisma.ProjectSpecificationOmit
+  priceSchedule?: Prisma.PriceScheduleOmit
   projectAIAnalysis?: Prisma.ProjectAIAnalysisOmit
   aIEstimation?: Prisma.AIEstimationOmit
   aIWorkPhase?: Prisma.AIWorkPhaseOmit

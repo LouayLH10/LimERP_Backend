@@ -76,6 +76,7 @@ export const ModelName = {
   TemplateStyle: 'TemplateStyle',
   CompanySettings: 'CompanySettings',
   ProjectSpecification: 'ProjectSpecification',
+  PriceSchedule: 'PriceSchedule',
   ProjectAIAnalysis: 'ProjectAIAnalysis',
   AIEstimation: 'AIEstimation',
   AIWorkPhase: 'AIWorkPhase',
@@ -147,6 +148,7 @@ export const EmployeeScalarFieldEnum = {
   email: 'email',
   phone: 'phone',
   position: 'position',
+  cnssNumber: 'cnssNumber',
   cinNumber: 'cinNumber',
   cinCardFrontImage: 'cinCardFrontImage',
   cinCardBackImage: 'cinCardBackImage',
@@ -197,7 +199,6 @@ export const ClientScalarFieldEnum = {
   address: 'address',
   city: 'city',
   country: 'country',
-  taxId: 'taxId',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -493,6 +494,19 @@ export const ProjectSpecificationScalarFieldEnum = {
 } as const
 
 export type ProjectSpecificationScalarFieldEnum = (typeof ProjectSpecificationScalarFieldEnum)[keyof typeof ProjectSpecificationScalarFieldEnum]
+
+
+export const PriceScheduleScalarFieldEnum = {
+  id: 'id',
+  analysisId: 'analysisId',
+  totalHT: 'totalHT',
+  totalTVA: 'totalTVA',
+  totalTTC: 'totalTTC',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PriceScheduleScalarFieldEnum = (typeof PriceScheduleScalarFieldEnum)[keyof typeof PriceScheduleScalarFieldEnum]
 
 
 export const ProjectAIAnalysisScalarFieldEnum = {
