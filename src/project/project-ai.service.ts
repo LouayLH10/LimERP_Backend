@@ -764,7 +764,7 @@ Fin du cahier des charges.
       url,
       apiKey,
       prompt,
-      maxTokens: 3000,
+       maxTokens: 4000,
       model: this.groqModel,
       systemPrompt:
         'Tu es un assistant d’ingénierie industrielle. Réponds uniquement en JSON valide et en français.',
@@ -817,7 +817,7 @@ RÈGLES STRICTES POUR LE CALCUL DES PRIX ET QUANTITÉS (TRÈS IMPORTANT) :
       url,
       apiKey,
       prompt,
-      maxTokens: 2000,
+      maxTokens: 4000,
       model: this.groqModel,
       systemPrompt:
         'Tu es un assistant d’ingénierie. Réponds en JSON valide et en français.',
