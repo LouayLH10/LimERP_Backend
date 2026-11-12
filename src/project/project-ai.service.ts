@@ -746,7 +746,7 @@ Retourne EXCLUSIVEMENT ce format JSON (ne calcule pas les montants, mets juste l
 
     return this.callOpenRouterApi({ 
       prompt, 
-      maxTokens: 2000, 
+      maxTokens: 8000,
       systemPrompt: "Tu es un expert en chiffrage. Réponds uniquement en JSON valide et en français." 
     });
   }
@@ -823,7 +823,7 @@ Fin du cahier des charges.
 
     return this.callOpenRouterApi({
       prompt,
-      maxTokens: 4000,
+     maxTokens: 8000,
       systemPrompt:
         'Tu es un assistant d’ingénierie industrielle. Réponds uniquement en JSON valide et en français.',
     });
@@ -867,7 +867,7 @@ RÈGLES STRICTES POUR LE CALCUL DES PRIX ET QUANTITÉS (TRÈS IMPORTANT) :
 
     const quoteResult = await this.callOpenRouterApi({
       prompt,
-      maxTokens: 4000,
+      maxTokens: 8000,
       systemPrompt:
         'Tu es un assistant d’ingénierie. Réponds en JSON valide et en français.',
     });
