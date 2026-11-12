@@ -1,4 +1,3 @@
-
 import {
   BadRequestException,
   Injectable,
@@ -20,6 +19,7 @@ export class ProjectService {
       name,
       description,
       location,
+      daNumber, // 👈 Extraction du DA
       startDate,
       endDate,
       clientId,
@@ -36,22 +36,11 @@ export class ProjectService {
     }
 
     // 2. Validate dates
-    const parsedStartDate = startDate
-      ? new Date(startDate)
-      : undefined;
+    const parsedStartDate = startDate ? new Date(startDate) : undefined;
+    const parsedEndDate = endDate ? new Date(endDate) : undefined;
 
-    const parsedEndDate = endDate
-      ? new Date(endDate)
-      : undefined;
-
-    if (
-      parsedStartDate &&
-      parsedEndDate &&
-      parsedEndDate < parsedStartDate
-    ) {
-      throw new BadRequestException(
-        'End date cannot be before start date',
-      );
+    if (parsedStartDate && parsedEndDate && parsedEndDate < parsedStartDate) {
+      throw new BadRequestException('End date cannot be before start date');
     }
 
     // 3. Prevent duplicate employees
@@ -77,13 +66,14 @@ export class ProjectService {
         );
       }
     }
-console.log(employeeIds)
+
     // 5. Create the project and its team
     return this.prisma.project.create({
       data: {
         name,
         description,
         location,
+        daNumber: daNumber || null, // 👈 Sauvegarde du DA
         startDate: parsedStartDate,
         endDate: parsedEndDate,
 
@@ -152,30 +142,20 @@ console.log(employeeIds)
           },
         },
         quotes: {
-          orderBy: {
-            createdAt: 'desc',
-          },
+          orderBy: { createdAt: 'desc' },
         },
         orders: {
-          orderBy: {
-            createdAt: 'desc',
-          },
+          orderBy: { createdAt: 'desc' },
         },
         deliveries: {
-          orderBy: {
-            createdAt: 'desc',
-          },
+          orderBy: { createdAt: 'desc' },
         },
         invoices: {
-          orderBy: {
-            createdAt: 'desc',
-          },
+          orderBy: { createdAt: 'desc' },
         },
         specification: true,
         aiAnalyses: {
-          orderBy: {
-            createdAt: 'desc',
-          },
+          orderBy: { createdAt: 'desc' },
         },
       },
     });
@@ -190,10 +170,7 @@ console.log(employeeIds)
   /**
    * Update a project
    */
-  async update(
-    id: string,
-    updateProjectDto: UpdateProjectDto,
-  ) {
+  async update(id: string, updateProjectDto: UpdateProjectDto) {
     const existingProject = await this.prisma.project.findUnique({
       where: { id },
     });
@@ -206,6 +183,7 @@ console.log(employeeIds)
       name,
       description,
       location,
+      daNumber, // 👈 Extraction du DA
       startDate,
       endDate,
       clientId,
@@ -238,14 +216,8 @@ console.log(employeeIds)
         : existingProject.endDate;
 
     // Validate dates
-    if (
-      finalStartDate &&
-      finalEndDate &&
-      finalEndDate < finalStartDate
-    ) {
-      throw new BadRequestException(
-        'End date cannot be before start date',
-      );
+    if (finalStartDate && finalEndDate && finalEndDate < finalStartDate) {
+      throw new BadRequestException('End date cannot be before start date');
     }
 
     return this.prisma.project.update({
@@ -254,14 +226,10 @@ console.log(employeeIds)
         ...(name !== undefined && { name }),
         ...(description !== undefined && { description }),
         ...(location !== undefined && { location }),
+        ...(daNumber !== undefined && { daNumber: daNumber || null }), // 👈 Mise à jour du DA
 
-        ...(startDate !== undefined && {
-          startDate: finalStartDate,
-        }),
-
-        ...(endDate !== undefined && {
-          endDate: finalEndDate,
-        }),
+        ...(startDate !== undefined && { startDate: finalStartDate }),
+        ...(endDate !== undefined && { endDate: finalEndDate }),
 
         ...(clientId !== undefined && {
           client: {
