@@ -21,6 +21,9 @@ export class CreateProjectDto {
   @IsOptional()
   @IsString()
   location?: string;
+  @IsOptional()
+  @IsString()
+  daNumber?: string;
 
   @IsOptional()
   @IsDateString()

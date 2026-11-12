@@ -237,7 +237,7 @@ model Project {
 
   startDate DateTime?
   endDate   DateTime?
-
+  daNumber    String?  @map("da_number") 
   clientId String
   client   Client @relation(fields: [clientId], references: [id])
 
