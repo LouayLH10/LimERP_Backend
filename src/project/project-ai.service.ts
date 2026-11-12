@@ -460,36 +460,47 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
     return analysis;
   }
 
-  async generatePriceSchedulePdf(analysisId: string, projectId: string): Promise<Buffer> {
+    async generatePriceSchedulePdf(analysisId: string, projectId: string): Promise<Buffer> {
+    // 1. Récupérer l'analyse et le projet
     const analysis = await this.prisma.projectAIAnalysis.findUnique({
       where: { id: analysisId },
       include: {
-        priceSchedule: true,
-        workPhases: { orderBy: { order: 'asc' } },
-        estimation: true,
         specification: { 
           include: { 
             project: { 
               include: { client: true } 
             } 
           } 
-        }
+        },
       }
     });
 
-    if (!analysis || !analysis.priceSchedule) {
-      throw new NotFoundException('Bordereau de prix introuvable pour cette analyse.');
+    if (!analysis) {
+      throw new NotFoundException('Analyse introuvable.');
     }
 
     const project = analysis.specification.project;
-    const client = project.client;
 
+    // 2. Récupérer le devis associé pour avoir les lignes exactes
+    const quote = await this.prisma.quote.findFirst({
+      where: { projectId: analysis.projectId },
+      include: { lines: true }
+    });
+
+    if (!quote) {
+      throw new NotFoundException('Devis introuvable pour ce projet. Veuillez d\'abord générer l\'analyse IA.');
+    }
+
+    // 3. Demander à l'IA de générer la justification détaillée
+    const detailedSchedule = await this.callGeminiForDetailedPrice(quote, project);
+
+    // 4. Préparer le template
     const template = await this.prisma.documentTemplate.findFirst({
       where: { type: 'QUOTE', isDefault: true, isActive: true },
       include: { style: true },
     });
 
-     const templateSource = `
+    const templateSource = `
       <!DOCTYPE html>
       <html lang="fr">
       <head>
@@ -497,7 +508,6 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
         <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
         <style>
           @page { size: A4; margin: 0; }
-          
           body {
             font-family: 'Cairo', '{{style.fontFamily}}', Arial, sans-serif;
             color: {{style.textColor}};
@@ -505,10 +515,8 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
             background: {{style.backgroundColor}};
             position: relative;
             -webkit-print-color-adjust: exact;
-            /* 👇 Marge de sécurité pour le footer */
-            padding-bottom: 150px; 
+            padding-bottom: 150px;
           }
-          
           .watermark {
             position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%) rotate(-30deg);
@@ -516,9 +524,9 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
             color: {{style.primaryColor}}; opacity: 0.04;
             z-index: -1; letter-spacing: 10px; white-space: nowrap;
           }
-          
           .page-container { padding: 40px 50px; }
           
+          /* En-tête */
           .header-main { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
           .header-logo-left { flex: 0 0 150px; }
           .header-logo-left img { height: 70px; object-fit: contain; }
@@ -532,38 +540,44 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
           .doc-bar { background: {{style.primaryColor}}; color: white; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; border-radius: {{style.borderRadius}}px; margin-bottom: 30px; }
           .doc-bar h2 { margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; }
           .doc-bar .doc-number { font-size: 16px; font-weight: bold; }
-          
-          .info-section { display: flex; justify-content: space-between; margin-bottom: 40px; }
-          .client-info { width: 45%; background: #f8fafc; padding: 15px; border-radius: {{style.borderRadius}}px; border-left: 4px solid {{style.accentColor}}; }
-          .client-info h3 { margin: 0 0 10px 0; font-size: 14px; color: {{style.secondaryColor}}; text-transform: uppercase; }
-          .client-info p { margin: 3px 0; font-size: 13px; }
-          .project-info { width: 45%; text-align: right; }
-          .project-info p { margin: 5px 0; font-size: 13px; }
-          .project-info strong { color: {{style.primaryColor}}; }
-          
-          /* 👇 Tableau Anti-Coupure */
-          table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-          th { background: {{style.primaryColor}}; color: white; padding: 12px; text-align: left; font-size: 13px; text-transform: uppercase; }
-          td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
-          tr { page-break-inside: avoid; } 
-          thead { display: table-header-group; }
-          
-          .text-right { text-align: right; }
-          .text-center { text-align: center; }
-          
-          /* 👇 Totaux collés au tableau */
-          .totals-wrapper {
-            page-break-inside: avoid;
-            break-inside: avoid;
-            margin-top: 10px;
+
+          /* Rapport */
+          .report-section { margin-bottom: 30px; page-break-inside: avoid; }
+          .report-title { 
+            font-size: 16px; 
+            font-weight: bold; 
+            color: {{style.primaryColor}}; 
+            border-bottom: 1px solid #e2e8f0; 
+            padding-bottom: 5px; 
+            margin-bottom: 10px; 
           }
-          .totals { width: 40%; margin-left: auto; }
-          .totals table { margin-bottom: 0; }
-          .totals td { padding: 8px 12px; }
-          .totals .total-row { background: {{style.primaryColor}}; color: white; font-weight: bold; font-size: 15px; }
-          .totals .total-row td { border-bottom: none; }
-          
-          /* 👇 Pied de page FIXE */
+          .report-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+          .report-table td { padding: 8px 0; border-bottom: 1px dotted #e2e8f0; font-size: 13px; }
+          .report-table td.amount { text-align: right; font-weight: bold; width: 120px; }
+          .subtotal-row td { 
+            font-weight: bold; 
+            color: {{style.primaryColor}}; 
+            border-bottom: none; 
+            padding-top: 15px; 
+            font-size: 14px;
+          }
+
+          /* Totaux Finaux */
+          .grand-total-section {
+            margin-top: 40px;
+            padding: 20px;
+            background: #f8fafc;
+            border-left: 4px solid {{style.accentColor}};
+            page-break-inside: avoid;
+          }
+          .grand-total-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 20px;
+            font-weight: bold;
+            color: {{style.primaryColor}};
+          }
+
           footer {
             position: fixed; bottom: 0; left: 0; right: 0;
             padding: 15px 50px; background: {{style.backgroundColor}};
@@ -575,8 +589,8 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
       </head>
       <body>
         <div class="watermark">LIM</div>
-        
         <div class="page-container">
+          
           <div class="header-main">
             <div class="header-logo-left"><img src="https://i.ibb.co/vCC87Tky/logo.png" alt="Logo LIM" /></div>
             <div class="header-center">
@@ -585,63 +599,47 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
             </div>
             <div class="header-logo-right"><img src="https://i.ibb.co/21RN2hdL/ICM-ISO-Certification-Logo.png" alt="ISO" /></div>
           </div>
-          
           <div class="header-line"></div>
-          
+
           <div class="doc-bar">
-            <h2>BORDEREAU DE PRIX DÉTAILLÉ</h2>
+            <h2>JUSTIFICATION DU DEVIS</h2>
             <span class="doc-number">Projet : {{project.name}}</span>
           </div>
-          
-          <div class="info-section">
-            <div class="client-info">
-              <h3>Client</h3>
-              <p><strong>{{client.companyName}}</strong></p>
-              {{#if client.address}}<p>{{client.address}}</p>{{/if}}
-              {{#if client.phone}}<p>Tél : {{client.phone}}</p>{{/if}}
-            </div>
-            <div class="project-info">
-              <p><strong>Date d'analyse :</strong> {{analysisDate}}</p>
-              <p><strong>Durée estimée :</strong> {{durationDays}} jours</p>
-            </div>
-          </div>
-          
-          <table>
-            <thead>
-              <tr>
-                <th style="width: 50px;">#</th>
-                <th>Désignation des travaux</th>
-                <th class="text-center" style="width: 80px;">Durée</th>
-                <th class="text-right" style="width: 120px;">Montant HT</th>
-              </tr>
-            </thead>
-            <tbody>
-              {{#each workPhases}}
-              <tr>
-                <td>{{this.order}}</td>
-                <td>
-                  <strong>{{this.name}}</strong>
-                  {{#if this.description}}<br><small style="color:#64748b">{{this.description}}</small>{{/if}}
-                </td>
-                <td class="text-center">{{this.durationDays}} j</td>
-                <td class="text-right">{{this.estimatedCost}} TND</td>
-              </tr>
-              {{/each}}
-            </tbody>
-          </table>
-          
-          <div class="totals-wrapper">
-            <div class="totals">
-              <table>
-                <tr><td>Total HT</td><td class="text-right">{{totalHT}} TND</td></tr>
-                <tr><td>TVA (19%)</td><td class="text-right">{{totalTVA}} TND</td></tr>
-                <tr class="total-row"><td>Total TTC</td><td class="text-right">{{totalTTC}} TND</td></tr>
+
+          <p style="font-size: 14px; margin-bottom: 30px;">
+            Le présent document détaille la répartition des coûts du devis <strong>N° {{quoteNumber}}</strong>. Il justifie les prix forfaitaires par des charges réelles de main-d'œuvre, de consommables et de logistique.
+          </p>
+
+          {{#each priceSchedule.sections}}
+            <div class="report-section">
+              <div class="report-title">{{this.title}}</div>
+              <table class="report-table">
+                {{#each this.items}}
+                <tr>
+                  <td>{{this.description}}</td>
+                  <td class="amount">{{this.amount}} DT</td>
+                </tr>
+                {{/each}}
+                <tr class="subtotal-row">
+                  <td>Sous-total {{this.title}}</td>
+                  <td class="amount">{{this.subtotal}} DT</td>
+                </tr>
               </table>
             </div>
+          {{/each}}
+
+          <div class="grand-total-section">
+            <div class="grand-total-row">
+              <span>COÛT TOTAL ESTIMATIF (HT)</span>
+              <span>{{priceSchedule.totalGeneral}} DT</span>
+            </div>
+            <p style="margin-top: 10px; font-size: 12px; color: #64748b;">
+              * DT HTVA – Hors pièces de rechange fournies par le client.
+            </p>
           </div>
+
         </div>
-        
-        <!-- 👇 Footer en dehors de page-container -->
+
         <footer>
           <div class="company-name"><bdi>شركة لؤي للصناعة و الصيانة</bdi> - SOCIETE LOUAY INDUSTRIE ET MAINTENANCE</div>
           <div>Rue Ali Dargouth, Imm El Moustakbal 5, 1001 Tunis 1er étage BN 10 | Bureaux de Gabès : N° 08 Rue al anbar, 1er étage Gabès Ville 6040</div>
@@ -655,22 +653,21 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
     const formatMoney = (value: number | string | any | null | undefined): string =>
       Number(value ?? 0).toLocaleString('fr-TN', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
+    // 5. Préparer les données pour Handlebars
     const templateData = {
       project: { name: project.name },
-      client: { 
-        companyName: client.companyName, 
-        address: client.address, 
-        phone: client.phone 
+      quoteNumber: quote.number,
+      priceSchedule: {
+        sections: detailedSchedule.sections.map((sec: any) => ({
+          title: sec.title,
+          items: sec.items.map((item: any) => ({
+            description: item.description,
+            amount: formatMoney(item.amount)
+          })),
+          subtotal: formatMoney(sec.subtotal)
+        })),
+        totalGeneral: formatMoney(detailedSchedule.totalGeneral)
       },
-      analysisDate: new Date(analysis.createdAt).toLocaleDateString('fr-FR'),
-      durationDays: analysis.estimation?.durationDays || 0,
-      workPhases: analysis.workPhases.map(phase => ({
-        ...phase,
-        estimatedCost: formatMoney(phase.estimatedCost)
-      })),
-      totalHT: formatMoney(analysis.priceSchedule.totalHT),
-      totalTVA: formatMoney(analysis.priceSchedule.totalTVA),
-      totalTTC: formatMoney(analysis.priceSchedule.totalTTC),
       style: template?.style || {
         primaryColor: '#1F2937',
         secondaryColor: '#6B7280',
@@ -708,7 +705,76 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
       await browser.close();
     }
   }
+  private async generateDetailedPriceSchedule(quote: any, analysis: any): Promise<any> {
+    const prompt = `
+Tu es un ingénieur en estimation de coûts pour une entreprise de maintenance industrielle.
 
+Voici les grandes lignes du devis généré pour le projet "${analysis.project.name}" :
+${JSON.stringify(quote.lines.map((l: any) => ({ description: l.description, total: l.total })))}
+
+Voici les phases de travail identifiées :
+${JSON.stringify(analysis.workPhases.map((p: any) => p.name))}
+
+Ta mission : Génère un BORDEREAU DE PRIX DÉTAILLÉ (BPD) qui justifie chaque ligne du devis.
+Pour CHAQUE grande ligne du devis, tu dois créer des sous-tâches (Main d'œuvre, Consommables, Logistique, Sécurité, etc.).
+⚠️ CONTRAINTE ABSOLUE : La somme de toutes les sous-tâches d'une grande ligne doit être ÉGALE au total HT de cette ligne dans le devis.
+
+Retourne un objet JSON valide avec la structure suivante :
+{
+  "sections": [
+    {
+      "title": "1. Entretien Refroidisseur Polytrack (Total: 45 000 TND)",
+      "items": [
+        { "description": "Main d'œuvre (3 mécaniciens x 5 jours)", "amount": 15000 },
+        { "description": "Consommables et outillage", "amount": 5000 },
+        { "description": "Charges de structure (transport, hébergement)", "amount": 25000 }
+      ],
+      "subtotal": 45000
+    }
+  ],
+  "totalGeneral": 125000
+}
+`;
+    // (Appel à Gemini avec cette consigne)
+    return this.callGeminiApi({ prompt, maxTokens: 4000, systemPrompt: "Tu es un expert en chiffrage industriel. Réponds en JSON." });
+  }
+    private async callGeminiForDetailedPrice(quote: any, project: any): Promise<any> {
+    const prompt = `
+Tu es un expert en chiffrage industriel pour l'entreprise LIM.
+Le devis pour le projet "${project.name}" a été validé avec les lignes suivantes (Prix Forfaitaires HT) :
+${JSON.stringify(quote.lines.map((l: any) => ({ description: l.description, totalHT: Number(l.total) - Number(l.taxAmount) })))}
+
+Ta mission est de générer un document de JUSTIFICATION DES PRIX (Bordereau Détaillé).
+Pour CHAQUE grande ligne du devis ci-dessus, tu dois créer une section avec des sous-tâches (Main d'œuvre, Consommables, Logistique, etc.) dont la somme est EXACTEMENT ÉGALE au total HT de la ligne du devis.
+
+Règles de calcul (Estimation) :
+- La main d'œuvre coûte cher (ex: 70% du prix).
+- Les consommables sont une part modérée (ex: 15%).
+- La logistique (transport, hébergement, sécurité) est le reste (ex: 15%).
+- Adapte les descriptions pour qu'elles paraissent réelles et professionnelles.
+
+Retourne EXCLUSIVEMENT ce format JSON :
+{
+  "sections": [
+    {
+      "title": "1. Justification de : Refroidisseur Polytrack",
+      "items": [
+        { "description": "Main d'œuvre mécanique (3 techs x 5 jours)", "amount": 31500 },
+        { "description": "Consommables et pièces d'usure", "amount": 6750 },
+        { "description": "Logistique, transport et hébergement", "amount": 6750 }
+      ],
+      "subtotal": 45000
+    }
+  ],
+  "totalGeneral": 125000
+}
+`;
+    return this.callGeminiApi({ 
+      prompt, 
+      maxTokens: 4000, 
+      systemPrompt: "Tu es un expert en chiffrage. Réponds uniquement en JSON valide et en français." 
+    });
+  }
   // 👇 Appel Gemini pour l'analyse
   private async callGeminiForAnalysis(input: {
     projectName: string;
