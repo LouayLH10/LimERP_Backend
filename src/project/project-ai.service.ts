@@ -62,9 +62,8 @@ type AIResult = {
 
 @Injectable()
 export class ProjectAiService {
-  // 👇 Configuration Gemini
   private readonly geminiBaseUrl = 'https://generativelanguage.googleapis.com/v1beta';
-private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et performant
+  private readonly geminiModel = 'gemini-3.5-flash-lite';
 
   constructor(
     private readonly prisma: PrismaService,
@@ -72,9 +71,8 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
     private readonly quotesService: QuotesService,
   ) {}
 
-   private getGeminiApiKey(): string {
-    const apiKey = this.config.get<string>('GEMINI_API_KEY'); // 👈 Uniquement depuis le .env
-    
+  private getGeminiApiKey(): string {
+    const apiKey = this.config.get<string>('GEMINI_API_KEY');
     if (!apiKey?.trim()) {
       throw new InternalServerErrorException(
         "La clé API Gemini n'est pas configurée. Ajoute GEMINI_API_KEY dans le fichier .env.",
@@ -82,6 +80,7 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
     }
     return apiKey.trim();
   }
+
   private getBlobToken(): string {
     const token = process.env.BLOB_READ_WRITE_TOKEN;
     if (!token) {
@@ -460,8 +459,10 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
     return analysis;
   }
 
-    async generatePriceSchedulePdf(analysisId: string, projectId: string): Promise<Buffer> {
-    // 1. Récupérer l'analyse et le projet
+  // =========================================================
+  // GÉNÉRATION DU BORDEREAU DE PRIX (PDF)
+  // =========================================================
+  async generatePriceSchedulePdf(analysisId: string, projectId: string): Promise<Buffer> {
     const analysis = await this.prisma.projectAIAnalysis.findUnique({
       where: { id: analysisId },
       include: {
@@ -481,20 +482,56 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
 
     const project = analysis.specification.project;
 
-    // 2. Récupérer le devis associé pour avoir les lignes exactes
     const quote = await this.prisma.quote.findFirst({
       where: { projectId: analysis.projectId },
       include: { lines: true }
     });
 
     if (!quote) {
-      throw new NotFoundException('Devis introuvable pour ce projet. Veuillez d\'abord générer l\'analyse IA.');
+      throw new NotFoundException('Devis introuvable pour ce projet.');
     }
 
-    // 3. Demander à l'IA de générer la justification détaillée
+    // 1. Demander à l'IA de générer la répartition (pourcentages)
     const detailedSchedule = await this.callGeminiForDetailedPrice(quote, project);
 
-    // 4. Préparer le template
+    // 2. Calculer les vrais montants côté serveur pour garantir le total exact du devis
+    let calculatedTotalGeneral = 0;
+    
+    const calculatedSections = detailedSchedule.sections.map((sec: any, index: number) => {
+      const quoteLine = quote.lines[index];
+      if (!quoteLine) return null;
+
+      const lineTotalHT = Number(quoteLine.unitPrice) * Number(quoteLine.quantity);
+      
+      // On demande à l'IA des pourcentages (ex: 70% main d'oeuvre, 15% consommables, 15% logistique)
+      let items = sec.items.map((item: any) => {
+        // Si l'IA a mal formaté le pourcentage, on met 33% par défaut
+        const percent = Number(item.percentage) || 33.33; 
+        return {
+          description: item.description,
+          amount: lineTotalHT * (percent / 100)
+        };
+      });
+
+      // Ajustement pour que la somme des sous-tâches soit EXACTEMENT égale au total HT de la ligne
+      const currentSum = items.reduce((sum: number, item: any) => sum + item.amount, 0);
+      const diff = lineTotalHT - currentSum;
+      
+      // On ajoute la différence (souvent des centimes) à la première sous-tâche
+      if (items.length > 0) {
+        items[0].amount += diff;
+      }
+
+      calculatedTotalGeneral += lineTotalHT;
+
+      return {
+        title: `${index + 1}. Justification de : ${quoteLine.description}`,
+        items: items,
+        subtotal: lineTotalHT
+      };
+    }).filter(Boolean);
+
+    // 3. Préparer le template
     const template = await this.prisma.documentTemplate.findFirst({
       where: { type: 'QUOTE', isDefault: true, isActive: true },
       include: { style: true },
@@ -526,7 +563,6 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
           }
           .page-container { padding: 40px 50px; }
           
-          /* En-tête */
           .header-main { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
           .header-logo-left { flex: 0 0 150px; }
           .header-logo-left img { height: 70px; object-fit: contain; }
@@ -541,28 +577,13 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
           .doc-bar h2 { margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; }
           .doc-bar .doc-number { font-size: 16px; font-weight: bold; }
 
-          /* Rapport */
           .report-section { margin-bottom: 30px; page-break-inside: avoid; }
-          .report-title { 
-            font-size: 16px; 
-            font-weight: bold; 
-            color: {{style.primaryColor}}; 
-            border-bottom: 1px solid #e2e8f0; 
-            padding-bottom: 5px; 
-            margin-bottom: 10px; 
-          }
+          .report-title { font-size: 16px; font-weight: bold; color: {{style.primaryColor}}; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 10px; }
           .report-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
           .report-table td { padding: 8px 0; border-bottom: 1px dotted #e2e8f0; font-size: 13px; }
           .report-table td.amount { text-align: right; font-weight: bold; width: 120px; }
-          .subtotal-row td { 
-            font-weight: bold; 
-            color: {{style.primaryColor}}; 
-            border-bottom: none; 
-            padding-top: 15px; 
-            font-size: 14px;
-          }
+          .subtotal-row td { font-weight: bold; color: {{style.primaryColor}}; border-bottom: none; padding-top: 15px; font-size: 14px; }
 
-          /* Totaux Finaux */
           .grand-total-section {
             margin-top: 40px;
             padding: 20px;
@@ -570,13 +591,7 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
             border-left: 4px solid {{style.accentColor}};
             page-break-inside: avoid;
           }
-          .grand-total-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 20px;
-            font-weight: bold;
-            color: {{style.primaryColor}};
-          }
+          .grand-total-row { display: flex; justify-content: space-between; font-size: 20px; font-weight: bold; color: {{style.primaryColor}}; }
 
           footer {
             position: fixed; bottom: 0; left: 0; right: 0;
@@ -621,7 +636,7 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
                 </tr>
                 {{/each}}
                 <tr class="subtotal-row">
-                  <td>Sous-total {{this.title}}</td>
+                  <td>Sous-total</td>
                   <td class="amount">{{this.subtotal}} DT</td>
                 </tr>
               </table>
@@ -653,12 +668,11 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
     const formatMoney = (value: number | string | any | null | undefined): string =>
       Number(value ?? 0).toLocaleString('fr-TN', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
-    // 5. Préparer les données pour Handlebars
     const templateData = {
       project: { name: project.name },
       quoteNumber: quote.number,
       priceSchedule: {
-        sections: detailedSchedule.sections.map((sec: any) => ({
+        sections: calculatedSections.map((sec: any) => ({
           title: sec.title,
           items: sec.items.map((item: any) => ({
             description: item.description,
@@ -666,7 +680,7 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
           })),
           subtotal: formatMoney(sec.subtotal)
         })),
-        totalGeneral: formatMoney(detailedSchedule.totalGeneral)
+        totalGeneral: formatMoney(calculatedTotalGeneral)
       },
       style: template?.style || {
         primaryColor: '#1F2937',
@@ -705,77 +719,42 @@ private readonly geminiModel =  'gemini-3.5-flash-lite'// Modèle gratuit et per
       await browser.close();
     }
   }
-  private async generateDetailedPriceSchedule(quote: any, analysis: any): Promise<any> {
-    const prompt = `
-Tu es un ingénieur en estimation de coûts pour une entreprise de maintenance industrielle.
 
-Voici les grandes lignes du devis généré pour le projet "${analysis.project.name}" :
-${JSON.stringify(quote.lines.map((l: any) => ({ description: l.description, total: l.total })))}
-
-Voici les phases de travail identifiées :
-${JSON.stringify(analysis.workPhases.map((p: any) => p.name))}
-
-Ta mission : Génère un BORDEREAU DE PRIX DÉTAILLÉ (BPD) qui justifie chaque ligne du devis.
-Pour CHAQUE grande ligne du devis, tu dois créer des sous-tâches (Main d'œuvre, Consommables, Logistique, Sécurité, etc.).
-⚠️ CONTRAINTE ABSOLUE : La somme de toutes les sous-tâches d'une grande ligne doit être ÉGALE au total HT de cette ligne dans le devis.
-
-Retourne un objet JSON valide avec la structure suivante :
-{
-  "sections": [
-    {
-      "title": "1. Entretien Refroidisseur Polytrack (Total: 45 000 TND)",
-      "items": [
-        { "description": "Main d'œuvre (3 mécaniciens x 5 jours)", "amount": 15000 },
-        { "description": "Consommables et outillage", "amount": 5000 },
-        { "description": "Charges de structure (transport, hébergement)", "amount": 25000 }
-      ],
-      "subtotal": 45000
-    }
-  ],
-  "totalGeneral": 125000
-}
-`;
-    // (Appel à Gemini avec cette consigne)
-    return this.callGeminiApi({ prompt, maxTokens: 4000, systemPrompt: "Tu es un expert en chiffrage industriel. Réponds en JSON." });
-  }
-    private async callGeminiForDetailedPrice(quote: any, project: any): Promise<any> {
+  // 👇 NOUVELLE MÉTHODE : On demande juste des pourcentages, pas de calculs
+  private async callGeminiForDetailedPrice(quote: any, project: any): Promise<any> {
     const prompt = `
 Tu es un expert en chiffrage industriel pour l'entreprise LIM.
-Le devis pour le projet "${project.name}" a été validé avec les lignes suivantes (Prix Forfaitaires HT) :
-${JSON.stringify(quote.lines.map((l: any) => ({ description: l.description, totalHT: Number(l.total) - Number(l.taxAmount) })))}
+Le devis pour le projet "${project.name}" a été validé.
 
-Ta mission est de générer un document de JUSTIFICATION DES PRIX (Bordereau Détaillé).
-Pour CHAQUE grande ligne du devis ci-dessus, tu dois créer une section avec des sous-tâches (Main d'œuvre, Consommables, Logistique, etc.) dont la somme est EXACTEMENT ÉGALE au total HT de la ligne du devis.
+Ta mission est de générer une structure de justification pour le Bordereau de Prix.
+Pour CHAQUE ligne du devis ci-dessous, tu dois proposer 3 sous-tâches (Main d'œuvre, Consommables, Logistique) et leur attribuer un POURCENTAGE (qui doit faire 100% au total pour cette ligne).
 
-Règles de calcul (Estimation) :
-- La main d'œuvre coûte cher (ex: 70% du prix).
-- Les consommables sont une part modérée (ex: 15%).
-- La logistique (transport, hébergement, sécurité) est le reste (ex: 15%).
-- Adapte les descriptions pour qu'elles paraissent réelles et professionnelles.
+Voici les lignes du devis :
+${JSON.stringify(quote.lines.map((l: any) => ({ description: l.description })))}
 
-Retourne EXCLUSIVEMENT ce format JSON :
+Retourne EXCLUSIVEMENT ce format JSON (ne calcule pas les montants, mets juste les pourcentages) :
 {
   "sections": [
     {
-      "title": "1. Justification de : Refroidisseur Polytrack",
+      "title": "Justification de : Refroidisseur Polytrack",
       "items": [
-        { "description": "Main d'œuvre mécanique (3 techs x 5 jours)", "amount": 31500 },
-        { "description": "Consommables et pièces d'usure", "amount": 6750 },
-        { "description": "Logistique, transport et hébergement", "amount": 6750 }
-      ],
-      "subtotal": 45000
+        { "description": "Main d'œuvre mécanique et encadrement", "percentage": 70 },
+        { "description": "Consommables et petites fournitures", "percentage": 15 },
+        { "description": "Logistique, transport et hébergement", "percentage": 15 }
+      ]
     }
-  ],
-  "totalGeneral": 125000
+  ]
 }
 `;
+
     return this.callGeminiApi({ 
       prompt, 
-      maxTokens: 4000, 
+      maxTokens: 2000, 
       systemPrompt: "Tu es un expert en chiffrage. Réponds uniquement en JSON valide et en français." 
     });
   }
-  // 👇 Appel Gemini pour l'analyse
+
+  // 👇 Appel Gemini pour l'analyse (inchangé)
   private async callGeminiForAnalysis(input: {
     projectName: string;
     projectDescription: string;
@@ -854,7 +833,7 @@ Fin du cahier des charges.
     });
   }
 
-  // 👇 Appel Gemini pour le devis
+  // 👇 Appel Gemini pour le devis (inchangé)
   private async callGeminiForQuote(analysis: AIResult): Promise<AIQuote> {
     const prompt = `
 Tu es un ingénieur expert en préparation de devis pour une entreprise tunisienne.
@@ -901,7 +880,7 @@ RÈGLES STRICTES POUR LE CALCUL DES PRIX ET QUANTITÉS (TRÈS IMPORTANT) :
     return quoteResult as AIQuote;
   }
 
-  // 👇 Méthode générique pour appeler l'API Gemini
+  // 👇 Méthode générique pour appeler l'API Gemini (inchangé)
   private async callGeminiApi(params: {
     prompt: string;
     maxTokens: number;
