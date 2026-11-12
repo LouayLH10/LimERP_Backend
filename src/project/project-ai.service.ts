@@ -531,7 +531,7 @@ export class ProjectAiService {
       include: { style: true },
     });
 
-    const templateSource = `
+const templateSource = `
       <!DOCTYPE html>
       <html lang="fr">
       <head>
@@ -539,6 +539,7 @@ export class ProjectAiService {
         <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
         <style>
           @page { size: A4; margin: 0; }
+          
           body {
             font-family: 'Cairo', '{{style.fontFamily}}', Arial, sans-serif;
             color: {{style.textColor}};
@@ -546,8 +547,9 @@ export class ProjectAiService {
             background: {{style.backgroundColor}};
             position: relative;
             -webkit-print-color-adjust: exact;
-            padding-bottom: 150px;
+            /* On retire le padding-bottom qui était là pour le footer fixe */
           }
+          
           .watermark {
             position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%) rotate(-30deg);
@@ -555,7 +557,14 @@ export class ProjectAiService {
             color: {{style.primaryColor}}; opacity: 0.04;
             z-index: -1; letter-spacing: 10px; white-space: nowrap;
           }
-          .page-container { padding: 40px 50px; }
+
+          /* 👇 On utilise Flexbox pour pousser le footer vers le bas de la page */
+          .page-container { 
+            padding: 40px 50px; 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+          }
           
           .header-main { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
           .header-logo-left { flex: 0 0 150px; }
@@ -587,17 +596,21 @@ export class ProjectAiService {
           }
           .grand-total-row { display: flex; justify-content: space-between; font-size: 20px; font-weight: bold; color: {{style.primaryColor}}; }
 
+          /* 👇 Le footer redevient un élément normal, mais avec margin-top: auto 
+             pour être poussé en bas si la page est vide */
           footer {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            padding: 15px 50px; background: {{style.backgroundColor}};
-            border-top: 1px solid #e2e8f0; font-size: 9px;
-            text-align: center; color: #64748b; line-height: 1.5; z-index: 100;
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0; 
+            font-size: 9px;
+            text-align: center; color: #64748b; line-height: 1.5;
           }
           footer .company-name { font-weight: bold; color: {{style.primaryColor}}; font-size: 11px; margin-bottom: 5px; }
         </style>
       </head>
       <body>
         <div class="watermark">LIM</div>
+        
         <div class="page-container">
           
           <div class="header-main">
@@ -647,14 +660,16 @@ export class ProjectAiService {
             </p>
           </div>
 
+          <!-- 👇 Le footer est maintenant DANS le conteneur principal -->
+          <footer>
+            <div class="company-name"><bdi>شركة لؤي للصناعة و الصيانة</bdi> - SOCIETE LOUAY INDUSTRIE ET MAINTENANCE</div>
+            <div>Rue Ali Dargouth, Imm El Moustakbal 5, 1001 Tunis 1er étage BN 10 | Bureaux de Gabès : N° 08 Rue al anbar, 1er étage Gabès Ville 6040</div>
+            <div>Tel fixe : 00 216 70038568 | GSM : (00216) 28 815 988 | Mail : lim_commercial@outlook.com / samirhcine@hotmail.com</div>
+            <div>WWW.LIM.TN | SARL Capital 210 000 DT | Code TVA 929854/AAM/000</div>
+          </footer>
+
         </div>
 
-        <footer>
-          <div class="company-name"><bdi>شركة لؤي للصناعة و الصيانة</bdi> - SOCIETE LOUAY INDUSTRIE ET MAINTENANCE</div>
-          <div>Rue Ali Dargouth, Imm El Moustakbal 5, 1001 Tunis 1er étage BN 10 | Bureaux de Gabès : N° 08 Rue al anbar, 1er étage Gabès Ville 6040</div>
-          <div>Tel fixe : 00 216 70038568 | GSM : (00216) 28 815 988 | Mail : lim_commercial@outlook.com / samirhcine@hotmail.com</div>
-          <div>WWW.LIM.TN | SARL Capital 210 000 DT | Code TVA 929854/AAM/000</div>
-        </footer>
       </body>
       </html>
     `;
