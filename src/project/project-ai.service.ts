@@ -62,8 +62,9 @@ type AIResult = {
 
 @Injectable()
 export class ProjectAiService {
-  private readonly geminiBaseUrl = 'https://generativelanguage.googleapis.com/v1beta';
-  private readonly geminiModel = 'gemini-3.5-flash-lite';
+  // 👇 Configuration OpenRouter
+  private readonly openRouterBaseUrl = 'https://openrouter.ai/api/v1';
+  private readonly openRouterModel = 'openrouter/free'; // Routeur automatique gratuit
 
   constructor(
     private readonly prisma: PrismaService,
@@ -71,11 +72,11 @@ export class ProjectAiService {
     private readonly quotesService: QuotesService,
   ) {}
 
-  private getGeminiApiKey(): string {
-    const apiKey = this.config.get<string>('GEMINI_API_KEY');
+  private getOpenRouterApiKey(): string {
+    const apiKey = this.config.get<string>('OPENROUTER_API_KEY');
     if (!apiKey?.trim()) {
       throw new InternalServerErrorException(
-        "La clé API Gemini n'est pas configurée. Ajoute GEMINI_API_KEY dans le fichier .env.",
+        "La clé API OpenRouter n'est pas configurée. Ajoute OPENROUTER_API_KEY dans le fichier .env.",
       );
     }
     return apiKey.trim();
@@ -260,7 +261,7 @@ export class ProjectAiService {
     try {
       console.log(`[Project AI] Début de l'analyse : ${projectId}`);
 
-      const analysisResult = await this.callGeminiForAnalysis({
+      const analysisResult = await this.callOpenRouterForAnalysis({
         projectName: project.name,
         projectDescription: project.description ?? '',
         location: project.location ?? '',
@@ -351,7 +352,7 @@ export class ProjectAiService {
       > | null = null;
 
       try {
-        const quote = await this.callGeminiForQuote(analysisResult);
+        const quote = await this.callOpenRouterForQuote(analysisResult);
 
         if (quote && quote.lines?.length > 0) {
           let validUntil = new Date(quote.validUntil);
@@ -459,9 +460,6 @@ export class ProjectAiService {
     return analysis;
   }
 
-  // =========================================================
-  // GÉNÉRATION DU BORDEREAU DE PRIX (PDF)
-  // =========================================================
   async generatePriceSchedulePdf(analysisId: string, projectId: string): Promise<Buffer> {
     const analysis = await this.prisma.projectAIAnalysis.findUnique({
       where: { id: analysisId },
@@ -492,7 +490,7 @@ export class ProjectAiService {
     }
 
     // 1. Demander à l'IA de générer la répartition (pourcentages)
-    const detailedSchedule = await this.callGeminiForDetailedPrice(quote, project);
+    const detailedSchedule = await this.callOpenRouterForDetailedPrice(quote, project);
 
     // 2. Calculer les vrais montants côté serveur pour garantir le total exact du devis
     let calculatedTotalGeneral = 0;
@@ -503,9 +501,7 @@ export class ProjectAiService {
 
       const lineTotalHT = Number(quoteLine.unitPrice) * Number(quoteLine.quantity);
       
-      // On demande à l'IA des pourcentages (ex: 70% main d'oeuvre, 15% consommables, 15% logistique)
       let items = sec.items.map((item: any) => {
-        // Si l'IA a mal formaté le pourcentage, on met 33% par défaut
         const percent = Number(item.percentage) || 33.33; 
         return {
           description: item.description,
@@ -513,11 +509,9 @@ export class ProjectAiService {
         };
       });
 
-      // Ajustement pour que la somme des sous-tâches soit EXACTEMENT égale au total HT de la ligne
       const currentSum = items.reduce((sum: number, item: any) => sum + item.amount, 0);
       const diff = lineTotalHT - currentSum;
       
-      // On ajoute la différence (souvent des centimes) à la première sous-tâche
       if (items.length > 0) {
         items[0].amount += diff;
       }
@@ -720,8 +714,11 @@ export class ProjectAiService {
     }
   }
 
-  // 👇 NOUVELLE MÉTHODE : On demande juste des pourcentages, pas de calculs
-  private async callGeminiForDetailedPrice(quote: any, project: any): Promise<any> {
+  // =========================================================
+  // APPELS OPENROUTER
+  // =========================================================
+
+  private async callOpenRouterForDetailedPrice(quote: any, project: any): Promise<any> {
     const prompt = `
 Tu es un expert en chiffrage industriel pour l'entreprise LIM.
 Le devis pour le projet "${project.name}" a été validé.
@@ -747,15 +744,14 @@ Retourne EXCLUSIVEMENT ce format JSON (ne calcule pas les montants, mets juste l
 }
 `;
 
-    return this.callGeminiApi({ 
+    return this.callOpenRouterApi({ 
       prompt, 
       maxTokens: 2000, 
       systemPrompt: "Tu es un expert en chiffrage. Réponds uniquement en JSON valide et en français." 
     });
   }
 
-  // 👇 Appel Gemini pour l'analyse (inchangé)
-  private async callGeminiForAnalysis(input: {
+  private async callOpenRouterForAnalysis(input: {
     projectName: string;
     projectDescription: string;
     location: string;
@@ -825,7 +821,7 @@ ${input.extractedText.slice(0, 15000)}
 Fin du cahier des charges.
 `;
 
-    return this.callGeminiApi({
+    return this.callOpenRouterApi({
       prompt,
       maxTokens: 4000,
       systemPrompt:
@@ -833,8 +829,7 @@ Fin du cahier des charges.
     });
   }
 
-  // 👇 Appel Gemini pour le devis (inchangé)
-  private async callGeminiForQuote(analysis: AIResult): Promise<AIQuote> {
+  private async callOpenRouterForQuote(analysis: AIResult): Promise<AIQuote> {
     const prompt = `
 Tu es un ingénieur expert en préparation de devis pour une entreprise tunisienne.
 
@@ -870,7 +865,7 @@ RÈGLES STRICTES POUR LE CALCUL DES PRIX ET QUANTITÉS (TRÈS IMPORTANT) :
 9. La date "validUntil" doit être dans le futur.
 `;
 
-    const quoteResult = await this.callGeminiApi({
+    const quoteResult = await this.callOpenRouterApi({
       prompt,
       maxTokens: 4000,
       systemPrompt:
@@ -880,16 +875,15 @@ RÈGLES STRICTES POUR LE CALCUL DES PRIX ET QUANTITÉS (TRÈS IMPORTANT) :
     return quoteResult as AIQuote;
   }
 
-  // 👇 Méthode générique pour appeler l'API Gemini (inchangé)
-  private async callGeminiApi(params: {
+  private async callOpenRouterApi(params: {
     prompt: string;
     maxTokens: number;
     systemPrompt: string;
   }): Promise<any> {
     const { prompt, maxTokens, systemPrompt } = params;
-    const apiKey = this.getGeminiApiKey();
+    const apiKey = this.getOpenRouterApiKey();
     
-    const url = `${this.geminiBaseUrl}/models/${this.geminiModel}:generateContent?key=${apiKey}`;
+    const url = `${this.openRouterBaseUrl}/chat/completions`;
 
     let response: Response;
     try {
@@ -897,39 +891,39 @@ RÈGLES STRICTES POUR LE CALCUL DES PRIX ET QUANTITÉS (TRÈS IMPORTANT) :
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          'HTTP-Referer': 'http://localhost:3000', // Optionnel mais recommandé par OpenRouter
+          'X-Title': 'LIM ERP Backend',
         },
         signal: AbortSignal.timeout(300_000),
         body: JSON.stringify({
-          contents: [{
-            parts: [{ text: prompt }]
-          }],
-          systemInstruction: {
-            parts: [{ text: systemPrompt }]
-          },
-          generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: maxTokens,
-            responseMimeType: "application/json",
-          }
+          model: this.openRouterModel,
+          temperature: 0.1,
+          max_tokens: maxTokens,
+          response_format: { type: "json_object" }, // Force le JSON
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: prompt },
+          ],
         }),
       });
     } catch (error) {
-      console.error('[Gemini] Échec de la requête HTTP.', { error });
+      console.error('[OpenRouter] Échec de la requête HTTP.', { error });
       throw new InternalServerErrorException(
-        'Impossible de communiquer avec Gemini ou délai d’attente dépassé.',
+        'Impossible de communiquer avec OpenRouter.',
       );
     }
 
-    console.log('[Gemini] Statut HTTP :', response.status);
+    console.log('[OpenRouter] Statut HTTP :', response.status);
 
     if (!response.ok) {
       const errorBody = await response.text().catch(() => '');
-      console.error('[Gemini] Réponse HTTP en erreur :', {
+      console.error('[OpenRouter] Réponse HTTP en erreur :', {
         status: response.status,
         body: errorBody.slice(0, 2000),
       });
       throw new InternalServerErrorException(
-        `Gemini a répondu avec le statut ${response.status}.`,
+        `OpenRouter a répondu avec le statut ${response.status}.`,
       );
     }
 
@@ -937,34 +931,35 @@ RÈGLES STRICTES POUR LE CALCUL DES PRIX ET QUANTITÉS (TRÈS IMPORTANT) :
     try {
       payload = await response.json();
     } catch (error) {
-      console.error('[Gemini] Impossible de lire la réponse JSON HTTP :', error);
+      console.error('[OpenRouter] Impossible de lire la réponse JSON HTTP :', error);
       throw new InternalServerErrorException(
-        'Impossible de lire la réponse JSON retournée par Gemini.',
+        'Impossible de lire la réponse JSON retournée par OpenRouter.',
       );
     }
 
-    const content = payload.candidates?.[0]?.content?.parts?.[0]?.text;
+    const content = payload.choices?.[0]?.message?.content;
     
     if (!content?.trim()) {
-      console.error('[Gemini] Réponse reçue sans contenu exploitable.', payload);
+      console.error('[OpenRouter] Réponse reçue sans contenu exploitable.', payload);
       throw new InternalServerErrorException(
-        'Gemini a retourné une réponse vide.',
+        'OpenRouter a retourné une réponse vide.',
       );
     }
 
     try {
       const parsed = JSON.parse(content);
-      console.log('[Gemini] JSON décodé avec succès.');
+      console.log('[OpenRouter] JSON décodé avec succès.');
       return parsed;
     } catch (error) {
-      console.error('[Gemini] Le contenu généré n’est pas un JSON valide :', error);
-      console.error('[Gemini] Début du contenu reçu :', content.slice(0, 1500));
+      console.error('[OpenRouter] Le contenu généré n’est pas un JSON valide :', error);
+      console.error('[OpenRouter] Début du contenu reçu :', content.slice(0, 1500));
       throw new InternalServerErrorException(
-        'La réponse de Gemini ne contient pas de JSON valide.',
+        'La réponse d\'OpenRouter ne contient pas de JSON valide.',
       );
     }
   }
 
+  // ... (les méthodes validateAnalysisResult et validateQuote restent inchangées)
   private validateAnalysisResult(result: AIResult): void {
     if (
       !result ||
