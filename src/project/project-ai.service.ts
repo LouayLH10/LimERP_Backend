@@ -383,8 +383,8 @@ const PRICE_SCHEDULE_TEMPLATE = `
     `;
 
 const DEFAULT_PRICE_ITEMS: PriceItem[] = [
-  { description: "Main d'œuvre mécanique et encadrement", percentage: 70 },
-  { description: 'Consommables et petites fournitures', percentage: 15 },
+  { description: "Main d'œuvre mécanique et encadrement", percentage: 65 },
+  { description: 'Consommables et petites fournitures', percentage: 20 },
   { description: 'Logistique, transport et hébergement', percentage: 15 },
 ];
 
@@ -405,24 +405,34 @@ export class ProjectAiService {
   ];
 
   // =========================================================
-  // PARAMÈTRES DE COÛTS (MARCHÉ TUNISIEN)
-  // Coûts journaliers entreprise, charges patronales et frais généraux inclus.
-  // Ces constantes sont les SEULES références de prix : l'IA ne chiffre rien.
+  // PARAMÈTRES DE COÛTS (MARCHÉ TUNISIEN 2026)
+  //
+  // Références de salaires bruts (SalaryExpert) :
+  //  - Technicien maintenance préventive : ~10,89 TND/h (22 650 TND/an) [citation:3]
+  //  - Mécanicien maintenance machines : ~10,21 TND/h (21 244 TND/an) [citation:9]
+  //  - Ouvrier fabrication : ~5,56 TND/h [citation:11]
+  //
+  // Coefficients appliqués :
+  //  - Charges patronales CNSS : 5% employeur [citation:6]
+  //  - Frais généraux entreprise (outillage, déplacements, gestion) : ~2x
+  //  - Soit un coût entreprise ≈ 2,2 à 2,5x le salaire brut
+  //
+  // Calcul : 10,89 × 8h × 2,5 ≈ 218 TND/jour → arrondi à 220 TND
   // =========================================================
 
-  /** Coût journalier entreprise d'un technicien (8h) */
-  private readonly COUT_JOUR_TECHNICIEN = 180; // TND HT/jour
+  /** Coût journalier entreprise d'un technicien (8h, charges et frais généraux inclus) */
+  private readonly COUT_JOUR_TECHNICIEN = 220; // TND HT/jour
 
-  /** Coût journalier entreprise d'un chef d'équipe (8h) */
-  private readonly COUT_JOUR_CHEF_EQUIPE = 260; // TND HT/jour
+  /** Coût journalier entreprise d'un chef d'équipe (8h, charges et frais généraux inclus) */
+  private readonly COUT_JOUR_CHEF_EQUIPE = 320; // TND HT/jour
 
-  /** Majoration des heures au-delà de 8h/jour (1,25 = +25 %) */
-  private readonly MAJORATION_HEURES_SUP = 1.25;
+  /** Majoration des heures au-delà de 8h/jour (1,5 = +50%) */
+  private readonly MAJORATION_HEURES_SUP = 1.5;
 
-  /** Consommables et petites fournitures, en % de la main-d'œuvre */
-  private readonly TAUX_CONSOMMABLES = 0.15;
+  /** Consommables (électrodes, disques, gaz) en % de la main-d'œuvre */
+  private readonly TAUX_CONSOMMABLES = 0.18;
 
-  /** Marge, en % appliquée après consommables */
+  /** Marge en % après consommables */
   private readonly TAUX_MARGE = 0.25;
 
   /** Fourchette de prix autour de l'estimation centrale */
@@ -433,7 +443,7 @@ export class ProjectAiService {
   private readonly TVA_RATE = 0.19;
 
   /** Taille maximale du texte du cahier des charges envoyé à l'IA */
-  private readonly MAX_SPEC_CHARS = 60_000;
+  private readonly MAX_SPEC_CHARS = 65_000;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -671,7 +681,7 @@ export class ProjectAiService {
         projectName: project.name,
         projectDescription: project.description ?? '',
         location: project.location ?? '',
-        clientName: (project.client as { name?: string }).name ?? '',
+        clientName: (project.client as { name?: string })?.name ?? '',
         extractedText: specification.extractedText,
       });
 
@@ -861,7 +871,7 @@ export class ProjectAiService {
   /**
    * Facteur de coût selon les heures par jour.
    * 8h ou moins => 1 ; au-delà, les heures supplémentaires sont majorées.
-   * Ex. 12h/jour => (8 + 4 x 1,25) / 8 = 1,625.
+   * Ex. 12h/jour => (8 + 4 x 1,5) / 8 = 1,75.
    */
   private hoursCostFactor(hoursPerDay: number | null): number {
     const hours = Math.min(Math.max(hoursPerDay ?? 8, 1), 16);
@@ -1065,7 +1075,7 @@ export class ProjectAiService {
       });
 
     const templateData = {
-      project: { name: project.name , daNumber: project.daNumber ?? null, },
+      project: { name: project.name, daNumber: project.daNumber ?? null },
       quoteNumber: quote.number,
       priceSchedule: {
         sections: calculatedSections.map((sec) => ({
@@ -1118,7 +1128,7 @@ export class ProjectAiService {
     }
   }
 
-  /** Nettoie les pourcentages proposés par l'IA ; défaut 70/15/15 si inutilisables. */
+  /** Nettoie les pourcentages proposés par l'IA ; défaut 65/20/15 si inutilisables. */
   private normalizePriceItems(rawItems: unknown): PriceItem[] {
     if (!Array.isArray(rawItems)) {
       return DEFAULT_PRICE_ITEMS.map((item) => ({ ...item }));
@@ -1221,7 +1231,8 @@ RÈGLES :
 8. "durationDays" est la durée totale du chantier en jours. Si le document donne une durée d'arrêt, reprends-la. "minDurationDays" et "maxDurationDays" encadrent cette durée.
 9. "workingHoursPerDay" : nombre d'heures de travail par jour indiqué par le document (par exemple 12), sinon null.
 10. "confidence" : entier de 0 à 100 selon la complétude du document.
-11. Si les données sont insuffisantes, dis-le dans "missingInformation" au lieu de deviner.`;
+11. Si les données sont insuffisantes, dis-le dans "missingInformation" au lieu de deviner.
+12. Le document peut contenir des clauses contractuelles (pénalités, garantie, obligations HSE, consommables à fournir). Tiens-en compte dans "hypotheses" et "missingInformation", mais ne les inclus pas dans les durées de travail sauf si le document l'indique explicitement.`;
 
     const prompt = `Informations du projet :
 Nom : ${input.projectName}
@@ -1266,17 +1277,29 @@ ${this.prepareSpecText(input.extractedText)}
     return this.callOpenRouterApi<AIResult>({
       prompt,
       systemPrompt,
-      maxTokens: 12000,
+      maxTokens: 16000,
       validate: (parsed) => this.normalizeAnalysisResult(parsed),
     });
   }
 
-  /** Tronque proprement un très long document (début + fin, où se trouvent souvent les annexes). */
+  /**
+   * Tronque un document trop long en priorisant la fin (clauses contractuelles,
+   * bordereau des prix) et en conservant le début (périmètre technique).
+   * Le CCT SOTACIB fait ~64k caractères : on le conserve presque entièrement.
+   */
   private prepareSpecText(text: string): string {
     if (text.length <= this.MAX_SPEC_CHARS) return text;
-    const headSize = Math.floor(this.MAX_SPEC_CHARS * 0.75);
-    const tailSize = this.MAX_SPEC_CHARS - headSize;
-    return `${text.slice(0, headSize)}\n\n[... partie centrale du document omise ...]\n\n${text.slice(-tailSize)}`;
+
+    // Priorise la fin (bordereau, pénalités, garantie) : 40% de la fin
+    // et 60% du début (périmètre technique).
+    const tailSize = Math.floor(this.MAX_SPEC_CHARS * 0.4);
+    const headSize = this.MAX_SPEC_CHARS - tailSize;
+
+    return `${text.slice(0, headSize)}
+
+[... partie centrale du document omise pour raisons de taille ...]
+
+${text.slice(-tailSize)}`;
   }
 
   // =========================================================
