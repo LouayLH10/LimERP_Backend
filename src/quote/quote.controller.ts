@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -125,5 +126,8 @@ async downloadPdf(
 sendEmail(@Param('id') id: string) {
   return this.quoteService.sendEmail(id);
 }
-
+@Get()
+findbyProjectId(@Query('projectId') projectId?: string) {
+  return this.quoteService.findByProjectId(projectId);
+}
 }

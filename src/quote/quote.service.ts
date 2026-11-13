@@ -667,4 +667,15 @@ export class QuotesService {
       recipient: recipientEmail,
     };
   }
+  async findByProjectId(projectId?: string) {
+  return this.prisma.quote.findMany({
+    where: projectId ? { projectId } : undefined,
+    orderBy: { createdAt: 'desc' },
+    include: {
+      client: true,
+      project: true,
+      lines: true,
+    },
+  });
+}
 }
