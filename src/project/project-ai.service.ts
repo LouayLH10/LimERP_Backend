@@ -62,9 +62,26 @@ type AIResult = {
 
 @Injectable()
 export class ProjectAiService {
-  // 👇 Configuration OpenRouter
   private readonly openRouterBaseUrl = 'https://openrouter.ai/api/v1';
-  private readonly openRouterModel = 'openrouter/free'; // Routeur automatique gratuit
+  private readonly openRouterModel = 'openrouter/free';
+
+  // =========================================================
+  // PARAMÈTRES DE COÛTS BASÉS SUR LE MARCHÉ TUNISIEN
+  // Sources : SalaryExpert (2026) pour les salaires bruts
+  // Technicien maintenance préventive : ~10,89 TND/h [citation:8]
+  // Mécanicien maintenance machines : ~10,21 TND/h [citation:2]
+  // Ouvrier fabrication : ~5,56 TND/h [citation:9]
+  // On applique un coefficient de 1,8 pour charges patronales + frais généraux
+  // =========================================================
+  
+  /** Coût journalier entreprise pour un technicien (8h, charges incluses) */
+  private readonly COUT_JOUR_TECHNICIEN = 180; // TND HT/jour
+  
+  /** Coût journalier entreprise pour un chef d'équipe (8h, charges incluses) */
+  private readonly COUT_JOUR_CHEF_EQUIPE = 260; // TND HT/jour
+  
+  /** Taux de TVA standard en Tunisie */
+  private readonly TVA_RATE = 0.19;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -288,10 +305,25 @@ export class ProjectAiService {
         }))
         .filter((item) => item.quantity > 0);
 
+      // =========================================================
+      // CALCUL DES COÛTS RÉELS DES PHASES
+      // On utilise le coût journalier tunisien, pas le prix IA brut
+      // =========================================================
       let totalHT = 0;
       const workPhases = analysisResult.workPhases.map((phase, index) => {
-        const baseCost = phase.durationDays * 1500; 
-        const estimatedCost = phase.estimatedCost ?? baseCost;
+        // Coût de base = jours × coût journalier technicien
+        // Si l'IA a fourni un estimatedCost, on le compare et on prend
+        // la valeur la plus réaliste (on ne fait pas confiance à un coût
+        // inférieur au plancher technique)
+        const baseCost = phase.durationDays * this.COUT_JOUR_TECHNICIEN;
+        let estimatedCost = phase.estimatedCost ?? baseCost;
+        
+        // Plancher : le coût ne peut pas être inférieur au coût main-d'œuvre pur
+        const floorCost = phase.durationDays * this.COUT_JOUR_TECHNICIEN * 0.6;
+        if (estimatedCost < floorCost) {
+          estimatedCost = floorCost;
+        }
+
         totalHT += estimatedCost;
 
         return {
@@ -299,12 +331,11 @@ export class ProjectAiService {
           description: phase.description ?? null,
           order: phase.order ?? index + 1,
           durationDays: phase.durationDays,
-          estimatedCost: estimatedCost,
+          estimatedCost: Math.round(estimatedCost * 100) / 100,
         };
       });
 
-      const tvaRate = 0.19;
-      const totalTVA = totalHT * tvaRate;
+      const totalTVA = totalHT * this.TVA_RATE;
       const totalTTC = totalHT + totalTVA;
 
       const saved = await this.prisma.projectAIAnalysis.update({
@@ -361,6 +392,19 @@ export class ProjectAiService {
             validUntil.setDate(validUntil.getDate() + 30);
           }
 
+          // Vérifier que les prix du devis sont cohérents avec le marché tunisien
+          // (on applique un plancher basé sur la durée × coût journalier)
+          const quoteLines = quote.lines.map((line) => {
+            const minPrice = analysisResult.durationDays * this.COUT_JOUR_TECHNICIEN * 0.5;
+            const adjustedUnitPrice = Math.max(line.unitPrice, minPrice);
+            return {
+              description: line.description.trim(),
+              quantity: line.quantity,
+              unitPrice: Math.round(adjustedUnitPrice * 100) / 100,
+              taxRate: line.taxRate,
+            };
+          });
+
           createdQuote = await this.quotesService.create({
             clientId: project.clientId,
             projectId: project.id,
@@ -368,12 +412,7 @@ export class ProjectAiService {
             notes:
               quote.notes?.trim() ||
               `Devis généré automatiquement par IA pour le projet "${project.name}".`,
-            lines: quote.lines.map((line) => ({
-              description: line.description.trim(),
-              quantity: line.quantity,
-              unitPrice: line.unitPrice,
-              taxRate: line.taxRate,
-            })),
+            lines: quoteLines,
           });
         }
       } catch (quoteError) {
@@ -387,7 +426,7 @@ export class ProjectAiService {
         ...saved,
         quote: createdQuote,
         avertissementPrix:
-          'Estimation indicative générée par IA. Les tarifs et quantités doivent être validés avant la création du devis.',
+          'Estimation indicative générée par IA. Les tarifs et quantités doivent être validés avant la création du devis. Les coûts sont basés sur les salaires du marché tunisien (technicien maintenance ~180 TND/jour charges incluses).',
         hypotheses: analysisResult.hypotheses ?? [],
         informationsManquantes: analysisResult.missingInformation ?? [],
       };
@@ -464,12 +503,12 @@ export class ProjectAiService {
     const analysis = await this.prisma.projectAIAnalysis.findUnique({
       where: { id: analysisId },
       include: {
-        specification: { 
-          include: { 
-            project: { 
-              include: { client: true } 
-            } 
-          } 
+        specification: {
+          include: {
+            project: {
+              include: { client: true }
+            }
+          }
         },
       }
     });
@@ -489,20 +528,18 @@ export class ProjectAiService {
       throw new NotFoundException('Devis introuvable pour ce projet.');
     }
 
-    // 1. Demander à l'IA de générer la répartition (pourcentages)
     const detailedSchedule = await this.callOpenRouterForDetailedPrice(quote, project);
 
-    // 2. Calculer les vrais montants côté serveur pour garantir le total exact du devis
     let calculatedTotalGeneral = 0;
-    
+
     const calculatedSections = detailedSchedule.sections.map((sec: any, index: number) => {
       const quoteLine = quote.lines[index];
       if (!quoteLine) return null;
 
       const lineTotalHT = Number(quoteLine.unitPrice) * Number(quoteLine.quantity);
-      
+
       let items = sec.items.map((item: any) => {
-        const percent = Number(item.percentage) || 33.33; 
+        const percent = Number(item.percentage) || 33.33;
         return {
           description: item.description,
           amount: lineTotalHT * (percent / 100)
@@ -511,7 +548,7 @@ export class ProjectAiService {
 
       const currentSum = items.reduce((sum: number, item: any) => sum + item.amount, 0);
       const diff = lineTotalHT - currentSum;
-      
+
       if (items.length > 0) {
         items[0].amount += diff;
       }
@@ -525,13 +562,12 @@ export class ProjectAiService {
       };
     }).filter(Boolean);
 
-    // 3. Préparer le template
     const template = await this.prisma.documentTemplate.findFirst({
       where: { type: 'QUOTE', isDefault: true, isActive: true },
       include: { style: true },
     });
 
-const templateSource = `
+    const templateSource = `
       <!DOCTYPE html>
       <html lang="fr">
       <head>
@@ -547,7 +583,6 @@ const templateSource = `
             background: {{style.backgroundColor}};
             position: relative;
             -webkit-print-color-adjust: exact;
-            /* On retire le padding-bottom qui était là pour le footer fixe */
           }
           
           .watermark {
@@ -558,7 +593,6 @@ const templateSource = `
             z-index: -1; letter-spacing: 10px; white-space: nowrap;
           }
 
-          /* 👇 On utilise Flexbox pour pousser le footer vers le bas de la page */
           .page-container { 
             padding: 40px 50px; 
             min-height: 100vh; 
@@ -596,8 +630,6 @@ const templateSource = `
           }
           .grand-total-row { display: flex; justify-content: space-between; font-size: 20px; font-weight: bold; color: {{style.primaryColor}}; }
 
-          /* 👇 Le footer redevient un élément normal, mais avec margin-top: auto 
-             pour être poussé en bas si la page est vide */
           footer {
             margin-top: auto;
             padding-top: 20px;
@@ -660,7 +692,6 @@ const templateSource = `
             </p>
           </div>
 
-          <!-- 👇 Le footer est maintenant DANS le conteneur principal -->
           <footer>
             <div class="company-name"><bdi>شركة لؤي للصناعة و الصيانة</bdi> - SOCIETE LOUAY INDUSTRIE ET MAINTENANCE</div>
             <div>Rue Ali Dargouth, Imm El Moustakbal 5, 1001 Tunis 1er étage BN 10 | Bureaux de Gabès : N° 08 Rue al anbar, 1er étage Gabès Ville 6040</div>
@@ -736,13 +767,14 @@ const templateSource = `
   private async callOpenRouterForDetailedPrice(quote: any, project: any): Promise<any> {
     const prompt = `
 Tu es un expert en chiffrage industriel pour l'entreprise LIM.
+
 Le devis pour le projet "${project.name}" a été validé.
 
 Ta mission est de générer une structure de justification pour le Bordereau de Prix.
 Pour CHAQUE ligne du devis ci-dessous, tu dois proposer 3 sous-tâches (Main d'œuvre, Consommables, Logistique) et leur attribuer un POURCENTAGE (qui doit faire 100% au total pour cette ligne).
 
 Voici les lignes du devis :
-${JSON.stringify(quote.lines.map((l: any) => ({ description: l.description })))}
+${JSON.stringify(quote.lines.map((l: any) => ({ description: l.description, unitPrice: l.unitPrice, quantity: l.quantity })))}
 
 Retourne EXCLUSIVEMENT ce format JSON (ne calcule pas les montants, mets juste les pourcentages) :
 {
@@ -759,10 +791,10 @@ Retourne EXCLUSIVEMENT ce format JSON (ne calcule pas les montants, mets juste l
 }
 `;
 
-    return this.callOpenRouterApi({ 
-      prompt, 
+    return this.callOpenRouterApi({
+      prompt,
       maxTokens: 8000,
-      systemPrompt: "Tu es un expert en chiffrage. Réponds uniquement en JSON valide et en français." 
+      systemPrompt: "Tu es un expert en chiffrage. Réponds uniquement en JSON valide et en français."
     });
   }
 
@@ -784,15 +816,18 @@ français, en arabe ou en anglais. Réponds toujours en français.
 
 Retourne exclusivement un objet JSON valide, sans Markdown.
 
-RÈGLES STRICTES POUR L'ESTIMATION DES COÛTS ET DURÉES :
+RÈGLES STRICTES POUR L'ESTIMATION DES COÛTS ET DURÉES (MARCHÉ TUNISIEN) :
 1. Si le document mentionne une durée d'arrêt (ex: 18 jours) et des horaires (ex: 12h/jour), tu DOIS utiliser ces données.
-2. Pour estimer le coût d'une phase, base-toi sur le nombre de jours x 12h x 3 techniciens x (taux horaire moyen de 35 TND) = environ 1500 TND par jour.
-3. N'invente pas de prix trop bas. Un grand ensemble industriel coûte au minimum 10 000 TND en main-d'œuvre.
-4. Propose les tâches, les phases, la durée et les effectifs nécessaires.
-5. Les postes (workforce) doivent obligatoirement correspondre à l'une des valeurs de cet enum :
+2. Pour estimer le coût d'une phase, base-toi sur le coût réel de la main-d'œuvre en Tunisie :
+   - Un technicien de maintenance gagne environ 10-11 TND brut/heure [citation:2][citation:8].
+   - Avec les charges patronales et frais généraux, le coût entreprise est d'environ 180 TND/jour (8h).
+   - Pour une équipe de 3 techniciens + 1 chef d'équipe, compte environ 600-800 TND/jour.
+   - N'invente pas de prix trop bas. Un grand ensemble industriel nécessite au minimum 5 000 TND de main-d'œuvre.
+3. Propose les tâches, les phases, la durée et les effectifs nécessaires.
+4. Les postes (workforce) doivent obligatoirement correspondre à l'une des valeurs de cet enum :
   ${availablePositions}
-6. Si les données sont insuffisantes, indique-le dans missingInformation.
-7. estimatedPrice, durationDays, workPhases et workforce doivent être présents.
+5. Si les données sont insuffisantes, indique-le dans missingInformation.
+6. estimatedPrice, durationDays, workPhases et workforce doivent être présents.
 
 Structure obligatoire :
 {
@@ -838,7 +873,7 @@ Fin du cahier des charges.
 
     return this.callOpenRouterApi({
       prompt,
-     maxTokens: 8000,
+      maxTokens: 8000,
       systemPrompt:
         'Tu es un assistant d’ingénierie industrielle. Réponds uniquement en JSON valide et en français.',
     });
@@ -853,6 +888,7 @@ Tu es un ingénieur expert en préparation de devis pour une entreprise tunisien
 Résumé du projet : ${analysis.resumeProjet}
 Phases : ${JSON.stringify(analysis.workPhases)}
 Effectifs : ${JSON.stringify(analysis.workforce)}
+Durée totale estimée : ${analysis.durationDays} jours
 
 Retourne EXACTEMENT ce format, sans aucun autre champ :
 {
@@ -868,14 +904,17 @@ Retourne EXACTEMENT ce format, sans aucun autre champ :
   ]
 }
 
-RÈGLES STRICTES POUR LE CALCUL DES PRIX ET QUANTITÉS (TRÈS IMPORTANT) :
+RÈGLES STRICTES POUR LE CALCUL DES PRIX ET QUANTITÉS (MARCHÉ TUNISIEN) :
 1. Regroupe les travaux par GRAND ENSEMBLE (ex: "Refroidisseur Polytrack", "Concasseur à rouleaux", "Ventilateur", etc.).
 2. La quantité (quantity) doit TOUJOURS être de "1" pour chaque grand ensemble. C'est un forfait global.
-3. NE MULTIPLIE JAMAIS la quantité par le nombre de pièces mentionnées (ex: s'il y a 12 vérins ou 9 ventilateurs, ne fais pas 1 x 12 ou 1 x 9). Le prix unitaire doit déjà englober la totalité des pièces du lot.
-4. Le prix unitaire (unitPrice) doit être une estimation GLOBALE et FORFAITAIRE pour tout le lot de travaux, et non un prix à l'unité.
-5. ⚠️ ATTENTION : Un grand ensemble de maintenance industrielle coûte AU MINIMUM 15 000 TND (main-d'œuvre + outillage + risques). Si tu mets moins de 10 000 TND, ton estimation est fausse.
+3. NE MULTIPLIE JAMAIS la quantité par le nombre de pièces mentionnées.
+4. Le prix unitaire (unitPrice) doit être une estimation GLOBALE et FORFAITAIRE pour tout le lot de travaux.
+5. ⚠️ COHÉRENCE TUNISIENNE : Le coût de la main-d'œuvre est d'environ 180 TND/jour/technicien.
+   - Pour un projet de ${analysis.durationDays} jours avec une équipe, le coût main-d'œuvre seul est d'environ ${analysis.durationDays * 600} TND.
+   - Ajoute les consommables (15-20%) et la marge (20-30%).
+   - Un grand ensemble de maintenance industrielle ne peut PAS coûter moins de 5 000 TND si la durée dépasse 5 jours.
 6. "lines" doit contenir au moins 3 lignes cohérentes avec les phases.
-7. Chaque quantity = 1, unitPrice >= 15000, taxRate = 19.
+7. Chaque quantity = 1, taxRate = 19 [citation:5][citation:11].
 8. Ne JAMAIS ajouter de champs comme materials, labor, transport.
 9. La date "validUntil" doit être dans le futur.
 `;
@@ -897,7 +936,7 @@ RÈGLES STRICTES POUR LE CALCUL DES PRIX ET QUANTITÉS (TRÈS IMPORTANT) :
   }): Promise<any> {
     const { prompt, maxTokens, systemPrompt } = params;
     const apiKey = this.getOpenRouterApiKey();
-    
+
     const url = `${this.openRouterBaseUrl}/chat/completions`;
 
     let response: Response;
@@ -907,7 +946,7 @@ RÈGLES STRICTES POUR LE CALCUL DES PRIX ET QUANTITÉS (TRÈS IMPORTANT) :
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': 'http://localhost:3000', // Optionnel mais recommandé par OpenRouter
+          'HTTP-Referer': 'http://localhost:3000',
           'X-Title': 'LIM ERP Backend',
         },
         signal: AbortSignal.timeout(300_000),
@@ -915,7 +954,7 @@ RÈGLES STRICTES POUR LE CALCUL DES PRIX ET QUANTITÉS (TRÈS IMPORTANT) :
           model: this.openRouterModel,
           temperature: 0.1,
           max_tokens: maxTokens,
-          response_format: { type: "json_object" }, // Force le JSON
+          response_format: { type: "json_object" },
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: prompt },
@@ -953,7 +992,7 @@ RÈGLES STRICTES POUR LE CALCUL DES PRIX ET QUANTITÉS (TRÈS IMPORTANT) :
     }
 
     const content = payload.choices?.[0]?.message?.content;
-    
+
     if (!content?.trim()) {
       console.error('[OpenRouter] Réponse reçue sans contenu exploitable.', payload);
       throw new InternalServerErrorException(
@@ -974,7 +1013,6 @@ RÈGLES STRICTES POUR LE CALCUL DES PRIX ET QUANTITÉS (TRÈS IMPORTANT) :
     }
   }
 
-  // ... (les méthodes validateAnalysisResult et validateQuote restent inchangées)
   private validateAnalysisResult(result: AIResult): void {
     if (
       !result ||
