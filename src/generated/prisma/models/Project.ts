@@ -31,6 +31,7 @@ export type ProjectMinAggregateOutputType = {
   location: string | null
   startDate: Date | null
   endDate: Date | null
+  daNumber: string | null
   clientId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -43,6 +44,7 @@ export type ProjectMaxAggregateOutputType = {
   location: string | null
   startDate: Date | null
   endDate: Date | null
+  daNumber: string | null
   clientId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -55,6 +57,7 @@ export type ProjectCountAggregateOutputType = {
   location: number
   startDate: number
   endDate: number
+  daNumber: number
   clientId: number
   createdAt: number
   updatedAt: number
@@ -69,6 +72,7 @@ export type ProjectMinAggregateInputType = {
   location?: true
   startDate?: true
   endDate?: true
+  daNumber?: true
   clientId?: true
   createdAt?: true
   updatedAt?: true
@@ -81,6 +85,7 @@ export type ProjectMaxAggregateInputType = {
   location?: true
   startDate?: true
   endDate?: true
+  daNumber?: true
   clientId?: true
   createdAt?: true
   updatedAt?: true
@@ -93,6 +98,7 @@ export type ProjectCountAggregateInputType = {
   location?: true
   startDate?: true
   endDate?: true
+  daNumber?: true
   clientId?: true
   createdAt?: true
   updatedAt?: true
@@ -178,6 +184,7 @@ export type ProjectGroupByOutputType = {
   location: string | null
   startDate: Date | null
   endDate: Date | null
+  daNumber: string | null
   clientId: string
   createdAt: Date
   updatedAt: Date
@@ -211,6 +218,7 @@ export type ProjectWhereInput = {
   location?: Prisma.StringNullableFilter<"Project"> | string | null
   startDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   endDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
+  daNumber?: Prisma.StringNullableFilter<"Project"> | string | null
   clientId?: Prisma.StringFilter<"Project"> | string
   createdAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Project"> | Date | string
@@ -232,6 +240,7 @@ export type ProjectOrderByWithRelationInput = {
   location?: Prisma.SortOrderInput | Prisma.SortOrder
   startDate?: Prisma.SortOrderInput | Prisma.SortOrder
   endDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  daNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   clientId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -256,6 +265,7 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   location?: Prisma.StringNullableFilter<"Project"> | string | null
   startDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   endDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
+  daNumber?: Prisma.StringNullableFilter<"Project"> | string | null
   clientId?: Prisma.StringFilter<"Project"> | string
   createdAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Project"> | Date | string
@@ -277,6 +287,7 @@ export type ProjectOrderByWithAggregationInput = {
   location?: Prisma.SortOrderInput | Prisma.SortOrder
   startDate?: Prisma.SortOrderInput | Prisma.SortOrder
   endDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  daNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   clientId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -295,6 +306,7 @@ export type ProjectScalarWhereWithAggregatesInput = {
   location?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
   startDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Project"> | Date | string | null
   endDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Project"> | Date | string | null
+  daNumber?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
   clientId?: Prisma.StringWithAggregatesFilter<"Project"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Project"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Project"> | Date | string
@@ -307,6 +319,7 @@ export type ProjectCreateInput = {
   location?: string | null
   startDate?: Date | string | null
   endDate?: Date | string | null
+  daNumber?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutProjectsInput
@@ -327,6 +340,7 @@ export type ProjectUncheckedCreateInput = {
   location?: string | null
   startDate?: Date | string | null
   endDate?: Date | string | null
+  daNumber?: string | null
   clientId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -347,6 +361,7 @@ export type ProjectUpdateInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutProjectsNestedInput
@@ -367,6 +382,7 @@ export type ProjectUncheckedUpdateInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -387,6 +403,7 @@ export type ProjectCreateManyInput = {
   location?: string | null
   startDate?: Date | string | null
   endDate?: Date | string | null
+  daNumber?: string | null
   clientId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -399,6 +416,7 @@ export type ProjectUpdateManyMutationInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -410,6 +428,7 @@ export type ProjectUncheckedUpdateManyInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -437,6 +456,7 @@ export type ProjectCountOrderByAggregateInput = {
   location?: Prisma.SortOrder
   startDate?: Prisma.SortOrder
   endDate?: Prisma.SortOrder
+  daNumber?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -449,6 +469,7 @@ export type ProjectMaxOrderByAggregateInput = {
   location?: Prisma.SortOrder
   startDate?: Prisma.SortOrder
   endDate?: Prisma.SortOrder
+  daNumber?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -461,6 +482,7 @@ export type ProjectMinOrderByAggregateInput = {
   location?: Prisma.SortOrder
   startDate?: Prisma.SortOrder
   endDate?: Prisma.SortOrder
+  daNumber?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -640,6 +662,7 @@ export type ProjectCreateWithoutTimeEntriesInput = {
   location?: string | null
   startDate?: Date | string | null
   endDate?: Date | string | null
+  daNumber?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutProjectsInput
@@ -659,6 +682,7 @@ export type ProjectUncheckedCreateWithoutTimeEntriesInput = {
   location?: string | null
   startDate?: Date | string | null
   endDate?: Date | string | null
+  daNumber?: string | null
   clientId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -694,6 +718,7 @@ export type ProjectUpdateWithoutTimeEntriesInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutProjectsNestedInput
@@ -713,6 +738,7 @@ export type ProjectUncheckedUpdateWithoutTimeEntriesInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -732,6 +758,7 @@ export type ProjectCreateWithoutProjectEmployeesInput = {
   location?: string | null
   startDate?: Date | string | null
   endDate?: Date | string | null
+  daNumber?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutProjectsInput
@@ -751,6 +778,7 @@ export type ProjectUncheckedCreateWithoutProjectEmployeesInput = {
   location?: string | null
   startDate?: Date | string | null
   endDate?: Date | string | null
+  daNumber?: string | null
   clientId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -786,6 +814,7 @@ export type ProjectUpdateWithoutProjectEmployeesInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutProjectsNestedInput
@@ -805,6 +834,7 @@ export type ProjectUncheckedUpdateWithoutProjectEmployeesInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -824,6 +854,7 @@ export type ProjectCreateWithoutClientInput = {
   location?: string | null
   startDate?: Date | string | null
   endDate?: Date | string | null
+  daNumber?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   quotes?: Prisma.QuoteCreateNestedManyWithoutProjectInput
@@ -843,6 +874,7 @@ export type ProjectUncheckedCreateWithoutClientInput = {
   location?: string | null
   startDate?: Date | string | null
   endDate?: Date | string | null
+  daNumber?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   quotes?: Prisma.QuoteUncheckedCreateNestedManyWithoutProjectInput
@@ -891,6 +923,7 @@ export type ProjectScalarWhereInput = {
   location?: Prisma.StringNullableFilter<"Project"> | string | null
   startDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   endDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
+  daNumber?: Prisma.StringNullableFilter<"Project"> | string | null
   clientId?: Prisma.StringFilter<"Project"> | string
   createdAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Project"> | Date | string
@@ -903,6 +936,7 @@ export type ProjectCreateWithoutQuotesInput = {
   location?: string | null
   startDate?: Date | string | null
   endDate?: Date | string | null
+  daNumber?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutProjectsInput
@@ -922,6 +956,7 @@ export type ProjectUncheckedCreateWithoutQuotesInput = {
   location?: string | null
   startDate?: Date | string | null
   endDate?: Date | string | null
+  daNumber?: string | null
   clientId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -957,6 +992,7 @@ export type ProjectUpdateWithoutQuotesInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutProjectsNestedInput
@@ -976,6 +1012,7 @@ export type ProjectUncheckedUpdateWithoutQuotesInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -995,6 +1032,7 @@ export type ProjectCreateWithoutOrdersInput = {
   location?: string | null
   startDate?: Date | string | null
   endDate?: Date | string | null
+  daNumber?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutProjectsInput
@@ -1014,6 +1052,7 @@ export type ProjectUncheckedCreateWithoutOrdersInput = {
   location?: string | null
   startDate?: Date | string | null
   endDate?: Date | string | null
+  daNumber?: string | null
   clientId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1049,6 +1088,7 @@ export type ProjectUpdateWithoutOrdersInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutProjectsNestedInput
@@ -1068,6 +1108,7 @@ export type ProjectUncheckedUpdateWithoutOrdersInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1087,6 +1128,7 @@ export type ProjectCreateWithoutDeliveriesInput = {
   location?: string | null
   startDate?: Date | string | null
   endDate?: Date | string | null
+  daNumber?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutProjectsInput
@@ -1106,6 +1148,7 @@ export type ProjectUncheckedCreateWithoutDeliveriesInput = {
   location?: string | null
   startDate?: Date | string | null
   endDate?: Date | string | null
+  daNumber?: string | null
   clientId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1141,6 +1184,7 @@ export type ProjectUpdateWithoutDeliveriesInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutProjectsNestedInput
@@ -1160,6 +1204,7 @@ export type ProjectUncheckedUpdateWithoutDeliveriesInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1179,6 +1224,7 @@ export type ProjectCreateWithoutInvoicesInput = {
   location?: string | null
   startDate?: Date | string | null
   endDate?: Date | string | null
+  daNumber?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutProjectsInput
@@ -1198,6 +1244,7 @@ export type ProjectUncheckedCreateWithoutInvoicesInput = {
   location?: string | null
   startDate?: Date | string | null
   endDate?: Date | string | null
+  daNumber?: string | null
   clientId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1233,6 +1280,7 @@ export type ProjectUpdateWithoutInvoicesInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutProjectsNestedInput
@@ -1252,6 +1300,7 @@ export type ProjectUncheckedUpdateWithoutInvoicesInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1271,6 +1320,7 @@ export type ProjectCreateWithoutSpecificationInput = {
   location?: string | null
   startDate?: Date | string | null
   endDate?: Date | string | null
+  daNumber?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutProjectsInput
@@ -1290,6 +1340,7 @@ export type ProjectUncheckedCreateWithoutSpecificationInput = {
   location?: string | null
   startDate?: Date | string | null
   endDate?: Date | string | null
+  daNumber?: string | null
   clientId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1325,6 +1376,7 @@ export type ProjectUpdateWithoutSpecificationInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutProjectsNestedInput
@@ -1344,6 +1396,7 @@ export type ProjectUncheckedUpdateWithoutSpecificationInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1363,6 +1416,7 @@ export type ProjectCreateWithoutAiAnalysesInput = {
   location?: string | null
   startDate?: Date | string | null
   endDate?: Date | string | null
+  daNumber?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutProjectsInput
@@ -1382,6 +1436,7 @@ export type ProjectUncheckedCreateWithoutAiAnalysesInput = {
   location?: string | null
   startDate?: Date | string | null
   endDate?: Date | string | null
+  daNumber?: string | null
   clientId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1417,6 +1472,7 @@ export type ProjectUpdateWithoutAiAnalysesInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutProjectsNestedInput
@@ -1436,6 +1492,7 @@ export type ProjectUncheckedUpdateWithoutAiAnalysesInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1455,6 +1512,7 @@ export type ProjectCreateManyClientInput = {
   location?: string | null
   startDate?: Date | string | null
   endDate?: Date | string | null
+  daNumber?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1466,6 +1524,7 @@ export type ProjectUpdateWithoutClientInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   quotes?: Prisma.QuoteUpdateManyWithoutProjectNestedInput
@@ -1485,6 +1544,7 @@ export type ProjectUncheckedUpdateWithoutClientInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   quotes?: Prisma.QuoteUncheckedUpdateManyWithoutProjectNestedInput
@@ -1504,6 +1564,7 @@ export type ProjectUncheckedUpdateManyWithoutClientInput = {
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1600,6 +1661,7 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   location?: boolean
   startDate?: boolean
   endDate?: boolean
+  daNumber?: boolean
   clientId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1622,6 +1684,7 @@ export type ProjectSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   location?: boolean
   startDate?: boolean
   endDate?: boolean
+  daNumber?: boolean
   clientId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1635,6 +1698,7 @@ export type ProjectSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   location?: boolean
   startDate?: boolean
   endDate?: boolean
+  daNumber?: boolean
   clientId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1648,12 +1712,13 @@ export type ProjectSelectScalar = {
   location?: boolean
   startDate?: boolean
   endDate?: boolean
+  daNumber?: boolean
   clientId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "location" | "startDate" | "endDate" | "clientId" | "createdAt" | "updatedAt", ExtArgs["result"]["project"]>
+export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "location" | "startDate" | "endDate" | "daNumber" | "clientId" | "createdAt" | "updatedAt", ExtArgs["result"]["project"]>
 export type ProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
   quotes?: boolean | Prisma.Project$quotesArgs<ExtArgs>
@@ -1693,6 +1758,7 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     location: string | null
     startDate: Date | null
     endDate: Date | null
+    daNumber: string | null
     clientId: string
     createdAt: Date
     updatedAt: Date
@@ -2134,6 +2200,7 @@ export interface ProjectFieldRefs {
   readonly location: Prisma.FieldRef<"Project", 'String'>
   readonly startDate: Prisma.FieldRef<"Project", 'DateTime'>
   readonly endDate: Prisma.FieldRef<"Project", 'DateTime'>
+  readonly daNumber: Prisma.FieldRef<"Project", 'String'>
   readonly clientId: Prisma.FieldRef<"Project", 'String'>
   readonly createdAt: Prisma.FieldRef<"Project", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Project", 'DateTime'>

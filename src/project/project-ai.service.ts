@@ -155,17 +155,112 @@ const PRICE_SCHEDULE_TEMPLATE = `
           .header-logo-right img { height: 70px; object-fit: contain; }
           .header-line { border-bottom: 2px solid {{style.primaryColor}}; margin-bottom: 20px; }
 
-          .doc-bar { background: {{style.primaryColor}}; color: white; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; border-radius: {{style.borderRadius}}px; margin-bottom: 30px; }
-          .doc-bar h2 { margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; }
-          .doc-bar .doc-number { font-size: 16px; font-weight: bold; }
+          /* ── Barre de titre du document ── */
+          .doc-bar {
+            background: {{style.primaryColor}};
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            border-radius: {{style.borderRadius}}px;
+            margin-bottom: 24px;
+            gap: 16px;
+            flex-wrap: wrap;
+          }
+          .doc-bar h2 {
+            margin: 0;
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            flex: 1 1 auto;
+          }
+          .doc-bar .doc-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+          }
+          .doc-bar .doc-number {
+            font-size: 14px;
+            font-weight: bold;
+          }
+          .doc-bar .da-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+          }
+          .doc-bar .da-badge .da-label {
+            opacity: 0.85;
+            font-weight: 400;
+          }
 
+          /* ── Tableau récapitulatif d'informations ── */
+          .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+            background: #f8fafc;
+            border-radius: 6px;
+            overflow: hidden;
+            font-size: 13px;
+          }
+          .info-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: top;
+          }
+          .info-table tr:last-child td { border-bottom: none; }
+          .info-table .label {
+            color: {{style.secondaryColor}};
+            font-weight: 600;
+            width: 130px;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+          }
+          .info-table .value {
+            color: {{style.textColor}};
+            font-weight: 500;
+          }
+
+          /* ── Sections de justification ── */
           .report-section { margin-bottom: 30px; page-break-inside: avoid; }
-          .report-title { font-size: 16px; font-weight: bold; color: {{style.primaryColor}}; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 10px; }
+          .report-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: {{style.primaryColor}};
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+          }
           .report-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-          .report-table td { padding: 8px 0; border-bottom: 1px dotted #e2e8f0; font-size: 13px; }
-          .report-table td.amount { text-align: right; font-weight: bold; width: 120px; }
-          .subtotal-row td { font-weight: bold; color: {{style.primaryColor}}; border-bottom: none; padding-top: 15px; font-size: 14px; }
+          .report-table td {
+            padding: 8px 0;
+            border-bottom: 1px dotted #e2e8f0;
+            font-size: 13px;
+          }
+          .report-table td.amount {
+            text-align: right;
+            font-weight: bold;
+            width: 120px;
+          }
+          .subtotal-row td {
+            font-weight: bold;
+            color: {{style.primaryColor}};
+            border-bottom: none;
+            padding-top: 15px;
+            font-size: 14px;
+          }
 
+          /* ── Total général ── */
           .grand-total-section {
             margin-top: 40px;
             padding: 20px;
@@ -173,16 +268,29 @@ const PRICE_SCHEDULE_TEMPLATE = `
             border-left: 4px solid {{style.accentColor}};
             page-break-inside: avoid;
           }
-          .grand-total-row { display: flex; justify-content: space-between; font-size: 20px; font-weight: bold; color: {{style.primaryColor}}; }
+          .grand-total-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 20px;
+            font-weight: bold;
+            color: {{style.primaryColor}};
+          }
 
           footer {
             margin-top: auto;
             padding-top: 20px;
             border-top: 1px solid #e2e8f0;
             font-size: 9px;
-            text-align: center; color: #64748b; line-height: 1.5;
+            text-align: center;
+            color: #64748b;
+            line-height: 1.5;
           }
-          footer .company-name { font-weight: bold; color: {{style.primaryColor}}; font-size: 11px; margin-bottom: 5px; }
+          footer .company-name {
+            font-weight: bold;
+            color: {{style.primaryColor}};
+            font-size: 11px;
+            margin-bottom: 5px;
+          }
         </style>
       </head>
       <body>
@@ -202,11 +310,35 @@ const PRICE_SCHEDULE_TEMPLATE = `
 
           <div class="doc-bar">
             <h2>JUSTIFICATION DU DEVIS</h2>
-            <span class="doc-number">Projet : {{project.name}}</span>
+            <div class="doc-meta">
+              <span class="doc-number">Projet : {{project.name}}</span>
+              {{#if project.daNumber}}
+                <span class="da-badge">
+                  <span class="da-label">DA N°</span>
+                  {{project.daNumber}}
+                </span>
+              {{/if}}
+            </div>
           </div>
 
+          <!-- Récapitulatif structuré -->
+          <table class="info-table">
+            <tr>
+              <td class="label">Devis N°</td>
+              <td class="value">{{quoteNumber}}</td>
+              <td class="label">Date</td>
+              <td class="value">{{generatedAt}}</td>
+            </tr>
+            <tr>
+              <td class="label">Projet</td>
+              <td class="value">{{project.name}}</td>
+              <td class="label">DA</td>
+              <td class="value">{{#if project.daNumber}}{{project.daNumber}}{{else}}—{{/if}}</td>
+            </tr>
+          </table>
+
           <p style="font-size: 14px; margin-bottom: 30px;">
-            Le présent document détaille la répartition des coûts du devis <strong>N° {{quoteNumber}}</strong>. Il justifie les prix forfaitaires par des charges réelles de main-d'œuvre, de consommables et de logistique.
+            Le présent document détaille la répartition des coûts du devis <strong>N° {{quoteNumber}}</strong>{{#if project.daNumber}} rattaché au DA <strong>{{project.daNumber}}</strong>{{/if}}. Il justifie les prix forfaitaires par des charges réelles de main-d'œuvre, de consommables et de logistique.
           </p>
 
           {{#each priceSchedule.sections}}
@@ -933,7 +1065,7 @@ export class ProjectAiService {
       });
 
     const templateData = {
-      project: { name: project.name },
+      project: { name: project.name , daNumber: project.daNumber ?? null, },
       quoteNumber: quote.number,
       priceSchedule: {
         sections: calculatedSections.map((sec) => ({
