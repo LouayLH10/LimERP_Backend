@@ -1185,7 +1185,7 @@ Format de réponse (une section par ligne, "numero" = numéro de la ligne ci-des
     return this.callOpenRouterApi({
       prompt,
       systemPrompt,
-      maxTokens: 6000,
+      maxTokens: 600000,
       validate: (parsed) => {
         if (!parsed || !Array.isArray(parsed.sections)) {
           throw new BadRequestException(
