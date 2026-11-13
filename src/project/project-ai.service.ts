@@ -63,7 +63,7 @@ type AIResult = {
 @Injectable()
 export class ProjectAiService {
   private readonly openRouterBaseUrl = 'https://openrouter.ai/api/v1';
-  private readonly openRouterModel = 'openrouter/free';
+ private readonly openRouterModel = 'nvidia/nemotron-3-ultra-550b-a55b:free';
 
   // =========================================================
   // PARAMÈTRES DE COÛTS BASÉS SUR LE MARCHÉ TUNISIEN
@@ -952,6 +952,7 @@ RÈGLES STRICTES POUR LE CALCUL DES PRIX ET QUANTITÉS (MARCHÉ TUNISIEN) :
         signal: AbortSignal.timeout(300_000),
         body: JSON.stringify({
           model: this.openRouterModel,
+          models: ['qwen/qwen3.8-27b:free', 'thinkingmachines/inkling:free'],
           temperature: 0.1,
           max_tokens: maxTokens,
           response_format: { type: "json_object" },
