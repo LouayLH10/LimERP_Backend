@@ -1336,7 +1336,7 @@ ${text.slice(-tailSize)}`;
               'HTTP-Referer': referer,
               'X-Title': 'LIM ERP Backend',
             },
-            signal: AbortSignal.timeout(150_000),
+            signal: AbortSignal.timeout(300_000),
             body: JSON.stringify({
               model,
               temperature: 0,
