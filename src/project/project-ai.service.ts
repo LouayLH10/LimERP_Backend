@@ -29,6 +29,12 @@ type AIWorkPhase = {
   teamLeaders: number;
 };
 
+/** Action de préparation avant le début des travaux (mobilisation, HSE, permis...). */
+type AIPreparation = {
+  name: string;
+  description: string | null;
+};
+
 /** Moyen de manutention / levage utilisé sur un lot (grue, chariot, palan...). */
 type AIHandlingEquipment = {
   name: string;
@@ -77,6 +83,7 @@ type AIResult = {
   riskLevel: RiskLevel;
   riskReasons: string[];
   evidence: string[];
+  preparations: AIPreparation[];
   lots: AILot[];
   workPhases: AIWorkPhase[];
   workforce: AIWorkforce[];
@@ -93,13 +100,45 @@ type CostComponents = {
   handling: number;
 };
 
+/** Quantités physiques d'un lot, utilisées par le bordereau détaillé. */
+type LotQuantities = {
+  labourPersonDays: number;
+  accommodationPersonNights: number;
+  logisticsPersonDays: number;
+};
+
+type HandlingLine = { name: string; days: number; base: number };
+
 type PricedLot = AILot & {
   quoteDescription: string;
   total: number;
   components: CostComponents;
+  quantities: LotQuantities;
+  handling: HandlingLine[];
+};
+
+/** Lot chiffré tel qu'enregistré dans rawResponse (les champs récents peuvent manquer). */
+type StoredLot = {
+  name: string;
+  description?: string | null;
+  quoteDescription: string;
+  total: number;
+  components: CostComponents;
+  durationDays?: number;
+  technicians?: number;
+  teamLeaders?: number;
+  quantities?: LotQuantities;
+  handling?: HandlingLine[];
 };
 
 type PriceItem = { description: string; weight: number };
+
+type DetailLine = {
+  designation: string;
+  unit: string;
+  quantity: number;
+  weight: number;
+};
 
 // =========================================================
 // HELPERS
@@ -188,11 +227,17 @@ function toRiskLevel(value: unknown): RiskLevel {
   return 'moyen';
 }
 
+/** "TEAM_LEADER" => "Team leader" */
+function humanizePosition(value: string): string {
+  const text = value.replace(/_/g, ' ').toLowerCase().trim();
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 // =========================================================
-// TEMPLATE HTML DU BORDEREAU DE PRIX
+// TEMPLATE HTML DU RAPPORT DE JUSTIFICATION
 // =========================================================
 
-const PRICE_SCHEDULE_TEMPLATE = `
+const REPORT_TEMPLATE = `
       <!DOCTYPE html>
       <html lang="fr">
       <head>
@@ -250,7 +295,7 @@ const PRICE_SCHEDULE_TEMPLATE = `
           }
           .doc-bar h2 {
             margin: 0;
-            font-size: 24px;
+            font-size: 22px;
             text-transform: uppercase;
             letter-spacing: 2px;
             flex: 1 1 auto;
@@ -261,10 +306,7 @@ const PRICE_SCHEDULE_TEMPLATE = `
             align-items: flex-end;
             gap: 6px;
           }
-          .doc-bar .doc-number {
-            font-size: 14px;
-            font-weight: bold;
-          }
+          .doc-bar .doc-number { font-size: 14px; font-weight: bold; }
           .doc-bar .da-badge {
             display: inline-flex;
             align-items: center;
@@ -277,23 +319,20 @@ const PRICE_SCHEDULE_TEMPLATE = `
             font-weight: 600;
             letter-spacing: 0.5px;
           }
-          .doc-bar .da-badge .da-label {
-            opacity: 0.85;
-            font-weight: 400;
-          }
+          .doc-bar .da-badge .da-label { opacity: 0.85; font-weight: 400; }
 
           /* ── Tableau récapitulatif d'informations ── */
           .info-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 24px;
+            margin-bottom: 22px;
             background: #f8fafc;
             border-radius: 6px;
             overflow: hidden;
             font-size: 13px;
           }
           .info-table td {
-            padding: 10px 14px;
+            padding: 9px 14px;
             border-bottom: 1px solid #e2e8f0;
             vertical-align: top;
           }
@@ -301,59 +340,102 @@ const PRICE_SCHEDULE_TEMPLATE = `
           .info-table .label {
             color: {{style.secondaryColor}};
             font-weight: 600;
-            width: 130px;
+            width: 120px;
             text-transform: uppercase;
             font-size: 11px;
             letter-spacing: 0.5px;
           }
-          .info-table .value {
-            color: {{style.textColor}};
-            font-weight: 500;
+          .info-table .value { color: {{style.textColor}}; font-weight: 500; }
+
+          /* ── Indicateurs clés ── */
+          .kpis { display: flex; gap: 12px; margin-bottom: 26px; }
+          .kpi {
+            flex: 1;
+            padding: 12px 10px;
+            text-align: center;
+            background: #f8fafc;
+            border-top: 3px solid {{style.accentColor}};
+            border-radius: 4px;
+          }
+          .kpi-value { font-size: 22px; font-weight: 700; color: {{style.primaryColor}}; }
+          .kpi-label { font-size: 11px; color: {{style.secondaryColor}}; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+          /* ── Titres de sections du rapport ── */
+          .section-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: {{style.primaryColor}};
+            border-bottom: 2px solid {{style.primaryColor}};
+            padding-bottom: 5px;
+            margin: 26px 0 12px 0;
+            page-break-after: avoid;
+          }
+          .section-title .num {
+            display: inline-block;
+            min-width: 24px;
+            padding: 1px 7px;
+            margin-right: 8px;
+            background: {{style.primaryColor}};
+            color: white;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 14px;
+          }
+          .sub { font-size: 13px; font-weight: 600; color: {{style.secondaryColor}}; margin: 14px 0 6px 0; }
+          .text { font-size: 13px; line-height: 1.6; margin: 0 0 8px 0; text-align: justify; }
+
+          /* ── Tableaux de données ── */
+          .data-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 12px; }
+          .data-table thead th {
+            background: {{style.primaryColor}};
+            color: white;
+            padding: 7px 8px;
+            font-weight: 600;
+            text-align: left;
+          }
+          .data-table td { padding: 7px 8px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+          .data-table tbody tr:nth-child(even) td { background: #f8fafc; }
+          .data-table .r { text-align: right; }
+          .data-table .c { text-align: center; }
+          .data-table .b { font-weight: 700; }
+          .data-table tr { page-break-inside: avoid; }
+          .data-table .total-row td {
+            font-weight: 700;
+            color: {{style.primaryColor}};
+            background: #eef2f7;
+            border-top: 2px solid {{style.primaryColor}};
           }
 
-          /* ── Sections de justification ── */
-          .report-section { margin-bottom: 30px; page-break-inside: avoid; }
+          /* ── Bordereau détaillé ── */
+          .page-break { page-break-before: always; }
+          .report-section { margin-bottom: 22px; page-break-inside: avoid; }
           .report-title {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             color: {{style.primaryColor}};
             border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 5px;
-            margin-bottom: 10px;
-          }
-          .report-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-          .report-table td {
-            padding: 8px 0;
-            border-bottom: 1px dotted #e2e8f0;
-            font-size: 13px;
-          }
-          .report-table td.amount {
-            text-align: right;
-            font-weight: bold;
-            width: 120px;
-          }
-          .subtotal-row td {
-            font-weight: bold;
-            color: {{style.primaryColor}};
-            border-bottom: none;
-            padding-top: 15px;
-            font-size: 14px;
+            padding-bottom: 4px;
+            margin-bottom: 8px;
           }
 
-          /* ── Total général ── */
+          /* ── Totaux ── */
           .grand-total-section {
-            margin-top: 40px;
-            padding: 20px;
+            margin-top: 28px;
+            padding: 16px 20px;
             background: #f8fafc;
             border-left: 4px solid {{style.accentColor}};
             page-break-inside: avoid;
           }
+          .total-line { display: flex; justify-content: space-between; font-size: 14px; padding: 3px 0; }
           .grand-total-row {
             display: flex;
             justify-content: space-between;
             font-size: 20px;
             font-weight: bold;
             color: {{style.primaryColor}};
+            border-top: 1px solid #cbd5e1;
+            margin-top: 6px;
+            padding-top: 8px;
           }
 
           footer {
@@ -389,7 +471,7 @@ const PRICE_SCHEDULE_TEMPLATE = `
           <div class="header-line"></div>
 
           <div class="doc-bar">
-            <h2>JUSTIFICATION DU DEVIS</h2>
+            <h2>Rapport de justification du devis</h2>
             <div class="doc-meta">
               <span class="doc-number">Projet : {{project.name}}</span>
               {{#if project.daNumber}}
@@ -401,7 +483,6 @@ const PRICE_SCHEDULE_TEMPLATE = `
             </div>
           </div>
 
-          <!-- Récapitulatif structuré -->
           <table class="info-table">
             <tr>
               <td class="label">Devis N°</td>
@@ -415,37 +496,173 @@ const PRICE_SCHEDULE_TEMPLATE = `
               <td class="label">DA</td>
               <td class="value">{{#if project.daNumber}}{{project.daNumber}}{{else}}—{{/if}}</td>
             </tr>
+            <tr>
+              <td class="label">Client</td>
+              <td class="value">{{project.clientName}}</td>
+              <td class="label">Lieu</td>
+              <td class="value">{{project.location}}</td>
+            </tr>
           </table>
 
-          <p style="font-size: 14px; margin-bottom: 30px;">
-            Le présent document détaille la répartition des coûts du devis <strong>N° {{quoteNumber}}</strong>{{#if project.daNumber}} rattaché au DA <strong>{{project.daNumber}}</strong>{{/if}}. Il justifie les prix forfaitaires par des charges réelles de main-d'œuvre, de consommables, de logistique, d'hébergement et de moyens de manutention.
-          </p>
+          <div class="kpis">
+            {{#each report.kpis}}
+              <div class="kpi">
+                <div class="kpi-value">{{this.value}}</div>
+                <div class="kpi-label">{{this.label}}</div>
+              </div>
+            {{/each}}
+          </div>
+
+          {{#if n.presentation}}
+            <h3 class="section-title"><span class="num">{{n.presentation}}</span>Présentation du projet</h3>
+            <p class="text">{{report.summary}}</p>
+            <p class="text">
+              Le présent rapport détaille les moyens mobilisés et la répartition des coûts du devis <strong>N° {{quoteNumber}}</strong>{{#if project.daNumber}} rattaché au DA <strong>{{project.daNumber}}</strong>{{/if}}. Les prix forfaitaires sont justifiés par des charges réelles de main-d'œuvre, de consommables, d'hébergement, de logistique et de moyens de manutention.
+            </p>
+          {{/if}}
+
+          {{#if n.workforce}}
+            <h3 class="section-title"><span class="num">{{n.workforce}}</span>Effectifs mobilisés</h3>
+
+            {{#if report.workforce.length}}
+              <table class="data-table">
+                <thead><tr><th>Poste</th><th class="r" style="width:110px">Effectif</th></tr></thead>
+                <tbody>
+                  {{#each report.workforce}}
+                    <tr><td>{{this.position}}</td><td class="r">{{this.quantity}}</td></tr>
+                  {{/each}}
+                  <tr class="total-row"><td>Effectif de pointe</td><td class="r">{{report.workforceTotal}}</td></tr>
+                </tbody>
+              </table>
+            {{/if}}
+
+            {{#if report.lotTeams.length}}
+              <p class="sub">Équipes affectées à chaque lot de travaux</p>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Lot</th>
+                    <th class="c">Techniciens</th>
+                    <th class="c">Chefs d'équipe</th>
+                    <th class="c">Total</th>
+                    <th class="c">Jours</th>
+                    <th class="c">Jours-homme</th>
+                    <th>Moyens de manutention</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{#each report.lotTeams}}
+                    <tr>
+                      <td>{{this.name}}</td>
+                      <td class="c">{{this.technicians}}</td>
+                      <td class="c">{{this.teamLeaders}}</td>
+                      <td class="c b">{{this.persons}}</td>
+                      <td class="c">{{this.days}}</td>
+                      <td class="c">{{this.personDays}}</td>
+                      <td>{{this.handling}}</td>
+                    </tr>
+                  {{/each}}
+                  <tr class="total-row">
+                    <td>Total</td>
+                    <td class="c">{{report.lotTotals.technicians}}</td>
+                    <td class="c">{{report.lotTotals.teamLeaders}}</td>
+                    <td class="c">{{report.lotTotals.persons}}</td>
+                    <td class="c">—</td>
+                    <td class="c">{{report.lotTotals.personDays}}</td>
+                    <td></td>
+                  </tr>
+                </tbody>
+              </table>
+            {{/if}}
+          {{/if}}
+
+          {{#if n.preparation}}
+            <h3 class="section-title"><span class="num">{{n.preparation}}</span>Préparation du chantier</h3>
+            <table class="data-table">
+              <thead><tr><th style="width:40px" class="c">N°</th><th style="width:200px">Action de préparation</th><th>Détail</th></tr></thead>
+              <tbody>
+                {{#each report.preparations}}
+                  <tr>
+                    <td class="c">{{this.index}}</td>
+                    <td class="b">{{this.name}}</td>
+                    <td>{{this.description}}</td>
+                  </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          {{/if}}
+
+          {{#if n.planning}}
+            <h3 class="section-title"><span class="num">{{n.planning}}</span>Planning des travaux</h3>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width:40px" class="c">N°</th>
+                  <th style="width:170px">Phase</th>
+                  <th>Contenu</th>
+                  <th class="c" style="width:60px">Durée (j)</th>
+                  <th class="c" style="width:110px">Effectif</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each report.phases}}
+                  <tr>
+                    <td class="c">{{this.order}}</td>
+                    <td class="b">{{this.name}}</td>
+                    <td>{{this.description}}</td>
+                    <td class="c">{{this.durationDays}}</td>
+                    <td class="c">{{this.staff}}</td>
+                  </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          {{/if}}
+
+          <div class="page-break"></div>
+
+          <h3 class="section-title" style="margin-top:0"><span class="num">{{n.bordereau}}</span>Bordereau détaillé des prix</h3>
 
           {{#each priceSchedule.sections}}
             <div class="report-section">
               <div class="report-title">{{this.title}}</div>
-              <table class="report-table">
-                {{#each this.items}}
-                <tr>
-                  <td>{{this.description}}</td>
-                  <td class="amount">{{this.amount}} DT</td>
-                </tr>
-                {{/each}}
-                <tr class="subtotal-row">
-                  <td>Sous-total</td>
-                  <td class="amount">{{this.subtotal}} DT</td>
-                </tr>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Désignation</th>
+                    <th class="c" style="width:80px">Unité</th>
+                    <th class="r" style="width:60px">Qté</th>
+                    <th class="r" style="width:90px">P.U. (DT)</th>
+                    <th class="r" style="width:105px">Montant (DT)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{#each this.items}}
+                    <tr>
+                      <td>{{this.designation}}</td>
+                      <td class="c">{{this.unit}}</td>
+                      <td class="r">{{this.quantity}}</td>
+                      <td class="r">{{this.unitPrice}}</td>
+                      <td class="r b">{{this.amount}}</td>
+                    </tr>
+                  {{/each}}
+                  <tr class="total-row">
+                    <td colspan="4">Sous-total</td>
+                    <td class="r">{{this.subtotal}}</td>
+                  </tr>
+                </tbody>
               </table>
             </div>
           {{/each}}
 
           <div class="grand-total-section">
+            <div class="total-line"><span>Total HT</span><span>{{priceSchedule.totalGeneral}} DT</span></div>
+            <div class="total-line"><span>TVA</span><span>{{priceSchedule.totalTva}} DT</span></div>
             <div class="grand-total-row">
-              <span>COÛT TOTAL ESTIMATIF (HT)</span>
-              <span>{{priceSchedule.totalGeneral}} DT</span>
+              <span>COÛT TOTAL ESTIMATIF (TTC)</span>
+              <span>{{priceSchedule.totalTtc}} DT</span>
             </div>
             <p style="margin-top: 10px; font-size: 12px; color: #64748b;">
-              * DT HTVA – Hors pièces de rechange fournies par le client.
+              * Prix en dinars tunisiens (DT) – Hors pièces de rechange fournies par le client.
             </p>
           </div>
 
@@ -876,7 +1093,7 @@ export class ProjectAiService {
         `[Project AI] ${pricedLots.length} lot(s) chiffré(s), risque ${analysisResult.riskLevel} (${Math.round(riskRate * 100)} %), total HT = ${totalHT} TND.`,
       );
 
-      // 5) Sauvegarde (le détail du chiffrage sert au PDF de justification)
+      // 5) Sauvegarde (le détail du chiffrage sert au rapport PDF)
       const saved = await this.prisma.projectAIAnalysis.update({
         where: { id: analysis.id },
         data: {
@@ -888,12 +1105,20 @@ export class ProjectAiService {
             analysis: analysisResult,
             pricing: {
               riskRate,
-              lots: pricedLots.map((lot) => ({
-                name: lot.name,
-                quoteDescription: lot.quoteDescription,
-                total: lot.total,
-                components: lot.components,
-              })),
+              lots: pricedLots.map(
+                (lot): StoredLot => ({
+                  name: lot.name,
+                  description: lot.description,
+                  quoteDescription: lot.quoteDescription,
+                  total: lot.total,
+                  components: lot.components,
+                  durationDays: lot.durationDays,
+                  technicians: lot.technicians,
+                  teamLeaders: lot.teamLeaders,
+                  quantities: lot.quantities,
+                  handling: lot.handling,
+                }),
+              ),
             },
           }),
           estimation: {
@@ -1023,7 +1248,7 @@ export class ProjectAiService {
    *   main-d'œuvre + consommables + logement + logistique + manutention
    *   puis aléas (cas rares), marge commerciale et coefficient de calage.
    * Les aléas et la marge sont répartis sur les composantes, pour que
-   * le détail du PDF ne montre que des charges réelles.
+   * le détail du rapport ne montre que des charges réelles.
    */
   private priceLot(
     lot: AILot,
@@ -1047,16 +1272,23 @@ export class ProjectAiService {
       (technicians * r.technicien + teamLeaders * r.chefEquipe) *
       ctx.hoursFactor;
     const consumables = labour * r.consommables;
-    const accommodation =
-      ctx.accommodation === 'client' ? 0 : days * persons * r.logementNuit;
-    const logistics =
-      ctx.transport === 'client' ? 0 : days * persons * r.logistique;
-    const handling = lot.handlingEquipment.reduce(
-      (sum, equipment) =>
-        sum +
-        Math.min(equipment.days, days) * this.handlingDailyRate(equipment.name),
-      0,
+
+    const accommodationQty = ctx.accommodation === 'client' ? 0 : days * persons;
+    const logisticsQty = ctx.transport === 'client' ? 0 : days * persons;
+    const accommodation = accommodationQty * r.logementNuit;
+    const logistics = logisticsQty * r.logistique;
+
+    const handlingLines: HandlingLine[] = lot.handlingEquipment.map(
+      (equipment) => {
+        const equipmentDays = Math.min(equipment.days, days);
+        return {
+          name: equipment.name,
+          days: equipmentDays,
+          base: round2(equipmentDays * this.handlingDailyRate(equipment.name)),
+        };
+      },
     );
+    const handling = handlingLines.reduce((sum, line) => sum + line.base, 0);
 
     const factor = (1 + ctx.riskRate) * (1 + r.marge) * r.calage;
     const subtotal = labour + consumables + accommodation + logistics + handling;
@@ -1093,6 +1325,12 @@ export class ProjectAiService {
         .trim(),
       total,
       components,
+      quantities: {
+        labourPersonDays: days * persons,
+        accommodationPersonNights: accommodationQty,
+        logisticsPersonDays: logisticsQty,
+      },
+      handling: handlingLines,
     };
   }
 
@@ -1171,9 +1409,11 @@ export class ProjectAiService {
   }
 
   // =========================================================
-  // PDF : BORDEREAU DE JUSTIFICATION DES PRIX
-  // Le détail provient du chiffrage réel (plus d'appel IA) : le PDF
-  // montre exactement ce qui a été calculé.
+  // PDF : RAPPORT DE JUSTIFICATION DU DEVIS
+  //   1. Présentation   2. Effectifs   3. Préparation
+  //   4. Planning       5. Bordereau détaillé des prix
+  // Le détail provient du chiffrage réel enregistré lors de l'analyse :
+  // le rapport montre exactement ce qui a été calculé.
   // =========================================================
 
   async generatePriceSchedulePdf(
@@ -1190,6 +1430,9 @@ export class ProjectAiService {
             },
           },
         },
+        workPhases: { orderBy: { order: 'asc' } },
+        workforce: true,
+        estimation: true,
       },
     });
 
@@ -1210,83 +1453,214 @@ export class ProjectAiService {
 
     const quoteLines = quote.lines as any[];
 
-    // Détail du chiffrage enregistré lors de l'analyse
-    const storedByDescription = new Map<
-      string,
-      { components: CostComponents }
-    >();
-    try {
-      const rawValue: any = (analysis as any).rawResponse;
-      const parsed = typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue;
-      for (const lot of parsed?.pricing?.lots ?? []) {
-        if (lot?.quoteDescription && lot?.components) {
-          storedByDescription.set(normalizeKey(lot.quoteDescription), lot);
-        }
-      }
-    } catch (error) {
-      console.warn(
-        '[Project AI] Détail du chiffrage illisible, répartition par défaut utilisée.',
-        error,
-      );
+    // Données enregistrées lors de l'analyse
+    const { analysis: storedAnalysis, lots: storedLots } =
+      this.readStoredAnalysis((analysis as any).rawResponse);
+
+    const storedByDescription = new Map<string, StoredLot>();
+    for (const lot of storedLots) {
+      storedByDescription.set(normalizeKey(lot.quoteDescription), lot);
     }
 
-    let calculatedTotalGeneral = 0;
+    // ---------- 5. Bordereau détaillé ----------
+    const formatMoney = (value: unknown): string =>
+      Number(value ?? 0).toLocaleString('fr-TN', {
+        minimumFractionDigits: 3,
+        maximumFractionDigits: 3,
+      });
+    const formatQty = (value: number): string =>
+      Number.isInteger(value) ? String(value) : String(round2(value));
 
-    const calculatedSections = quoteLines.map((quoteLine, index) => {
+    let totalHT = 0;
+    let totalTva = 0;
+
+    const sections = quoteLines.map((quoteLine, index) => {
       const lineTotalHT = round2(
         Number(quoteLine.unitPrice) * Number(quoteLine.quantity),
       );
+      totalHT += lineTotalHT;
+      totalTva += lineTotalHT * ((Number(quoteLine.taxRate) || 0) / 100);
 
       const stored = storedByDescription.get(
         normalizeKey(String(quoteLine.description ?? '')),
       );
-      const weighted: PriceItem[] = stored
-        ? this.componentsToItems(stored.components)
-        : DEFAULT_PRICE_ITEMS;
+      const detailLines = this.buildDetailLines(stored);
 
       // Si le prix de la ligne a été modifié, le détail suit proportionnellement
-      const items = allocateByWeights(
+      const amounts = allocateByWeights(
         lineTotalHT,
-        weighted.map((item) => item.weight),
-      ).map((amount, i) => ({
-        description: weighted[i].description,
-        amount,
-      }));
-
-      calculatedTotalGeneral += lineTotalHT;
+        detailLines.map((line) => line.weight),
+      );
 
       return {
-        title: `${index + 1}. Justification de : ${quoteLine.description}`,
-        items,
-        subtotal: lineTotalHT,
+        title: `${index + 1}. ${quoteLine.description}`,
+        items: detailLines.map((line, i) => ({
+          designation: line.designation,
+          unit: line.unit,
+          quantity: formatQty(line.quantity),
+          unitPrice: formatMoney(
+            line.quantity > 0 ? amounts[i] / line.quantity : amounts[i],
+          ),
+          amount: formatMoney(amounts[i]),
+        })),
+        subtotal: formatMoney(lineTotalHT),
       };
     });
+
+    totalHT = round2(totalHT);
+    totalTva = round2(totalTva);
+    const totalTtc = round2(totalHT + totalTva);
+
+    // ---------- 2. Effectifs ----------
+    const workforceRows = (analysis.workforce as any[]).map((w) => ({
+      position: humanizePosition(String(w.position)),
+      quantity: Number(w.quantity) || 0,
+    }));
+    const workforceTotal = workforceRows.reduce((s, w) => s + w.quantity, 0);
+
+    const lotTeams = storedLots
+      .filter(
+        (lot) =>
+          typeof lot.technicians === 'number' &&
+          typeof lot.durationDays === 'number',
+      )
+      .map((lot) => {
+        const technicians = lot.technicians as number;
+        const teamLeaders = lot.teamLeaders ?? 0;
+        const persons = technicians + teamLeaders;
+        const days = lot.durationDays as number;
+        return {
+          name: lot.name,
+          technicians,
+          teamLeaders,
+          persons,
+          days,
+          personDays: persons * days,
+          handling:
+            (lot.handling ?? [])
+              .map((h) => `${h.name} (${h.days} j)`)
+              .join(', ') || '—',
+        };
+      });
+
+    const lotTotals = {
+      technicians: lotTeams.reduce((s, l) => s + l.technicians, 0),
+      teamLeaders: lotTeams.reduce((s, l) => s + l.teamLeaders, 0),
+      persons: lotTeams.reduce((s, l) => s + l.persons, 0),
+      personDays: lotTeams.reduce((s, l) => s + l.personDays, 0),
+    };
+
+    // ---------- 3. Préparation ----------
+    const preparations = (
+      Array.isArray(storedAnalysis?.preparations)
+        ? storedAnalysis.preparations
+        : []
+    )
+      .map((p: any) => ({
+        name: toStr(p?.name) ?? '',
+        description: toStr(p?.description) ?? '',
+      }))
+      .filter((p: { name: string }) => p.name)
+      .map((p: { name: string; description: string }, i: number) => ({
+        index: i + 1,
+        ...p,
+      }));
+
+    // ---------- 4. Planning ----------
+    const aiPhases: any[] = Array.isArray(storedAnalysis?.workPhases)
+      ? storedAnalysis.workPhases
+      : [];
+    const phaseSource: any[] =
+      aiPhases.length > 0 ? aiPhases : (analysis.workPhases as any[]);
+
+    const phases = phaseSource
+      .map((p: any, i: number) => {
+        const hasStaff = typeof p.technicians === 'number';
+        const technicians = hasStaff ? p.technicians : 0;
+        const teamLeaders = hasStaff ? Number(p.teamLeaders) || 0 : 0;
+        return {
+          order: toInt(p.order, i + 1),
+          name: String(p.name ?? ''),
+          description: toStr(p.description) ?? '',
+          durationDays: toInt(p.durationDays, 1),
+          staff: hasStaff
+            ? `${technicians + teamLeaders} (${technicians} tech. + ${teamLeaders} chef${teamLeaders > 1 ? 's' : ''})`
+            : '—',
+        };
+      })
+      .sort((a, b) => a.order - b.order);
+
+    // ---------- Indicateurs clés ----------
+    const durationDays =
+      (analysis.estimation as any)?.durationDays ??
+      storedAnalysis?.durationDays ??
+      null;
+    const hoursPerDay = storedAnalysis?.workingHoursPerDay ?? null;
+    const peakHeadcount =
+      workforceTotal > 0 ? workforceTotal : lotTotals.persons || null;
+
+    const kpis = [
+      {
+        label: 'Durée du chantier',
+        value: durationDays ? `${durationDays} j` : '—',
+      },
+      {
+        label: 'Effectif de pointe',
+        value: peakHeadcount ? String(peakHeadcount) : '—',
+      },
+      {
+        label: 'Jours-homme',
+        value: lotTotals.personDays ? String(lotTotals.personDays) : '—',
+      },
+      {
+        label: hoursPerDay ? 'Heures par jour' : 'Lots de travaux',
+        value: hoursPerDay ? `${hoursPerDay} h` : String(sections.length),
+      },
+    ];
+
+    // ---------- Numérotation des sections ----------
+    const summary = toStr(analysis.summary) ?? '';
+    let counter = 0;
+    const next = () => ++counter;
+    const numbers = {
+      presentation: summary ? next() : null,
+      workforce: workforceRows.length > 0 || lotTeams.length > 0 ? next() : null,
+      preparation: preparations.length > 0 ? next() : null,
+      planning: phases.length > 0 ? next() : null,
+      bordereau: 0,
+    };
+    numbers.bordereau = next();
 
     const template = await this.prisma.documentTemplate.findFirst({
       where: { type: 'QUOTE', isDefault: true, isActive: true },
       include: { style: true },
     });
 
-    const formatMoney = (value: unknown): string =>
-      Number(value ?? 0).toLocaleString('fr-TN', {
-        minimumFractionDigits: 3,
-        maximumFractionDigits: 3,
-      });
-
     const templateData = {
-      project: { name: project.name, daNumber: project.daNumber ?? null },
+      project: {
+        name: project.name,
+        daNumber: project.daNumber ?? null,
+        clientName: (project.client as { name?: string })?.name ?? '—',
+        location: project.location || '—',
+      },
       quoteNumber: quote.number,
       generatedAt: new Date().toLocaleDateString('fr-FR'),
+      n: numbers,
+      report: {
+        summary,
+        kpis,
+        workforce: workforceRows,
+        workforceTotal,
+        lotTeams,
+        lotTotals,
+        preparations,
+        phases,
+      },
       priceSchedule: {
-        sections: calculatedSections.map((sec) => ({
-          title: sec.title,
-          items: sec.items.map((item) => ({
-            description: item.description,
-            amount: formatMoney(item.amount),
-          })),
-          subtotal: formatMoney(sec.subtotal),
-        })),
-        totalGeneral: formatMoney(calculatedTotalGeneral),
+        sections,
+        totalGeneral: formatMoney(totalHT),
+        totalTva: formatMoney(totalTva),
+        totalTtc: formatMoney(totalTtc),
       },
       style: template?.style || {
         primaryColor: '#1F2937',
@@ -1299,7 +1673,7 @@ export class ProjectAiService {
       },
     };
 
-    const html = Handlebars.compile(PRICE_SCHEDULE_TEMPLATE)(templateData);
+    const html = Handlebars.compile(REPORT_TEMPLATE)(templateData);
 
     const puppeteer = (await import('puppeteer-core')).default;
     const chromium = (await import('@sparticuz/chromium')).default;
@@ -1328,16 +1702,107 @@ export class ProjectAiService {
     }
   }
 
-  /** Composantes de coût non nulles, avec leur libellé, pour le PDF. */
-  private componentsToItems(components: CostComponents): PriceItem[] {
-    const items = (Object.keys(COMPONENT_LABELS) as (keyof CostComponents)[])
-      .map((key) => ({
-        description: COMPONENT_LABELS[key],
-        weight: Number(components?.[key]) || 0,
-      }))
-      .filter((item) => item.weight > 0);
+  /** Lit rawResponse (nouveau format { analysis, pricing } ou ancien format brut). */
+  private readStoredAnalysis(rawValue: unknown): {
+    analysis: any | null;
+    lots: StoredLot[];
+  } {
+    try {
+      const parsed: any =
+        typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue;
+      if (!parsed || typeof parsed !== 'object') {
+        return { analysis: null, lots: [] };
+      }
 
-    return items.length > 0 ? items : DEFAULT_PRICE_ITEMS;
+      const analysis = parsed.analysis ?? (parsed.workPhases ? parsed : null);
+      const lots: StoredLot[] = Array.isArray(parsed.pricing?.lots)
+        ? parsed.pricing.lots.filter(
+            (l: any) => l?.quoteDescription && l?.components,
+          )
+        : [];
+
+      return { analysis, lots };
+    } catch (error) {
+      console.warn(
+        '[Project AI] Détail du chiffrage illisible, répartition par défaut utilisée.',
+        error,
+      );
+      return { analysis: null, lots: [] };
+    }
+  }
+
+  /**
+   * Lignes du bordereau détaillé d'un lot : désignation, unité, quantité
+   * et poids (montant relatif). Les prix unitaires sont déduits des montants.
+   */
+  private buildDetailLines(stored: StoredLot | undefined): DetailLine[] {
+    const fallback = (): DetailLine[] =>
+      DEFAULT_PRICE_ITEMS.map((item) => ({
+        designation: item.description,
+        unit: 'forfait',
+        quantity: 1,
+        weight: item.weight,
+      }));
+
+    if (!stored) return fallback();
+
+    const c = stored.components;
+    const q = stored.quantities;
+    const lines: DetailLine[] = [];
+
+    lines.push({
+      designation: COMPONENT_LABELS.labour,
+      unit: q ? 'jour-homme' : 'forfait',
+      quantity: q ? q.labourPersonDays : 1,
+      weight: Number(c.labour) || 0,
+    });
+
+    lines.push({
+      designation: COMPONENT_LABELS.consumables,
+      unit: 'forfait',
+      quantity: 1,
+      weight: Number(c.consumables) || 0,
+    });
+
+    lines.push({
+      designation: COMPONENT_LABELS.accommodation,
+      unit: q ? 'nuitée' : 'forfait',
+      quantity: q ? q.accommodationPersonNights : 1,
+      weight: Number(c.accommodation) || 0,
+    });
+
+    lines.push({
+      designation: COMPONENT_LABELS.logistics,
+      unit: q ? 'jour-homme' : 'forfait',
+      quantity: q ? q.logisticsPersonDays : 1,
+      weight: Number(c.logistics) || 0,
+    });
+
+    // Manutention : une ligne par moyen, au prorata de son coût de base
+    const handlingTotal = Number(c.handling) || 0;
+    const handlingLines = stored.handling ?? [];
+    const baseSum = handlingLines.reduce((s, h) => s + (Number(h.base) || 0), 0);
+
+    if (handlingTotal > 0 && handlingLines.length > 0 && baseSum > 0) {
+      for (const h of handlingLines) {
+        lines.push({
+          designation: `Manutention et levage : ${h.name}`,
+          unit: 'jour',
+          quantity: h.days,
+          weight: (handlingTotal * (Number(h.base) || 0)) / baseSum,
+        });
+      }
+    } else if (handlingTotal > 0) {
+      lines.push({
+        designation: COMPONENT_LABELS.handling,
+        unit: 'forfait',
+        quantity: 1,
+        weight: handlingTotal,
+      });
+    }
+
+    const nonZero = lines.filter((line) => line.weight > 0);
+    return nonZero.length > 0 ? nonZero : fallback();
   }
 
   // =========================================================
@@ -1384,7 +1849,8 @@ RÈGLES :
 13. "evidence" : recopie 1 à 5 phrases courtes et exactes du document qui justifient durées, horaires, effectifs ou moyens retenus. Liste vide si le document ne contient rien d'exploitable.
 14. "confidence" : entier de 0 à 100 selon la complétude du document.
 15. Le document peut contenir des clauses contractuelles (pénalités, garantie, obligations HSE, consommables à fournir). Tiens-en compte dans "riskLevel", "hypotheses" et "missingInformation", mais ne les ajoute pas aux durées de travail sauf si le document l'indique explicitement.
-16. Si des données sont insuffisantes, dis-le dans "missingInformation" au lieu de deviner.`;
+16. Si des données sont insuffisantes, dis-le dans "missingInformation" au lieu de deviner.
+17. PRÉPARATION : "preparations" liste 4 à 10 actions de préparation à réaliser AVANT le début des travaux, en t'appuyant sur le document : mobilisation des équipes et du matériel, permis de travail et consignation, exigences HSE et formations, repérage et inspection des équipements, approvisionnement des consommables et des pièces, installation et sécurisation du chantier. Chaque action a un "name" court et une "description" d'une phrase.`;
 
     const { text: specText, truncated } = this.prepareSpecText(
       input.extractedText,
@@ -1410,6 +1876,9 @@ Format de réponse (les valeurs entre chevrons décrivent le type attendu) :
   "riskLevel": "<faible, moyen ou eleve>",
   "riskReasons": ["<raison>"],
   "evidence": ["<phrase exacte du document>"],
+  "preparations": [
+    { "name": "<action de préparation>", "description": "<une phrase>" }
+  ],
   "lots": [
     {
       "name": "<équipement ou ensemble>",
@@ -1677,6 +2146,16 @@ ${text.slice(-tailSize)}`,
         };
       });
 
+    const preparations: AIPreparation[] = (
+      Array.isArray(raw.preparations) ? raw.preparations : []
+    )
+      .map((p: any) =>
+        typeof p === 'string'
+          ? { name: p.trim(), description: null }
+          : { name: toStr(p?.name) ?? '', description: toStr(p?.description) },
+      )
+      .filter((p: AIPreparation) => p.name);
+
     const hours = Number(raw.workingHoursPerDay);
     const workingHoursPerDay =
       Number.isFinite(hours) && hours > 0 && hours <= 24 ? hours : null;
@@ -1706,6 +2185,7 @@ ${text.slice(-tailSize)}`,
       riskLevel: toRiskLevel(raw.riskLevel),
       riskReasons: toStringArray(raw.riskReasons),
       evidence: toStringArray(raw.evidence),
+      preparations,
       lots,
       workPhases,
       workforce,
