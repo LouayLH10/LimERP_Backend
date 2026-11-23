@@ -105,8 +105,8 @@ model Employee {
   position EmployeePosition
 
   // 👇 Nouveaux champs ajoutés (basés sur le fichier Excel)
-  cnssNumber String? 
-  
+  cnssNumber String?
+
   cinNumber         String? @unique
   cinCardFrontImage String?
   cinCardBackImage  String?
@@ -190,7 +190,6 @@ model Client {
   city    String?
   country String? @default("Tunisia")
 
-
   isActive Boolean @default(true)
 
   contacts Contact[]
@@ -237,9 +236,9 @@ model Project {
 
   startDate DateTime?
   endDate   DateTime?
-  daNumber    String?  @map("da_number") 
-  clientId String
-  client   Client @relation(fields: [clientId], references: [id])
+  daNumber  String?   @map("da_number")
+  clientId  String
+  client    Client    @relation(fields: [clientId], references: [id])
 
   quotes           Quote[]
   orders           Order[]
@@ -705,18 +704,20 @@ enum AIAnalysisStatus {
   COMPLETED
   FAILED
 }
+
 model PriceSchedule {
-  id          String   @id @default(uuid())
-  analysisId  String   @unique
-  analysis    ProjectAIAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
-  
-  totalHT     Decimal  @db.Decimal(10, 3)
-  totalTVA    Decimal  @db.Decimal(10, 3)
-  totalTTC    Decimal  @db.Decimal(10, 3)
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String            @id @default(uuid())
+  analysisId String            @unique
+  analysis   ProjectAIAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  totalHT  Decimal @db.Decimal(10, 3)
+  totalTVA Decimal @db.Decimal(10, 3)
+  totalTTC Decimal @db.Decimal(10, 3)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
+
 model ProjectAIAnalysis {
   id String @id @default(uuid())
 
@@ -727,7 +728,9 @@ model ProjectAIAnalysis {
 
   specificationId String
   specification   ProjectSpecification @relation(fields: [specificationId], references: [id], onDelete: Cascade)
-  priceSchedule PriceSchedule?
+  priceSchedule   PriceSchedule?
+  lots            ProjectAILot[]
+
   estimation         AIEstimation?
   workPhases         AIWorkPhase[]
   workforce          AIWorkforceRecommendation[]
@@ -737,6 +740,31 @@ model ProjectAIAnalysis {
   rawResponse        String?                     @db.Text
   createdAt          DateTime                    @default(now())
   updatedAt          DateTime                    @updatedAt
+}
+
+model ProjectAILot {
+  id           String               @id @default(cuid())
+  analysisId   String
+  analysis     ProjectAIAnalysis    @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  name         String
+  description  String?
+  durationDays Int
+  headcount    Int
+  personDays   Int
+  staff        Json // [{position, quantity}]  — petit, borné
+  handling     Json // [{kind, label, days}]
+  components   ProjectAIComponent[]
+}
+
+model ProjectAIComponent {
+  id       String       @id @default(cuid())
+  lotId    String
+  lot      ProjectAILot @relation(fields: [lotId], references: [id], onDelete: Cascade)
+  kind     String // labour | consumables | accommodation | logistics | handling
+  quantity Decimal      @db.Decimal(12, 2)
+  unit     String // jour-homme | forfait | nuitée | jour
+  amount   Decimal      @db.Decimal(12, 2)
+  weight   Decimal      @db.Decimal(5, 2)
 }
 
 model AIEstimation {
