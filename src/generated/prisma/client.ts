@@ -175,6 +175,16 @@ export type PriceSchedule = Prisma.PriceScheduleModel
  */
 export type ProjectAIAnalysis = Prisma.ProjectAIAnalysisModel
 /**
+ * Model ProjectAILot
+ * 
+ */
+export type ProjectAILot = Prisma.ProjectAILotModel
+/**
+ * Model ProjectAIComponent
+ * 
+ */
+export type ProjectAIComponent = Prisma.ProjectAIComponentModel
+/**
  * Model AIEstimation
  * 
  */

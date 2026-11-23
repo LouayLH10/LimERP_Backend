@@ -424,6 +424,8 @@ export const ModelName = {
   ProjectSpecification: 'ProjectSpecification',
   PriceSchedule: 'PriceSchedule',
   ProjectAIAnalysis: 'ProjectAIAnalysis',
+  ProjectAILot: 'ProjectAILot',
+  ProjectAIComponent: 'ProjectAIComponent',
   AIEstimation: 'AIEstimation',
   AIWorkPhase: 'AIWorkPhase',
   AIWorkforceRecommendation: 'AIWorkforceRecommendation'
@@ -442,7 +444,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "loginOtp" | "userSession" | "employee" | "employeeTimeEntry" | "projectEmployee" | "client" | "contact" | "project" | "quote" | "quoteLine" | "order" | "orderLine" | "delivery" | "deliveryLine" | "invoice" | "invoiceLine" | "creditNote" | "creditNoteLine" | "document" | "documentTemplate" | "templateVersion" | "templateStyle" | "companySettings" | "projectSpecification" | "priceSchedule" | "projectAIAnalysis" | "aIEstimation" | "aIWorkPhase" | "aIWorkforceRecommendation"
+    modelProps: "user" | "loginOtp" | "userSession" | "employee" | "employeeTimeEntry" | "projectEmployee" | "client" | "contact" | "project" | "quote" | "quoteLine" | "order" | "orderLine" | "delivery" | "deliveryLine" | "invoice" | "invoiceLine" | "creditNote" | "creditNoteLine" | "document" | "documentTemplate" | "templateVersion" | "templateStyle" | "companySettings" | "projectSpecification" | "priceSchedule" | "projectAIAnalysis" | "projectAILot" | "projectAIComponent" | "aIEstimation" | "aIWorkPhase" | "aIWorkforceRecommendation"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2444,6 +2446,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ProjectAILot: {
+      payload: Prisma.$ProjectAILotPayload<ExtArgs>
+      fields: Prisma.ProjectAILotFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProjectAILotFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectAILotPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProjectAILotFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectAILotPayload>
+        }
+        findFirst: {
+          args: Prisma.ProjectAILotFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectAILotPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProjectAILotFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectAILotPayload>
+        }
+        findMany: {
+          args: Prisma.ProjectAILotFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectAILotPayload>[]
+        }
+        create: {
+          args: Prisma.ProjectAILotCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectAILotPayload>
+        }
+        createMany: {
+          args: Prisma.ProjectAILotCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProjectAILotCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectAILotPayload>[]
+        }
+        delete: {
+          args: Prisma.ProjectAILotDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectAILotPayload>
+        }
+        update: {
+          args: Prisma.ProjectAILotUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectAILotPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProjectAILotDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProjectAILotUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProjectAILotUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectAILotPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProjectAILotUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectAILotPayload>
+        }
+        aggregate: {
+          args: Prisma.ProjectAILotAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProjectAILot>
+        }
+        groupBy: {
+          args: Prisma.ProjectAILotGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectAILotGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProjectAILotCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectAILotCountAggregateOutputType> | number
+        }
+      }
+    }
+    ProjectAIComponent: {
+      payload: Prisma.$ProjectAIComponentPayload<ExtArgs>
+      fields: Prisma.ProjectAIComponentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProjectAIComponentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectAIComponentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProjectAIComponentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectAIComponentPayload>
+        }
+        findFirst: {
+          args: Prisma.ProjectAIComponentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectAIComponentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProjectAIComponentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectAIComponentPayload>
+        }
+        findMany: {
+          args: Prisma.ProjectAIComponentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectAIComponentPayload>[]
+        }
+        create: {
+          args: Prisma.ProjectAIComponentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectAIComponentPayload>
+        }
+        createMany: {
+          args: Prisma.ProjectAIComponentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProjectAIComponentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectAIComponentPayload>[]
+        }
+        delete: {
+          args: Prisma.ProjectAIComponentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectAIComponentPayload>
+        }
+        update: {
+          args: Prisma.ProjectAIComponentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectAIComponentPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProjectAIComponentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProjectAIComponentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProjectAIComponentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectAIComponentPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProjectAIComponentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectAIComponentPayload>
+        }
+        aggregate: {
+          args: Prisma.ProjectAIComponentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProjectAIComponent>
+        }
+        groupBy: {
+          args: Prisma.ProjectAIComponentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectAIComponentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProjectAIComponentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectAIComponentCountAggregateOutputType> | number
+        }
+      }
+    }
     AIEstimation: {
       payload: Prisma.$AIEstimationPayload<ExtArgs>
       fields: Prisma.AIEstimationFieldRefs
@@ -3132,6 +3282,34 @@ export const ProjectAIAnalysisScalarFieldEnum = {
 export type ProjectAIAnalysisScalarFieldEnum = (typeof ProjectAIAnalysisScalarFieldEnum)[keyof typeof ProjectAIAnalysisScalarFieldEnum]
 
 
+export const ProjectAILotScalarFieldEnum = {
+  id: 'id',
+  analysisId: 'analysisId',
+  name: 'name',
+  description: 'description',
+  durationDays: 'durationDays',
+  headcount: 'headcount',
+  personDays: 'personDays',
+  staff: 'staff',
+  handling: 'handling'
+} as const
+
+export type ProjectAILotScalarFieldEnum = (typeof ProjectAILotScalarFieldEnum)[keyof typeof ProjectAILotScalarFieldEnum]
+
+
+export const ProjectAIComponentScalarFieldEnum = {
+  id: 'id',
+  lotId: 'lotId',
+  kind: 'kind',
+  quantity: 'quantity',
+  unit: 'unit',
+  amount: 'amount',
+  weight: 'weight'
+} as const
+
+export type ProjectAIComponentScalarFieldEnum = (typeof ProjectAIComponentScalarFieldEnum)[keyof typeof ProjectAIComponentScalarFieldEnum]
+
+
 export const AIEstimationScalarFieldEnum = {
   id: 'id',
   estimatedPrice: 'estimatedPrice',
@@ -3182,6 +3360,13 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -3196,6 +3381,15 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
 
@@ -3394,6 +3588,20 @@ export type ListEnumAIAnalysisStatusFieldRefInput<$PrismaModel> = FieldRefInputT
 
 
 /**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -3584,6 +3792,8 @@ export type GlobalOmitConfig = {
   projectSpecification?: Prisma.ProjectSpecificationOmit
   priceSchedule?: Prisma.PriceScheduleOmit
   projectAIAnalysis?: Prisma.ProjectAIAnalysisOmit
+  projectAILot?: Prisma.ProjectAILotOmit
+  projectAIComponent?: Prisma.ProjectAIComponentOmit
   aIEstimation?: Prisma.AIEstimationOmit
   aIWorkPhase?: Prisma.AIWorkPhaseOmit
   aIWorkforceRecommendation?: Prisma.AIWorkforceRecommendationOmit

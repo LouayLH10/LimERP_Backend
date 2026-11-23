@@ -78,6 +78,8 @@ export const ModelName = {
   ProjectSpecification: 'ProjectSpecification',
   PriceSchedule: 'PriceSchedule',
   ProjectAIAnalysis: 'ProjectAIAnalysis',
+  ProjectAILot: 'ProjectAILot',
+  ProjectAIComponent: 'ProjectAIComponent',
   AIEstimation: 'AIEstimation',
   AIWorkPhase: 'AIWorkPhase',
   AIWorkforceRecommendation: 'AIWorkforceRecommendation'
@@ -526,6 +528,34 @@ export const ProjectAIAnalysisScalarFieldEnum = {
 export type ProjectAIAnalysisScalarFieldEnum = (typeof ProjectAIAnalysisScalarFieldEnum)[keyof typeof ProjectAIAnalysisScalarFieldEnum]
 
 
+export const ProjectAILotScalarFieldEnum = {
+  id: 'id',
+  analysisId: 'analysisId',
+  name: 'name',
+  description: 'description',
+  durationDays: 'durationDays',
+  headcount: 'headcount',
+  personDays: 'personDays',
+  staff: 'staff',
+  handling: 'handling'
+} as const
+
+export type ProjectAILotScalarFieldEnum = (typeof ProjectAILotScalarFieldEnum)[keyof typeof ProjectAILotScalarFieldEnum]
+
+
+export const ProjectAIComponentScalarFieldEnum = {
+  id: 'id',
+  lotId: 'lotId',
+  kind: 'kind',
+  quantity: 'quantity',
+  unit: 'unit',
+  amount: 'amount',
+  weight: 'weight'
+} as const
+
+export type ProjectAIComponentScalarFieldEnum = (typeof ProjectAIComponentScalarFieldEnum)[keyof typeof ProjectAIComponentScalarFieldEnum]
+
+
 export const AIEstimationScalarFieldEnum = {
   id: 'id',
   estimatedPrice: 'estimatedPrice',
@@ -576,6 +606,13 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -590,4 +627,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

@@ -65,12 +65,6 @@ function normalizeKey(value: string): string {
     .trim();
 }
 
-function toInt(value: unknown, fallback: number): number {
-  if (value === null || value === undefined || value === '') return fallback;
-  const n = Math.round(Number(value));
-  return Number.isFinite(n) ? n : fallback;
-}
-
 function toStr(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
@@ -92,7 +86,6 @@ const REPORT_TEMPLATE = `
 <head>
   <meta charset="UTF-8">
   <style>
-    /* ... (Ton CSS existant reste inchangé, je l'ai raccourci ici pour la lisibilité) ... */
     body { font-family: 'Cairo', Arial, sans-serif; color: {{style.textColor}}; margin: 0; }
     .page-container { padding: 40px 50px; }
     .header-main { display: flex; justify-content: space-between; margin-bottom: 30px; }
@@ -230,7 +223,7 @@ export class ProjectAiService {
         nacelle: n('COUT_JOUR_NACELLE', 300),
         echafaudage: n('COUT_JOUR_ECHAFAUDAGE', 150),
         palan: n('COUT_JOUR_PALAN', 60),
-        autre: n('COUT_JOUR_MANUTENTION_DEFAUT', 300), // 'defaut' renommé en 'autre'
+        autre: n('COUT_JOUR_MANUTENTION_DEFAUT', 300),
       },
       aleas: {
         faible: n('TAUX_ALEAS_FAIBLE', 0.05),
@@ -483,7 +476,7 @@ export class ProjectAiService {
       });
 
       // 5) Création du Devis
-let createdQuote: Awaited<ReturnType<QuotesService['create']>> | null = null;
+      let createdQuote: Awaited<ReturnType<QuotesService['create']>> | null = null;
       try {
         const quoteLines = pricedLots.map((lot) => ({
           description: lot.description ? `${lot.name} – ${lot.description}`.slice(0, 250) : lot.name,
@@ -523,6 +516,51 @@ let createdQuote: Awaited<ReturnType<QuotesService['create']>> | null = null;
       if (error instanceof BadRequestException || error instanceof NotFoundException) throw error;
       throw new InternalServerErrorException('Échec de l’analyse IA.');
     }
+  }
+
+  // =========================================================
+  // LECTURE DES ANALYSES (POUR LE CONTROLLER)
+  // =========================================================
+
+  async getProjectAnalyses(projectId: string) {
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      select: { id: true },
+    });
+
+    if (!project) {
+      throw new NotFoundException('Projet introuvable.');
+    }
+
+    return this.prisma.projectAIAnalysis.findMany({
+      where: { projectId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        estimation: true,
+        workPhases: { orderBy: { order: 'asc' } },
+        workforce: true,
+        priceSchedule: true,
+      },
+    });
+  }
+
+  async getAnalysis(projectId: string, analysisId: string) {
+    const analysis = await this.prisma.projectAIAnalysis.findFirst({
+      where: { id: analysisId, projectId },
+      include: {
+        estimation: true,
+        workPhases: { orderBy: { order: 'asc' } },
+        workforce: true,
+        priceSchedule: true,
+        specification: { select: { id: true, originalName: true } },
+      },
+    });
+
+    if (!analysis) {
+      throw new NotFoundException('Analyse introuvable.');
+    }
+
+    return analysis;
   }
 
   // =========================================================

@@ -225,6 +225,7 @@ export type ProjectAIAnalysisWhereInput = {
   project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
   specification?: Prisma.XOR<Prisma.ProjectSpecificationScalarRelationFilter, Prisma.ProjectSpecificationWhereInput>
   priceSchedule?: Prisma.XOR<Prisma.PriceScheduleNullableScalarRelationFilter, Prisma.PriceScheduleWhereInput> | null
+  lots?: Prisma.ProjectAILotListRelationFilter
   estimation?: Prisma.XOR<Prisma.AIEstimationNullableScalarRelationFilter, Prisma.AIEstimationWhereInput> | null
   workPhases?: Prisma.AIWorkPhaseListRelationFilter
   workforce?: Prisma.AIWorkforceRecommendationListRelationFilter
@@ -244,6 +245,7 @@ export type ProjectAIAnalysisOrderByWithRelationInput = {
   project?: Prisma.ProjectOrderByWithRelationInput
   specification?: Prisma.ProjectSpecificationOrderByWithRelationInput
   priceSchedule?: Prisma.PriceScheduleOrderByWithRelationInput
+  lots?: Prisma.ProjectAILotOrderByRelationAggregateInput
   estimation?: Prisma.AIEstimationOrderByWithRelationInput
   workPhases?: Prisma.AIWorkPhaseOrderByRelationAggregateInput
   workforce?: Prisma.AIWorkforceRecommendationOrderByRelationAggregateInput
@@ -266,6 +268,7 @@ export type ProjectAIAnalysisWhereUniqueInput = Prisma.AtLeast<{
   project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
   specification?: Prisma.XOR<Prisma.ProjectSpecificationScalarRelationFilter, Prisma.ProjectSpecificationWhereInput>
   priceSchedule?: Prisma.XOR<Prisma.PriceScheduleNullableScalarRelationFilter, Prisma.PriceScheduleWhereInput> | null
+  lots?: Prisma.ProjectAILotListRelationFilter
   estimation?: Prisma.XOR<Prisma.AIEstimationNullableScalarRelationFilter, Prisma.AIEstimationWhereInput> | null
   workPhases?: Prisma.AIWorkPhaseListRelationFilter
   workforce?: Prisma.AIWorkforceRecommendationListRelationFilter
@@ -315,6 +318,7 @@ export type ProjectAIAnalysisCreateInput = {
   project: Prisma.ProjectCreateNestedOneWithoutAiAnalysesInput
   specification: Prisma.ProjectSpecificationCreateNestedOneWithoutAiAnalysesInput
   priceSchedule?: Prisma.PriceScheduleCreateNestedOneWithoutAnalysisInput
+  lots?: Prisma.ProjectAILotCreateNestedManyWithoutAnalysisInput
   estimation?: Prisma.AIEstimationCreateNestedOneWithoutAnalysisInput
   workPhases?: Prisma.AIWorkPhaseCreateNestedManyWithoutAnalysisInput
   workforce?: Prisma.AIWorkforceRecommendationCreateNestedManyWithoutAnalysisInput
@@ -332,6 +336,7 @@ export type ProjectAIAnalysisUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   priceSchedule?: Prisma.PriceScheduleUncheckedCreateNestedOneWithoutAnalysisInput
+  lots?: Prisma.ProjectAILotUncheckedCreateNestedManyWithoutAnalysisInput
   estimation?: Prisma.AIEstimationUncheckedCreateNestedOneWithoutAnalysisInput
   workPhases?: Prisma.AIWorkPhaseUncheckedCreateNestedManyWithoutAnalysisInput
   workforce?: Prisma.AIWorkforceRecommendationUncheckedCreateNestedManyWithoutAnalysisInput
@@ -349,6 +354,7 @@ export type ProjectAIAnalysisUpdateInput = {
   project?: Prisma.ProjectUpdateOneRequiredWithoutAiAnalysesNestedInput
   specification?: Prisma.ProjectSpecificationUpdateOneRequiredWithoutAiAnalysesNestedInput
   priceSchedule?: Prisma.PriceScheduleUpdateOneWithoutAnalysisNestedInput
+  lots?: Prisma.ProjectAILotUpdateManyWithoutAnalysisNestedInput
   estimation?: Prisma.AIEstimationUpdateOneWithoutAnalysisNestedInput
   workPhases?: Prisma.AIWorkPhaseUpdateManyWithoutAnalysisNestedInput
   workforce?: Prisma.AIWorkforceRecommendationUpdateManyWithoutAnalysisNestedInput
@@ -366,6 +372,7 @@ export type ProjectAIAnalysisUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   priceSchedule?: Prisma.PriceScheduleUncheckedUpdateOneWithoutAnalysisNestedInput
+  lots?: Prisma.ProjectAILotUncheckedUpdateManyWithoutAnalysisNestedInput
   estimation?: Prisma.AIEstimationUncheckedUpdateOneWithoutAnalysisNestedInput
   workPhases?: Prisma.AIWorkPhaseUncheckedUpdateManyWithoutAnalysisNestedInput
   workforce?: Prisma.AIWorkforceRecommendationUncheckedUpdateManyWithoutAnalysisNestedInput
@@ -564,6 +571,20 @@ export type EnumAIAnalysisStatusFieldUpdateOperationsInput = {
   set?: $Enums.AIAnalysisStatus
 }
 
+export type ProjectAIAnalysisCreateNestedOneWithoutLotsInput = {
+  create?: Prisma.XOR<Prisma.ProjectAIAnalysisCreateWithoutLotsInput, Prisma.ProjectAIAnalysisUncheckedCreateWithoutLotsInput>
+  connectOrCreate?: Prisma.ProjectAIAnalysisCreateOrConnectWithoutLotsInput
+  connect?: Prisma.ProjectAIAnalysisWhereUniqueInput
+}
+
+export type ProjectAIAnalysisUpdateOneRequiredWithoutLotsNestedInput = {
+  create?: Prisma.XOR<Prisma.ProjectAIAnalysisCreateWithoutLotsInput, Prisma.ProjectAIAnalysisUncheckedCreateWithoutLotsInput>
+  connectOrCreate?: Prisma.ProjectAIAnalysisCreateOrConnectWithoutLotsInput
+  upsert?: Prisma.ProjectAIAnalysisUpsertWithoutLotsInput
+  connect?: Prisma.ProjectAIAnalysisWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectAIAnalysisUpdateToOneWithWhereWithoutLotsInput, Prisma.ProjectAIAnalysisUpdateWithoutLotsInput>, Prisma.ProjectAIAnalysisUncheckedUpdateWithoutLotsInput>
+}
+
 export type ProjectAIAnalysisCreateNestedOneWithoutEstimationInput = {
   create?: Prisma.XOR<Prisma.ProjectAIAnalysisCreateWithoutEstimationInput, Prisma.ProjectAIAnalysisUncheckedCreateWithoutEstimationInput>
   connectOrCreate?: Prisma.ProjectAIAnalysisCreateOrConnectWithoutEstimationInput
@@ -617,6 +638,7 @@ export type ProjectAIAnalysisCreateWithoutProjectInput = {
   updatedAt?: Date | string
   specification: Prisma.ProjectSpecificationCreateNestedOneWithoutAiAnalysesInput
   priceSchedule?: Prisma.PriceScheduleCreateNestedOneWithoutAnalysisInput
+  lots?: Prisma.ProjectAILotCreateNestedManyWithoutAnalysisInput
   estimation?: Prisma.AIEstimationCreateNestedOneWithoutAnalysisInput
   workPhases?: Prisma.AIWorkPhaseCreateNestedManyWithoutAnalysisInput
   workforce?: Prisma.AIWorkforceRecommendationCreateNestedManyWithoutAnalysisInput
@@ -633,6 +655,7 @@ export type ProjectAIAnalysisUncheckedCreateWithoutProjectInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   priceSchedule?: Prisma.PriceScheduleUncheckedCreateNestedOneWithoutAnalysisInput
+  lots?: Prisma.ProjectAILotUncheckedCreateNestedManyWithoutAnalysisInput
   estimation?: Prisma.AIEstimationUncheckedCreateNestedOneWithoutAnalysisInput
   workPhases?: Prisma.AIWorkPhaseUncheckedCreateNestedManyWithoutAnalysisInput
   workforce?: Prisma.AIWorkforceRecommendationUncheckedCreateNestedManyWithoutAnalysisInput
@@ -691,6 +714,7 @@ export type ProjectAIAnalysisCreateWithoutSpecificationInput = {
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutAiAnalysesInput
   priceSchedule?: Prisma.PriceScheduleCreateNestedOneWithoutAnalysisInput
+  lots?: Prisma.ProjectAILotCreateNestedManyWithoutAnalysisInput
   estimation?: Prisma.AIEstimationCreateNestedOneWithoutAnalysisInput
   workPhases?: Prisma.AIWorkPhaseCreateNestedManyWithoutAnalysisInput
   workforce?: Prisma.AIWorkforceRecommendationCreateNestedManyWithoutAnalysisInput
@@ -707,6 +731,7 @@ export type ProjectAIAnalysisUncheckedCreateWithoutSpecificationInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   priceSchedule?: Prisma.PriceScheduleUncheckedCreateNestedOneWithoutAnalysisInput
+  lots?: Prisma.ProjectAILotUncheckedCreateNestedManyWithoutAnalysisInput
   estimation?: Prisma.AIEstimationUncheckedCreateNestedOneWithoutAnalysisInput
   workPhases?: Prisma.AIWorkPhaseUncheckedCreateNestedManyWithoutAnalysisInput
   workforce?: Prisma.AIWorkforceRecommendationUncheckedCreateNestedManyWithoutAnalysisInput
@@ -749,6 +774,7 @@ export type ProjectAIAnalysisCreateWithoutPriceScheduleInput = {
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutAiAnalysesInput
   specification: Prisma.ProjectSpecificationCreateNestedOneWithoutAiAnalysesInput
+  lots?: Prisma.ProjectAILotCreateNestedManyWithoutAnalysisInput
   estimation?: Prisma.AIEstimationCreateNestedOneWithoutAnalysisInput
   workPhases?: Prisma.AIWorkPhaseCreateNestedManyWithoutAnalysisInput
   workforce?: Prisma.AIWorkforceRecommendationCreateNestedManyWithoutAnalysisInput
@@ -765,6 +791,7 @@ export type ProjectAIAnalysisUncheckedCreateWithoutPriceScheduleInput = {
   rawResponse?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  lots?: Prisma.ProjectAILotUncheckedCreateNestedManyWithoutAnalysisInput
   estimation?: Prisma.AIEstimationUncheckedCreateNestedOneWithoutAnalysisInput
   workPhases?: Prisma.AIWorkPhaseUncheckedCreateNestedManyWithoutAnalysisInput
   workforce?: Prisma.AIWorkforceRecommendationUncheckedCreateNestedManyWithoutAnalysisInput
@@ -797,6 +824,7 @@ export type ProjectAIAnalysisUpdateWithoutPriceScheduleInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutAiAnalysesNestedInput
   specification?: Prisma.ProjectSpecificationUpdateOneRequiredWithoutAiAnalysesNestedInput
+  lots?: Prisma.ProjectAILotUpdateManyWithoutAnalysisNestedInput
   estimation?: Prisma.AIEstimationUpdateOneWithoutAnalysisNestedInput
   workPhases?: Prisma.AIWorkPhaseUpdateManyWithoutAnalysisNestedInput
   workforce?: Prisma.AIWorkforceRecommendationUpdateManyWithoutAnalysisNestedInput
@@ -813,6 +841,91 @@ export type ProjectAIAnalysisUncheckedUpdateWithoutPriceScheduleInput = {
   rawResponse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lots?: Prisma.ProjectAILotUncheckedUpdateManyWithoutAnalysisNestedInput
+  estimation?: Prisma.AIEstimationUncheckedUpdateOneWithoutAnalysisNestedInput
+  workPhases?: Prisma.AIWorkPhaseUncheckedUpdateManyWithoutAnalysisNestedInput
+  workforce?: Prisma.AIWorkforceRecommendationUncheckedUpdateManyWithoutAnalysisNestedInput
+}
+
+export type ProjectAIAnalysisCreateWithoutLotsInput = {
+  id?: string
+  status?: $Enums.AIAnalysisStatus
+  summary?: string | null
+  assumptions?: string | null
+  missingInformation?: string | null
+  rawResponse?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  project: Prisma.ProjectCreateNestedOneWithoutAiAnalysesInput
+  specification: Prisma.ProjectSpecificationCreateNestedOneWithoutAiAnalysesInput
+  priceSchedule?: Prisma.PriceScheduleCreateNestedOneWithoutAnalysisInput
+  estimation?: Prisma.AIEstimationCreateNestedOneWithoutAnalysisInput
+  workPhases?: Prisma.AIWorkPhaseCreateNestedManyWithoutAnalysisInput
+  workforce?: Prisma.AIWorkforceRecommendationCreateNestedManyWithoutAnalysisInput
+}
+
+export type ProjectAIAnalysisUncheckedCreateWithoutLotsInput = {
+  id?: string
+  status?: $Enums.AIAnalysisStatus
+  projectId: string
+  specificationId: string
+  summary?: string | null
+  assumptions?: string | null
+  missingInformation?: string | null
+  rawResponse?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  priceSchedule?: Prisma.PriceScheduleUncheckedCreateNestedOneWithoutAnalysisInput
+  estimation?: Prisma.AIEstimationUncheckedCreateNestedOneWithoutAnalysisInput
+  workPhases?: Prisma.AIWorkPhaseUncheckedCreateNestedManyWithoutAnalysisInput
+  workforce?: Prisma.AIWorkforceRecommendationUncheckedCreateNestedManyWithoutAnalysisInput
+}
+
+export type ProjectAIAnalysisCreateOrConnectWithoutLotsInput = {
+  where: Prisma.ProjectAIAnalysisWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProjectAIAnalysisCreateWithoutLotsInput, Prisma.ProjectAIAnalysisUncheckedCreateWithoutLotsInput>
+}
+
+export type ProjectAIAnalysisUpsertWithoutLotsInput = {
+  update: Prisma.XOR<Prisma.ProjectAIAnalysisUpdateWithoutLotsInput, Prisma.ProjectAIAnalysisUncheckedUpdateWithoutLotsInput>
+  create: Prisma.XOR<Prisma.ProjectAIAnalysisCreateWithoutLotsInput, Prisma.ProjectAIAnalysisUncheckedCreateWithoutLotsInput>
+  where?: Prisma.ProjectAIAnalysisWhereInput
+}
+
+export type ProjectAIAnalysisUpdateToOneWithWhereWithoutLotsInput = {
+  where?: Prisma.ProjectAIAnalysisWhereInput
+  data: Prisma.XOR<Prisma.ProjectAIAnalysisUpdateWithoutLotsInput, Prisma.ProjectAIAnalysisUncheckedUpdateWithoutLotsInput>
+}
+
+export type ProjectAIAnalysisUpdateWithoutLotsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAIAnalysisStatusFieldUpdateOperationsInput | $Enums.AIAnalysisStatus
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assumptions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawResponse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.ProjectUpdateOneRequiredWithoutAiAnalysesNestedInput
+  specification?: Prisma.ProjectSpecificationUpdateOneRequiredWithoutAiAnalysesNestedInput
+  priceSchedule?: Prisma.PriceScheduleUpdateOneWithoutAnalysisNestedInput
+  estimation?: Prisma.AIEstimationUpdateOneWithoutAnalysisNestedInput
+  workPhases?: Prisma.AIWorkPhaseUpdateManyWithoutAnalysisNestedInput
+  workforce?: Prisma.AIWorkforceRecommendationUpdateManyWithoutAnalysisNestedInput
+}
+
+export type ProjectAIAnalysisUncheckedUpdateWithoutLotsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAIAnalysisStatusFieldUpdateOperationsInput | $Enums.AIAnalysisStatus
+  projectId?: Prisma.StringFieldUpdateOperationsInput | string
+  specificationId?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assumptions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  missingInformation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawResponse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  priceSchedule?: Prisma.PriceScheduleUncheckedUpdateOneWithoutAnalysisNestedInput
   estimation?: Prisma.AIEstimationUncheckedUpdateOneWithoutAnalysisNestedInput
   workPhases?: Prisma.AIWorkPhaseUncheckedUpdateManyWithoutAnalysisNestedInput
   workforce?: Prisma.AIWorkforceRecommendationUncheckedUpdateManyWithoutAnalysisNestedInput
@@ -830,6 +943,7 @@ export type ProjectAIAnalysisCreateWithoutEstimationInput = {
   project: Prisma.ProjectCreateNestedOneWithoutAiAnalysesInput
   specification: Prisma.ProjectSpecificationCreateNestedOneWithoutAiAnalysesInput
   priceSchedule?: Prisma.PriceScheduleCreateNestedOneWithoutAnalysisInput
+  lots?: Prisma.ProjectAILotCreateNestedManyWithoutAnalysisInput
   workPhases?: Prisma.AIWorkPhaseCreateNestedManyWithoutAnalysisInput
   workforce?: Prisma.AIWorkforceRecommendationCreateNestedManyWithoutAnalysisInput
 }
@@ -846,6 +960,7 @@ export type ProjectAIAnalysisUncheckedCreateWithoutEstimationInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   priceSchedule?: Prisma.PriceScheduleUncheckedCreateNestedOneWithoutAnalysisInput
+  lots?: Prisma.ProjectAILotUncheckedCreateNestedManyWithoutAnalysisInput
   workPhases?: Prisma.AIWorkPhaseUncheckedCreateNestedManyWithoutAnalysisInput
   workforce?: Prisma.AIWorkforceRecommendationUncheckedCreateNestedManyWithoutAnalysisInput
 }
@@ -878,6 +993,7 @@ export type ProjectAIAnalysisUpdateWithoutEstimationInput = {
   project?: Prisma.ProjectUpdateOneRequiredWithoutAiAnalysesNestedInput
   specification?: Prisma.ProjectSpecificationUpdateOneRequiredWithoutAiAnalysesNestedInput
   priceSchedule?: Prisma.PriceScheduleUpdateOneWithoutAnalysisNestedInput
+  lots?: Prisma.ProjectAILotUpdateManyWithoutAnalysisNestedInput
   workPhases?: Prisma.AIWorkPhaseUpdateManyWithoutAnalysisNestedInput
   workforce?: Prisma.AIWorkforceRecommendationUpdateManyWithoutAnalysisNestedInput
 }
@@ -894,6 +1010,7 @@ export type ProjectAIAnalysisUncheckedUpdateWithoutEstimationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   priceSchedule?: Prisma.PriceScheduleUncheckedUpdateOneWithoutAnalysisNestedInput
+  lots?: Prisma.ProjectAILotUncheckedUpdateManyWithoutAnalysisNestedInput
   workPhases?: Prisma.AIWorkPhaseUncheckedUpdateManyWithoutAnalysisNestedInput
   workforce?: Prisma.AIWorkforceRecommendationUncheckedUpdateManyWithoutAnalysisNestedInput
 }
@@ -910,6 +1027,7 @@ export type ProjectAIAnalysisCreateWithoutWorkPhasesInput = {
   project: Prisma.ProjectCreateNestedOneWithoutAiAnalysesInput
   specification: Prisma.ProjectSpecificationCreateNestedOneWithoutAiAnalysesInput
   priceSchedule?: Prisma.PriceScheduleCreateNestedOneWithoutAnalysisInput
+  lots?: Prisma.ProjectAILotCreateNestedManyWithoutAnalysisInput
   estimation?: Prisma.AIEstimationCreateNestedOneWithoutAnalysisInput
   workforce?: Prisma.AIWorkforceRecommendationCreateNestedManyWithoutAnalysisInput
 }
@@ -926,6 +1044,7 @@ export type ProjectAIAnalysisUncheckedCreateWithoutWorkPhasesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   priceSchedule?: Prisma.PriceScheduleUncheckedCreateNestedOneWithoutAnalysisInput
+  lots?: Prisma.ProjectAILotUncheckedCreateNestedManyWithoutAnalysisInput
   estimation?: Prisma.AIEstimationUncheckedCreateNestedOneWithoutAnalysisInput
   workforce?: Prisma.AIWorkforceRecommendationUncheckedCreateNestedManyWithoutAnalysisInput
 }
@@ -958,6 +1077,7 @@ export type ProjectAIAnalysisUpdateWithoutWorkPhasesInput = {
   project?: Prisma.ProjectUpdateOneRequiredWithoutAiAnalysesNestedInput
   specification?: Prisma.ProjectSpecificationUpdateOneRequiredWithoutAiAnalysesNestedInput
   priceSchedule?: Prisma.PriceScheduleUpdateOneWithoutAnalysisNestedInput
+  lots?: Prisma.ProjectAILotUpdateManyWithoutAnalysisNestedInput
   estimation?: Prisma.AIEstimationUpdateOneWithoutAnalysisNestedInput
   workforce?: Prisma.AIWorkforceRecommendationUpdateManyWithoutAnalysisNestedInput
 }
@@ -974,6 +1094,7 @@ export type ProjectAIAnalysisUncheckedUpdateWithoutWorkPhasesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   priceSchedule?: Prisma.PriceScheduleUncheckedUpdateOneWithoutAnalysisNestedInput
+  lots?: Prisma.ProjectAILotUncheckedUpdateManyWithoutAnalysisNestedInput
   estimation?: Prisma.AIEstimationUncheckedUpdateOneWithoutAnalysisNestedInput
   workforce?: Prisma.AIWorkforceRecommendationUncheckedUpdateManyWithoutAnalysisNestedInput
 }
@@ -990,6 +1111,7 @@ export type ProjectAIAnalysisCreateWithoutWorkforceInput = {
   project: Prisma.ProjectCreateNestedOneWithoutAiAnalysesInput
   specification: Prisma.ProjectSpecificationCreateNestedOneWithoutAiAnalysesInput
   priceSchedule?: Prisma.PriceScheduleCreateNestedOneWithoutAnalysisInput
+  lots?: Prisma.ProjectAILotCreateNestedManyWithoutAnalysisInput
   estimation?: Prisma.AIEstimationCreateNestedOneWithoutAnalysisInput
   workPhases?: Prisma.AIWorkPhaseCreateNestedManyWithoutAnalysisInput
 }
@@ -1006,6 +1128,7 @@ export type ProjectAIAnalysisUncheckedCreateWithoutWorkforceInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   priceSchedule?: Prisma.PriceScheduleUncheckedCreateNestedOneWithoutAnalysisInput
+  lots?: Prisma.ProjectAILotUncheckedCreateNestedManyWithoutAnalysisInput
   estimation?: Prisma.AIEstimationUncheckedCreateNestedOneWithoutAnalysisInput
   workPhases?: Prisma.AIWorkPhaseUncheckedCreateNestedManyWithoutAnalysisInput
 }
@@ -1038,6 +1161,7 @@ export type ProjectAIAnalysisUpdateWithoutWorkforceInput = {
   project?: Prisma.ProjectUpdateOneRequiredWithoutAiAnalysesNestedInput
   specification?: Prisma.ProjectSpecificationUpdateOneRequiredWithoutAiAnalysesNestedInput
   priceSchedule?: Prisma.PriceScheduleUpdateOneWithoutAnalysisNestedInput
+  lots?: Prisma.ProjectAILotUpdateManyWithoutAnalysisNestedInput
   estimation?: Prisma.AIEstimationUpdateOneWithoutAnalysisNestedInput
   workPhases?: Prisma.AIWorkPhaseUpdateManyWithoutAnalysisNestedInput
 }
@@ -1054,6 +1178,7 @@ export type ProjectAIAnalysisUncheckedUpdateWithoutWorkforceInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   priceSchedule?: Prisma.PriceScheduleUncheckedUpdateOneWithoutAnalysisNestedInput
+  lots?: Prisma.ProjectAILotUncheckedUpdateManyWithoutAnalysisNestedInput
   estimation?: Prisma.AIEstimationUncheckedUpdateOneWithoutAnalysisNestedInput
   workPhases?: Prisma.AIWorkPhaseUncheckedUpdateManyWithoutAnalysisNestedInput
 }
@@ -1081,6 +1206,7 @@ export type ProjectAIAnalysisUpdateWithoutProjectInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   specification?: Prisma.ProjectSpecificationUpdateOneRequiredWithoutAiAnalysesNestedInput
   priceSchedule?: Prisma.PriceScheduleUpdateOneWithoutAnalysisNestedInput
+  lots?: Prisma.ProjectAILotUpdateManyWithoutAnalysisNestedInput
   estimation?: Prisma.AIEstimationUpdateOneWithoutAnalysisNestedInput
   workPhases?: Prisma.AIWorkPhaseUpdateManyWithoutAnalysisNestedInput
   workforce?: Prisma.AIWorkforceRecommendationUpdateManyWithoutAnalysisNestedInput
@@ -1097,6 +1223,7 @@ export type ProjectAIAnalysisUncheckedUpdateWithoutProjectInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   priceSchedule?: Prisma.PriceScheduleUncheckedUpdateOneWithoutAnalysisNestedInput
+  lots?: Prisma.ProjectAILotUncheckedUpdateManyWithoutAnalysisNestedInput
   estimation?: Prisma.AIEstimationUncheckedUpdateOneWithoutAnalysisNestedInput
   workPhases?: Prisma.AIWorkPhaseUncheckedUpdateManyWithoutAnalysisNestedInput
   workforce?: Prisma.AIWorkforceRecommendationUncheckedUpdateManyWithoutAnalysisNestedInput
@@ -1137,6 +1264,7 @@ export type ProjectAIAnalysisUpdateWithoutSpecificationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutAiAnalysesNestedInput
   priceSchedule?: Prisma.PriceScheduleUpdateOneWithoutAnalysisNestedInput
+  lots?: Prisma.ProjectAILotUpdateManyWithoutAnalysisNestedInput
   estimation?: Prisma.AIEstimationUpdateOneWithoutAnalysisNestedInput
   workPhases?: Prisma.AIWorkPhaseUpdateManyWithoutAnalysisNestedInput
   workforce?: Prisma.AIWorkforceRecommendationUpdateManyWithoutAnalysisNestedInput
@@ -1153,6 +1281,7 @@ export type ProjectAIAnalysisUncheckedUpdateWithoutSpecificationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   priceSchedule?: Prisma.PriceScheduleUncheckedUpdateOneWithoutAnalysisNestedInput
+  lots?: Prisma.ProjectAILotUncheckedUpdateManyWithoutAnalysisNestedInput
   estimation?: Prisma.AIEstimationUncheckedUpdateOneWithoutAnalysisNestedInput
   workPhases?: Prisma.AIWorkPhaseUncheckedUpdateManyWithoutAnalysisNestedInput
   workforce?: Prisma.AIWorkforceRecommendationUncheckedUpdateManyWithoutAnalysisNestedInput
@@ -1176,11 +1305,13 @@ export type ProjectAIAnalysisUncheckedUpdateManyWithoutSpecificationInput = {
  */
 
 export type ProjectAIAnalysisCountOutputType = {
+  lots: number
   workPhases: number
   workforce: number
 }
 
 export type ProjectAIAnalysisCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  lots?: boolean | ProjectAIAnalysisCountOutputTypeCountLotsArgs
   workPhases?: boolean | ProjectAIAnalysisCountOutputTypeCountWorkPhasesArgs
   workforce?: boolean | ProjectAIAnalysisCountOutputTypeCountWorkforceArgs
 }
@@ -1193,6 +1324,13 @@ export type ProjectAIAnalysisCountOutputTypeDefaultArgs<ExtArgs extends runtime.
    * Select specific fields to fetch from the ProjectAIAnalysisCountOutputType
    */
   select?: Prisma.ProjectAIAnalysisCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ProjectAIAnalysisCountOutputType without action
+ */
+export type ProjectAIAnalysisCountOutputTypeCountLotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProjectAILotWhereInput
 }
 
 /**
@@ -1224,6 +1362,7 @@ export type ProjectAIAnalysisSelect<ExtArgs extends runtime.Types.Extensions.Int
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
   specification?: boolean | Prisma.ProjectSpecificationDefaultArgs<ExtArgs>
   priceSchedule?: boolean | Prisma.ProjectAIAnalysis$priceScheduleArgs<ExtArgs>
+  lots?: boolean | Prisma.ProjectAIAnalysis$lotsArgs<ExtArgs>
   estimation?: boolean | Prisma.ProjectAIAnalysis$estimationArgs<ExtArgs>
   workPhases?: boolean | Prisma.ProjectAIAnalysis$workPhasesArgs<ExtArgs>
   workforce?: boolean | Prisma.ProjectAIAnalysis$workforceArgs<ExtArgs>
@@ -1278,6 +1417,7 @@ export type ProjectAIAnalysisInclude<ExtArgs extends runtime.Types.Extensions.In
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
   specification?: boolean | Prisma.ProjectSpecificationDefaultArgs<ExtArgs>
   priceSchedule?: boolean | Prisma.ProjectAIAnalysis$priceScheduleArgs<ExtArgs>
+  lots?: boolean | Prisma.ProjectAIAnalysis$lotsArgs<ExtArgs>
   estimation?: boolean | Prisma.ProjectAIAnalysis$estimationArgs<ExtArgs>
   workPhases?: boolean | Prisma.ProjectAIAnalysis$workPhasesArgs<ExtArgs>
   workforce?: boolean | Prisma.ProjectAIAnalysis$workforceArgs<ExtArgs>
@@ -1298,6 +1438,7 @@ export type $ProjectAIAnalysisPayload<ExtArgs extends runtime.Types.Extensions.I
     project: Prisma.$ProjectPayload<ExtArgs>
     specification: Prisma.$ProjectSpecificationPayload<ExtArgs>
     priceSchedule: Prisma.$PriceSchedulePayload<ExtArgs> | null
+    lots: Prisma.$ProjectAILotPayload<ExtArgs>[]
     estimation: Prisma.$AIEstimationPayload<ExtArgs> | null
     workPhases: Prisma.$AIWorkPhasePayload<ExtArgs>[]
     workforce: Prisma.$AIWorkforceRecommendationPayload<ExtArgs>[]
@@ -1710,6 +1851,7 @@ export interface Prisma__ProjectAIAnalysisClient<T, Null = never, ExtArgs extend
   project<T extends Prisma.ProjectDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProjectDefaultArgs<ExtArgs>>): Prisma.Prisma__ProjectClient<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   specification<T extends Prisma.ProjectSpecificationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProjectSpecificationDefaultArgs<ExtArgs>>): Prisma.Prisma__ProjectSpecificationClient<runtime.Types.Result.GetResult<Prisma.$ProjectSpecificationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   priceSchedule<T extends Prisma.ProjectAIAnalysis$priceScheduleArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProjectAIAnalysis$priceScheduleArgs<ExtArgs>>): Prisma.Prisma__PriceScheduleClient<runtime.Types.Result.GetResult<Prisma.$PriceSchedulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  lots<T extends Prisma.ProjectAIAnalysis$lotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProjectAIAnalysis$lotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectAILotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   estimation<T extends Prisma.ProjectAIAnalysis$estimationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProjectAIAnalysis$estimationArgs<ExtArgs>>): Prisma.Prisma__AIEstimationClient<runtime.Types.Result.GetResult<Prisma.$AIEstimationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   workPhases<T extends Prisma.ProjectAIAnalysis$workPhasesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProjectAIAnalysis$workPhasesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AIWorkPhasePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   workforce<T extends Prisma.ProjectAIAnalysis$workforceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProjectAIAnalysis$workforceArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AIWorkforceRecommendationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2169,6 +2311,30 @@ export type ProjectAIAnalysis$priceScheduleArgs<ExtArgs extends runtime.Types.Ex
    */
   include?: Prisma.PriceScheduleInclude<ExtArgs> | null
   where?: Prisma.PriceScheduleWhereInput
+}
+
+/**
+ * ProjectAIAnalysis.lots
+ */
+export type ProjectAIAnalysis$lotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProjectAILot
+   */
+  select?: Prisma.ProjectAILotSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProjectAILot
+   */
+  omit?: Prisma.ProjectAILotOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProjectAILotInclude<ExtArgs> | null
+  where?: Prisma.ProjectAILotWhereInput
+  orderBy?: Prisma.ProjectAILotOrderByWithRelationInput | Prisma.ProjectAILotOrderByWithRelationInput[]
+  cursor?: Prisma.ProjectAILotWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProjectAILotScalarFieldEnum | Prisma.ProjectAILotScalarFieldEnum[]
 }
 
 /**
