@@ -692,7 +692,7 @@ export class ProjectAiService {
   private readonly openRouterBaseUrl = 'https://openrouter.ai/api/v1';
 
   private readonly defaultOpenRouterModels = [
-    'thinkingmachines/inkling:free',
+    'baidu/ernie-5.5-flash-preview:free',
   ];
 
   /** Équipe par défaut d'un lot si l'IA n'a pas donné d'effectif */
