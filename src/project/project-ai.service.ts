@@ -692,8 +692,9 @@ export class ProjectAiService {
   private readonly openRouterBaseUrl = 'https://openrouter.ai/api/v1';
 
   private readonly defaultOpenRouterModels = [
-    'nvidia/nemotron-3-ultra-550b-a55b:free',
-  
+   
+    'qwen/qwen3.8-27b:free',
+   
   ];
 
   /** Équipe par défaut d'un lot si l'IA n'a pas donné d'effectif */
