@@ -691,9 +691,12 @@ const COMPONENT_LABELS: Record<keyof CostComponents, string> = {
 export class ProjectAiService {
   private readonly openRouterBaseUrl = 'https://openrouter.ai/api/v1';
 
-  private readonly defaultOpenRouterModels = [
-    'baidu/ernie-5.5-flash-preview:free',
-  ];
+private readonly defaultOpenRouterModels = [
+  'baidu/ernie-5.5-flash-preview:free',    // 1M contexte, supporte structured_outputs
+  'qwen/qwen3-coder:free',                  // 1M contexte, stable
+  'minimax/minimax-m2.5:free',              // 204K contexte, supporte tool calling
+  'nvidia/nemotron-3-super-120b-a12b:free', // 1M contexte
+];
 
   /** Équipe par défaut d'un lot si l'IA n'a pas donné d'effectif */
   private readonly DEFAULT_LOT_TECHNICIANS = 2;
