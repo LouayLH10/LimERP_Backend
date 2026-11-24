@@ -692,9 +692,7 @@ export class ProjectAiService {
   private readonly openRouterBaseUrl = 'https://openrouter.ai/api/v1';
 
   private readonly defaultOpenRouterModels = [
-   
-    'qwen/qwen3.8-27b:free',
-   
+    'thinkingmachines/inkling:free',
   ];
 
   /** Équipe par défaut d'un lot si l'IA n'a pas donné d'effectif */
