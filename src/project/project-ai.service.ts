@@ -20,11 +20,6 @@ import { QuotesService } from 'src/quote/quote.service';
 // TYPES
 // =========================================================
 
-/**
- * Équipe d'un lot : on détaille chaque poste pour que TOUS les employés
- * (soudeurs, mécaniciens, électriciens, HSE, magasiniers...) soient
- * correctement chiffrés. `staff` est la somme de tous les postes.
- */
 type AIPhaseStaff = {
   position: string;
   quantity: number;
@@ -48,11 +43,6 @@ type AIHandlingEquipment = {
   days: number;
 };
 
-/**
- * Un lot = un grand ensemble chiffré séparément (une ligne de devis).
- * `staff` liste TOUS les employés affectés au lot, par poste.
- * Le coût main-d'œuvre du lot = (somme des quantités) × jours × tarif.
- */
 type AILot = {
   name: string;
   description: string | null;
@@ -114,7 +104,6 @@ type PricedLot = AILot & {
   components: CostComponents;
   quantities: LotQuantities;
   handling: HandlingLine[];
-  /** Effectif total du lot (somme des postes) */
   headcount: number;
 };
 
@@ -228,7 +217,6 @@ function humanizePosition(value: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-/** Somme des quantités de tous les postes d'un lot ou d'une phase. */
 function totalStaff(staff: AIPhaseStaff[] | undefined): number {
   if (!Array.isArray(staff)) return 0;
   return staff.reduce(
@@ -691,11 +679,10 @@ const COMPONENT_LABELS: Record<keyof CostComponents, string> = {
 export class ProjectAiService {
   private readonly openRouterBaseUrl = 'https://openrouter.ai/api/v1';
 
-private readonly defaultOpenRouterModels = [
-  'openrouter/free',
-];
+  private readonly defaultOpenRouterModels = [
+    'openrouter/free',
+  ];
 
-  /** Équipe par défaut d'un lot si l'IA n'a pas donné d'effectif */
   private readonly DEFAULT_LOT_TECHNICIANS = 2;
   private readonly DEFAULT_LOT_LEADERS = 1;
 
@@ -710,24 +697,6 @@ private readonly defaultOpenRouterModels = [
     private readonly quotesService: QuotesService,
   ) {}
 
-  // =========================================================
-  // PARAMÈTRES DE CHIFFRAGE
-  //
-  // ⚠️ RÈGLE MÉTIER : la main-d'œuvre est calculée sur TOUS les employés
-  // du chantier (soudeurs, mécaniciens, électriciens, chefs d'équipe,
-  // HSE, magasiniers, manutentionnaires…), pas seulement sur les
-  // techniciens et les helpers.
-  //
-  // Formule : coût main-d'œuvre = (somme des effectifs du lot)
-  //                              × jours du lot
-  //                              × tarif journalier unique.
-  //
-  // Exemple : 30 employés pendant 30 jours à 100 TND/jour
-  //           = 30 × 30 × 100 = 90 000 TND.
-  //
-  // Les tarifs sont surchargeables dans le .env sans toucher au code.
-  // =========================================================
-
   private get rates() {
     const n = (key: string, fallback: number): number => {
       const raw = this.config.get<string | number>(key);
@@ -737,17 +706,11 @@ private readonly defaultOpenRouterModels = [
     };
 
     return {
-      /** Main-d'œuvre : TND par jour et par personne (toutes catégories) */
       mainOeuvre: n('COUT_JOUR_MAIN_OEUVRE', 100),
-      /** Majoration des heures au-delà de 8h/jour (1,5 = +50 %) */
       heuresSup: n('MAJORATION_HEURES_SUP', 1.5),
-      /** Consommables en % de la main-d'œuvre */
       consommables: n('TAUX_CONSOMMABLES', 0.18),
-      /** Logement : TND par personne et par nuit */
       logementNuit: n('FRAIS_LOGEMENT_PERSONNE_NUIT', 50),
-      /** Logistique : TND par personne et par jour */
       logistique: n('FRAIS_LOGISTIQUE_PERSONNE_JOUR', 25),
-      /** Manutention : TND par jour et par moyen */
       manutention: {
         grue: n('COUT_JOUR_GRUE', 800),
         chariot: n('COUT_JOUR_CHARIOT', 250),
@@ -795,10 +758,6 @@ private readonly defaultOpenRouterModels = [
     }
     return token;
   }
-
-  // =========================================================
-  // IMPORT DU CAHIER DES CHARGES
-  // =========================================================
 
   async processSpecificationFromVercel(
     projectId: string,
@@ -958,10 +917,6 @@ private readonly defaultOpenRouterModels = [
     });
   }
 
-  // =========================================================
-  // ANALYSE DU PROJET
-  // =========================================================
-
   async analyzeProject(projectId: string) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
@@ -990,19 +945,19 @@ private readonly defaultOpenRouterModels = [
     try {
       console.log(`[Project AI] Début de l'analyse : ${projectId}`);
 
-      // 1) L'IA lit le document et fournit les QUANTITÉS (aucun prix)
       const analysisResult = await this.callOpenRouterForAnalysis({
         projectName: project.name,
         projectDescription: project.description ?? '',
         location: project.location ?? '',
         clientName: (project.client as { name?: string })?.name ?? '',
         extractedText: specification.extractedText,
+        // 👇 Nouvelles données du projet
+        fixedDurationDays: project.durationDays,
+        consommablesResponsible: project.consommablesResponsible,
       });
 
-      // 1.bis) Garde-fou de cohérence des effectifs / durées
       this.validatePricingCoherence(analysisResult);
 
-      // 2) Effectifs : seuls les postes valides de l'enum sont conservés
       const validPositions = new Set<string>(Object.values(EmployeePosition));
 
       const workforce = analysisResult.workforce
@@ -1023,7 +978,6 @@ private readonly defaultOpenRouterModels = [
         );
       }
 
-      // 3) Hypothèses complétées quand le document ne précise pas qui paie
       const hypotheses = [...analysisResult.hypotheses];
       if (analysisResult.accommodation === 'non_precise') {
         hypotheses.push(
@@ -1036,7 +990,6 @@ private readonly defaultOpenRouterModels = [
         );
       }
 
-      // 4) CHIFFRAGE PAR LOT (calculé par le service, pas par l'IA)
       const r = this.rates;
       const hoursFactor = this.hoursCostFactor(
         analysisResult.workingHoursPerDay,
@@ -1050,6 +1003,10 @@ private readonly defaultOpenRouterModels = [
           riskRate,
           accommodation: analysisResult.accommodation,
           transport: analysisResult.transport,
+          // 👇 Nouvelles données pour le chiffrage
+          employeeDailyRate: project.employeeDailyRate,
+          consommablesResponsible: project.consommablesResponsible,
+          manutentionPercentage: project.manutentionPercentage,
         }),
       );
 
@@ -1059,7 +1016,6 @@ private readonly defaultOpenRouterModels = [
       const totalTVA = round2(totalHT * this.TVA_RATE);
       const totalTTC = round2(totalHT + totalTVA);
 
-      // 4.bis) Garde-fou budget : ratio main-d'œuvre / total
       const totalLabour = pricedLots.reduce(
         (sum, lot) => sum + lot.components.labour,
         0,
@@ -1073,7 +1029,6 @@ private readonly defaultOpenRouterModels = [
         hypotheses.push(warning);
       }
 
-      // Coût des phases : réparti selon les journées-personnes
       const phaseCosts = allocateByWeights(
         totalHT,
         analysisResult.workPhases.map(
@@ -1093,7 +1048,6 @@ private readonly defaultOpenRouterModels = [
         `[Project AI] ${pricedLots.length} lot(s) chiffré(s), risque ${analysisResult.riskLevel} (${Math.round(riskRate * 100)} %), total HT = ${totalHT} TND, ratio MO = ${Math.round(labourRatio * 100)} %.`,
       );
 
-      // 5) Sauvegarde
       const saved = await this.prisma.projectAIAnalysis.update({
         where: { id: analysis.id },
         data: {
@@ -1105,7 +1059,7 @@ private readonly defaultOpenRouterModels = [
             analysis: analysisResult,
             pricing: {
               riskRate,
-              mainOeuvreRate: r.mainOeuvre,
+              mainOeuvreRate: project.employeeDailyRate || r.mainOeuvre,
               labourRatio,
               lots: pricedLots.map(
                 (lot): StoredLot => ({
@@ -1153,7 +1107,6 @@ private readonly defaultOpenRouterModels = [
         },
       });
 
-      // 6) Devis : une ligne par lot
       let createdQuote: Awaited<ReturnType<QuotesService['create']>> | null =
         null;
 
@@ -1182,7 +1135,7 @@ private readonly defaultOpenRouterModels = [
       return {
         ...saved,
         quote: createdQuote,
-        avertissementPrix: `Estimation indicative, calculée lot par lot : main-d'œuvre ${r.mainOeuvre} TND/jour pour TOUS les employés du chantier (soudeurs, mécaniciens, électriciens, chefs d'équipe, HSE, magasiniers, manutentionnaires…), consommables ${Math.round(r.consommables * 100)} %, logement ${r.logementNuit} TND/personne/nuit, logistique ${r.logistique} TND/personne/jour, moyens de manutention au tarif journalier de chaque moyen, aléas ${Math.round(riskRate * 100)} % (niveau de risque ${analysisResult.riskLevel}) et marge ${Math.round(r.marge * 100)} %. À valider avant la création du devis.`,
+        avertissementPrix: `Estimation indicative, calculée lot par lot : main-d'œuvre ${project.employeeDailyRate || r.mainOeuvre} TND/jour pour TOUS les employés du chantier, consommables ${project.consommablesResponsible === 'client' ? '0 (fournis par le client)' : `${Math.round(r.consommables * 100)} %`}, logement ${r.logementNuit} TND/personne/nuit, logistique ${r.logistique} TND/personne/jour, manutention ${project.manutentionPercentage ? `${Math.round(project.manutentionPercentage * 100)} %` : 'au tarif journalier'}, aléas ${Math.round(riskRate * 100)} % (niveau de risque ${analysisResult.riskLevel}) et marge ${Math.round(r.marge * 100)} %. À valider avant la création du devis.`,
         hypotheses,
         informationsManquantes: analysisResult.missingInformation,
       };
@@ -1214,15 +1167,6 @@ private readonly defaultOpenRouterModels = [
     }
   }
 
-  // =========================================================
-  // GARDE-FOU DE COHÉRENCE (anti-gonflage / anti-sous-estimation)
-  // =========================================================
-
-  /**
-   * Vérifie que les effectifs et durées fournis par l'IA restent dans des
-   * bornes réalistes. Lève une BadRequestException si une aberration
-   * majeure est détectée, et logge les avertissements sinon.
-   */
   private validatePricingCoherence(result: AIResult): void {
     const duration = Math.max(1, result.durationDays);
     const coherenceWarnings: string[] = [];
@@ -1277,10 +1221,6 @@ private readonly defaultOpenRouterModels = [
     }
   }
 
-  // =========================================================
-  // CALCULS DE COÛTS ET DE DEVIS
-  // =========================================================
-
   private hoursCostFactor(
     hoursPerDay: number | null,
     overtimeMultiplier: number,
@@ -1302,20 +1242,6 @@ private readonly defaultOpenRouterModels = [
     return m.defaut;
   }
 
-  /**
-   * Chiffre un lot.
-   *
-   * Main-d'œuvre :
-   *   On prend l'EFFECTIF TOTAL du lot (somme de tous les postes :
-   *   techniciens, chefs d'équipe, soudeurs, mécaniciens, électriciens,
-   *   HSE, magasiniers, manutentionnaires…), on multiplie par le nombre
-   *   de jours du lot et par le tarif journalier unique.
-   *
-   *   Exemple : 30 employés × 30 jours × 100 TND = 90 000 TND de main-d'œuvre.
-   *
-   * Les aléas, la marge et le coefficient de calage sont répartis sur les
-   * composantes pour que le détail du rapport ne montre que des charges réelles.
-   */
   private priceLot(
     lot: AILot,
     ctx: {
@@ -1323,15 +1249,16 @@ private readonly defaultOpenRouterModels = [
       riskRate: number;
       accommodation: Arrangement;
       transport: Arrangement;
+      employeeDailyRate: number | null;
+      consommablesResponsible: string | null;
+      manutentionPercentage: number | null;
     },
   ): PricedLot {
     const r = this.rates;
 
-    // Effectif total du lot : somme de tous les postes détaillés par l'IA
     let headcount = totalStaff(lot.staff);
-
-    // Repli si l'IA n'a fourni aucun effectif : on garde un minimum technique
     let finalStaff = lot.staff;
+
     if (headcount === 0) {
       headcount = this.DEFAULT_LOT_TECHNICIANS + this.DEFAULT_LOT_LEADERS;
       finalStaff = [
@@ -1342,26 +1269,43 @@ private readonly defaultOpenRouterModels = [
 
     const days = lot.durationDays;
 
-    // === MAIN-D'ŒUVRE : TOUS LES EMPLOYÉS × JOURS × TARIF UNIQUE ===
-    const labour = headcount * days * r.mainOeuvre * ctx.hoursFactor;
-    const consumables = labour * r.consommables;
+    // Main-d'œuvre : utilise le tarif spécifique du projet si fourni
+    const dailyRate = ctx.employeeDailyRate || r.mainOeuvre;
+    const labour = headcount * days * dailyRate * ctx.hoursFactor;
+
+    // Consommables : 0 si le client les fournit
+    const consumables =
+      ctx.consommablesResponsible === 'client' ? 0 : labour * r.consommables;
 
     const accommodationQty = ctx.accommodation === 'client' ? 0 : days * headcount;
     const logisticsQty = ctx.transport === 'client' ? 0 : days * headcount;
     const accommodation = accommodationQty * r.logementNuit;
     const logistics = logisticsQty * r.logistique;
 
-    const handlingLines: HandlingLine[] = lot.handlingEquipment.map(
-      (equipment) => {
+    // Manutention : forfaitaire en % si spécifié, sinon via l'IA
+    let handling = 0;
+    let handlingLines: HandlingLine[] = [];
+
+    if (ctx.manutentionPercentage !== null && ctx.manutentionPercentage > 0) {
+      handling = labour * ctx.manutentionPercentage;
+      handlingLines = [
+        {
+          name: 'Forfait manutention',
+          days: days,
+          base: round2(handling),
+        },
+      ];
+    } else {
+      handlingLines = lot.handlingEquipment.map((equipment) => {
         const equipmentDays = Math.min(equipment.days, days);
         return {
           name: equipment.name,
           days: equipmentDays,
           base: round2(equipmentDays * this.handlingDailyRate(equipment.name)),
         };
-      },
-    );
-    const handling = handlingLines.reduce((sum, line) => sum + line.base, 0);
+      });
+      handling = handlingLines.reduce((sum, line) => sum + line.base, 0);
+    }
 
     const factor = (1 + ctx.riskRate) * (1 + r.marge) * r.calage;
     const subtotal = labour + consumables + accommodation + logistics + handling;
@@ -1431,10 +1375,6 @@ private readonly defaultOpenRouterModels = [
     }));
   }
 
-  // =========================================================
-  // LECTURE
-  // =========================================================
-
   async getProjectAnalyses(projectId: string) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
@@ -1475,10 +1415,6 @@ private readonly defaultOpenRouterModels = [
 
     return analysis;
   }
-
-  // =========================================================
-  // PDF : RAPPORT DE JUSTIFICATION DU DEVIS
-  // =========================================================
 
   async generatePriceSchedulePdf(
     analysisId: string,
@@ -1572,7 +1508,6 @@ private readonly defaultOpenRouterModels = [
     totalTva = round2(totalTva);
     const totalTtc = round2(totalHT + totalTva);
 
-    // ---------- 2. Effectifs ----------
     const workforceRows = (analysis.workforce as any[]).map((w) => ({
       position: humanizePosition(String(w.position)),
       quantity: Number(w.quantity) || 0,
@@ -1614,7 +1549,6 @@ private readonly defaultOpenRouterModels = [
       personDays: lotTeams.reduce((s, l) => s + l.personDays, 0),
     };
 
-    // ---------- 3. Préparation ----------
     const preparations = (
       Array.isArray(storedAnalysis?.preparations)
         ? storedAnalysis.preparations
@@ -1630,7 +1564,6 @@ private readonly defaultOpenRouterModels = [
         ...p,
       }));
 
-    // ---------- 4. Planning ----------
     const aiPhases: any[] = Array.isArray(storedAnalysis?.workPhases)
       ? storedAnalysis.workPhases
       : [];
@@ -1657,7 +1590,6 @@ private readonly defaultOpenRouterModels = [
       })
       .sort((a, b) => a.order - b.order);
 
-    // ---------- Indicateurs clés ----------
     const durationDays =
       (analysis.estimation as any)?.durationDays ??
       storedAnalysis?.durationDays ??
@@ -1685,7 +1617,6 @@ private readonly defaultOpenRouterModels = [
       },
     ];
 
-    // ---------- Numérotation ----------
     const summary = toStr(analysis.summary) ?? '';
     let counter = 0;
     const next = () => ++counter;
@@ -1865,16 +1796,14 @@ private readonly defaultOpenRouterModels = [
     return nonZero.length > 0 ? nonZero : fallback();
   }
 
-  // =========================================================
-  // APPEL OPENROUTER : PROMPTS
-  // =========================================================
-
   private async callOpenRouterForAnalysis(input: {
     projectName: string;
     projectDescription: string;
     location: string;
     clientName: string;
     extractedText: string;
+    fixedDurationDays: number | null;
+    consommablesResponsible: string | null;
   }): Promise<AIResult> {
     const availablePositions = Object.values(EmployeePosition).join(', ');
     const r = this.rates;
@@ -2051,6 +1980,15 @@ Tu réponds exclusivement au format JSON demandé.
       input.extractedText,
     );
 
+    // Ajout des contraintes spécifiques au projet
+    let projectConstraints = '';
+    if (input.fixedDurationDays) {
+      projectConstraints += `\n- Durée imposée : ${input.fixedDurationDays} jours (RESPECTE STRICTEMENT cette durée).`;
+    }
+    if (input.consommablesResponsible === 'client') {
+      projectConstraints += `\n- Les consommables sont FOURNIS PAR LE CLIENT (ne les chiffre pas).`;
+    }
+
     const prompt = `
 ANALYSE TECHNIQUE ET QUANTITATIVE DU PROJET
 
@@ -2059,6 +1997,7 @@ Nom          : ${input.projectName}
 Description  : ${input.projectDescription}
 Localisation : ${input.location}
 Client       : ${input.clientName}
+${projectConstraints}
 
 OBJECTIF
 Analyse complète destinée à un devis professionnel de maintenance industrielle.
@@ -2176,10 +2115,6 @@ ${text.slice(-tailSize)}`,
     };
   }
 
-  // =========================================================
-  // APPEL OPENROUTER : TRANSPORT, RETRY, ROTATION DES MODÈLES
-  // =========================================================
-
   private async callOpenRouterApi<T = any>(params: {
     prompt: string;
     systemPrompt: string;
@@ -2284,10 +2219,6 @@ ${text.slice(-tailSize)}`,
       `OpenRouter : aucune réponse exploitable (${lastError}).`,
     );
   }
-
-  // =========================================================
-  // VALIDATION / NORMALISATION DE LA RÉPONSE D'ANALYSE
-  // =========================================================
 
   private normalizeAnalysisResult(raw: any): AIResult {
     if (
@@ -2409,7 +2340,6 @@ ${text.slice(-tailSize)}`,
   }
 }
 
-/** Normalise une liste de postes (staff d'un lot ou d'une phase). */
 function normalizeStaff(raw: unknown): AIPhaseStaff[] {
   if (!Array.isArray(raw)) return [];
   return raw

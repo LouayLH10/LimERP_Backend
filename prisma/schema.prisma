@@ -240,6 +240,25 @@ model Project {
   clientId  String
   client    Client    @relation(fields: [clientId], references: [id])
 
+  // ========================================================
+  // NOUVEAUX CHAMPS POUR LE CHIFFRAGE / ESTIMATION
+  // ========================================================
+
+  /// Qui prend en charge les consommables : "client" ou "entreprise"
+  consommablesResponsible String? @map("consommables_responsible")
+
+  /// Pourcentage de manutention appliqué (ex: 0.05 pour 5%)
+  manutentionPercentage Float? @map("manutention_percentage")
+
+  /// Durée imposée du chantier en jours (si null, l'IA l'estime)
+  durationDays Int? @map("duration_days")
+
+  /// Tarif journalier estimatif unique pour tous les employés (en TND)
+  /// Si renseigné, il remplace le tarif COUT_JOUR_MAIN_OEUVRE du .env
+  employeeDailyRate Int? @map("employee_daily_rate")
+
+  // ========================================================
+
   quotes           Quote[]
   orders           Order[]
   deliveries       Delivery[]

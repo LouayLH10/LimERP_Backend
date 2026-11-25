@@ -534,14 +534,6 @@ export type AIEstimationUncheckedUpdateOneWithoutAnalysisNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.AIEstimationUpdateToOneWithWhereWithoutAnalysisInput, Prisma.AIEstimationUpdateWithoutAnalysisInput>, Prisma.AIEstimationUncheckedUpdateWithoutAnalysisInput>
 }
 
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type AIEstimationCreateWithoutAnalysisInput = {
   id?: string
   estimatedPrice: runtime.Decimal | runtime.DecimalJsLike | number | string

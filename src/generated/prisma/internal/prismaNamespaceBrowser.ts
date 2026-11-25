@@ -234,6 +234,10 @@ export const ProjectScalarFieldEnum = {
   endDate: 'endDate',
   daNumber: 'daNumber',
   clientId: 'clientId',
+  consommablesResponsible: 'consommablesResponsible',
+  manutentionPercentage: 'manutentionPercentage',
+  durationDays: 'durationDays',
+  employeeDailyRate: 'employeeDailyRate',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

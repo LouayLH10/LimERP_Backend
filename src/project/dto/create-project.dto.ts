@@ -1,4 +1,3 @@
-
 import {
   IsArray,
   IsDateString,
@@ -7,6 +6,10 @@ import {
   IsString,
   IsUUID,
   ArrayUnique,
+  IsNumber,
+  IsIn,
+  Min,
+  Max,
 } from 'class-validator';
 
 export class CreateProjectDto {
@@ -21,6 +24,7 @@ export class CreateProjectDto {
   @IsOptional()
   @IsString()
   location?: string;
+
   @IsOptional()
   @IsString()
   daNumber?: string;
@@ -41,4 +45,31 @@ export class CreateProjectDto {
   @ArrayUnique()
   @IsUUID('all', { each: true })
   employeeIds?: string[];
+
+  // ========================================================
+  // NOUVEAUX CHAMPS POUR LE CHIFFRAGE
+  // ========================================================
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['client', 'entreprise'], {
+    message: "consommablesResponsible doit être 'client' ou 'entreprise'",
+  })
+  consommablesResponsible?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(1)
+  manutentionPercentage?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  durationDays?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  employeeDailyRate?: number;
 }

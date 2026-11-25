@@ -19,11 +19,16 @@ export class ProjectService {
       name,
       description,
       location,
-      daNumber, // 👈 Extraction du DA
+      daNumber,
       startDate,
       endDate,
       clientId,
       employeeIds = [],
+      // 👇 Nouveaux champs
+      consommablesResponsible,
+      manutentionPercentage,
+      durationDays,
+      employeeDailyRate,
     } = createProjectDto;
 
     // 1. Check that the client exists
@@ -73,9 +78,15 @@ export class ProjectService {
         name,
         description,
         location,
-        daNumber: daNumber || null, // 👈 Sauvegarde du DA
+        daNumber: daNumber || null,
         startDate: parsedStartDate,
         endDate: parsedEndDate,
+
+        // 👇 Nouveaux champs
+        consommablesResponsible: consommablesResponsible || null,
+        manutentionPercentage: manutentionPercentage ?? null,
+        durationDays: durationDays ?? null,
+        employeeDailyRate: employeeDailyRate ?? null,
 
         client: {
           connect: { id: clientId },
@@ -183,10 +194,15 @@ export class ProjectService {
       name,
       description,
       location,
-      daNumber, // 👈 Extraction du DA
+      daNumber,
       startDate,
       endDate,
       clientId,
+      // 👇 Nouveaux champs
+      consommablesResponsible,
+      manutentionPercentage,
+      durationDays,
+      employeeDailyRate,
     } = updateProjectDto;
 
     // Check the new client if clientId changes
@@ -226,7 +242,21 @@ export class ProjectService {
         ...(name !== undefined && { name }),
         ...(description !== undefined && { description }),
         ...(location !== undefined && { location }),
-        ...(daNumber !== undefined && { daNumber: daNumber || null }), // 👈 Mise à jour du DA
+        ...(daNumber !== undefined && { daNumber: daNumber || null }),
+
+        // 👇 Mise à jour des nouveaux champs
+        ...(consommablesResponsible !== undefined && {
+          consommablesResponsible: consommablesResponsible || null,
+        }),
+        ...(manutentionPercentage !== undefined && {
+          manutentionPercentage: manutentionPercentage ?? null,
+        }),
+        ...(durationDays !== undefined && {
+          durationDays: durationDays ?? null,
+        }),
+        ...(employeeDailyRate !== undefined && {
+          employeeDailyRate: employeeDailyRate ?? null,
+        }),
 
         ...(startDate !== undefined && { startDate: finalStartDate }),
         ...(endDate !== undefined && { endDate: finalEndDate }),

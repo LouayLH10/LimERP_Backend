@@ -20,8 +20,22 @@ export type ProjectModel = runtime.Types.Result.DefaultSelection<Prisma.$Project
 
 export type AggregateProject = {
   _count: ProjectCountAggregateOutputType | null
+  _avg: ProjectAvgAggregateOutputType | null
+  _sum: ProjectSumAggregateOutputType | null
   _min: ProjectMinAggregateOutputType | null
   _max: ProjectMaxAggregateOutputType | null
+}
+
+export type ProjectAvgAggregateOutputType = {
+  manutentionPercentage: number | null
+  durationDays: number | null
+  employeeDailyRate: number | null
+}
+
+export type ProjectSumAggregateOutputType = {
+  manutentionPercentage: number | null
+  durationDays: number | null
+  employeeDailyRate: number | null
 }
 
 export type ProjectMinAggregateOutputType = {
@@ -33,6 +47,10 @@ export type ProjectMinAggregateOutputType = {
   endDate: Date | null
   daNumber: string | null
   clientId: string | null
+  consommablesResponsible: string | null
+  manutentionPercentage: number | null
+  durationDays: number | null
+  employeeDailyRate: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -46,6 +64,10 @@ export type ProjectMaxAggregateOutputType = {
   endDate: Date | null
   daNumber: string | null
   clientId: string | null
+  consommablesResponsible: string | null
+  manutentionPercentage: number | null
+  durationDays: number | null
+  employeeDailyRate: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -59,11 +81,27 @@ export type ProjectCountAggregateOutputType = {
   endDate: number
   daNumber: number
   clientId: number
+  consommablesResponsible: number
+  manutentionPercentage: number
+  durationDays: number
+  employeeDailyRate: number
   createdAt: number
   updatedAt: number
   _all: number
 }
 
+
+export type ProjectAvgAggregateInputType = {
+  manutentionPercentage?: true
+  durationDays?: true
+  employeeDailyRate?: true
+}
+
+export type ProjectSumAggregateInputType = {
+  manutentionPercentage?: true
+  durationDays?: true
+  employeeDailyRate?: true
+}
 
 export type ProjectMinAggregateInputType = {
   id?: true
@@ -74,6 +112,10 @@ export type ProjectMinAggregateInputType = {
   endDate?: true
   daNumber?: true
   clientId?: true
+  consommablesResponsible?: true
+  manutentionPercentage?: true
+  durationDays?: true
+  employeeDailyRate?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -87,6 +129,10 @@ export type ProjectMaxAggregateInputType = {
   endDate?: true
   daNumber?: true
   clientId?: true
+  consommablesResponsible?: true
+  manutentionPercentage?: true
+  durationDays?: true
+  employeeDailyRate?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -100,6 +146,10 @@ export type ProjectCountAggregateInputType = {
   endDate?: true
   daNumber?: true
   clientId?: true
+  consommablesResponsible?: true
+  manutentionPercentage?: true
+  durationDays?: true
+  employeeDailyRate?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -143,6 +193,18 @@ export type ProjectAggregateArgs<ExtArgs extends runtime.Types.Extensions.Intern
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: ProjectAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: ProjectSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: ProjectMinAggregateInputType
@@ -173,6 +235,8 @@ export type ProjectGroupByArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   _count?: ProjectCountAggregateInputType | true
+  _avg?: ProjectAvgAggregateInputType
+  _sum?: ProjectSumAggregateInputType
   _min?: ProjectMinAggregateInputType
   _max?: ProjectMaxAggregateInputType
 }
@@ -186,9 +250,15 @@ export type ProjectGroupByOutputType = {
   endDate: Date | null
   daNumber: string | null
   clientId: string
+  consommablesResponsible: string | null
+  manutentionPercentage: number | null
+  durationDays: number | null
+  employeeDailyRate: number | null
   createdAt: Date
   updatedAt: Date
   _count: ProjectCountAggregateOutputType | null
+  _avg: ProjectAvgAggregateOutputType | null
+  _sum: ProjectSumAggregateOutputType | null
   _min: ProjectMinAggregateOutputType | null
   _max: ProjectMaxAggregateOutputType | null
 }
@@ -220,6 +290,10 @@ export type ProjectWhereInput = {
   endDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   daNumber?: Prisma.StringNullableFilter<"Project"> | string | null
   clientId?: Prisma.StringFilter<"Project"> | string
+  consommablesResponsible?: Prisma.StringNullableFilter<"Project"> | string | null
+  manutentionPercentage?: Prisma.FloatNullableFilter<"Project"> | number | null
+  durationDays?: Prisma.IntNullableFilter<"Project"> | number | null
+  employeeDailyRate?: Prisma.IntNullableFilter<"Project"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   client?: Prisma.XOR<Prisma.ClientScalarRelationFilter, Prisma.ClientWhereInput>
@@ -242,6 +316,10 @@ export type ProjectOrderByWithRelationInput = {
   endDate?: Prisma.SortOrderInput | Prisma.SortOrder
   daNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   clientId?: Prisma.SortOrder
+  consommablesResponsible?: Prisma.SortOrderInput | Prisma.SortOrder
+  manutentionPercentage?: Prisma.SortOrderInput | Prisma.SortOrder
+  durationDays?: Prisma.SortOrderInput | Prisma.SortOrder
+  employeeDailyRate?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   client?: Prisma.ClientOrderByWithRelationInput
@@ -267,6 +345,10 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   endDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   daNumber?: Prisma.StringNullableFilter<"Project"> | string | null
   clientId?: Prisma.StringFilter<"Project"> | string
+  consommablesResponsible?: Prisma.StringNullableFilter<"Project"> | string | null
+  manutentionPercentage?: Prisma.FloatNullableFilter<"Project"> | number | null
+  durationDays?: Prisma.IntNullableFilter<"Project"> | number | null
+  employeeDailyRate?: Prisma.IntNullableFilter<"Project"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   client?: Prisma.XOR<Prisma.ClientScalarRelationFilter, Prisma.ClientWhereInput>
@@ -289,11 +371,17 @@ export type ProjectOrderByWithAggregationInput = {
   endDate?: Prisma.SortOrderInput | Prisma.SortOrder
   daNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   clientId?: Prisma.SortOrder
+  consommablesResponsible?: Prisma.SortOrderInput | Prisma.SortOrder
+  manutentionPercentage?: Prisma.SortOrderInput | Prisma.SortOrder
+  durationDays?: Prisma.SortOrderInput | Prisma.SortOrder
+  employeeDailyRate?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ProjectCountOrderByAggregateInput
+  _avg?: Prisma.ProjectAvgOrderByAggregateInput
   _max?: Prisma.ProjectMaxOrderByAggregateInput
   _min?: Prisma.ProjectMinOrderByAggregateInput
+  _sum?: Prisma.ProjectSumOrderByAggregateInput
 }
 
 export type ProjectScalarWhereWithAggregatesInput = {
@@ -308,6 +396,10 @@ export type ProjectScalarWhereWithAggregatesInput = {
   endDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Project"> | Date | string | null
   daNumber?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
   clientId?: Prisma.StringWithAggregatesFilter<"Project"> | string
+  consommablesResponsible?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
+  manutentionPercentage?: Prisma.FloatNullableWithAggregatesFilter<"Project"> | number | null
+  durationDays?: Prisma.IntNullableWithAggregatesFilter<"Project"> | number | null
+  employeeDailyRate?: Prisma.IntNullableWithAggregatesFilter<"Project"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Project"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Project"> | Date | string
 }
@@ -320,6 +412,10 @@ export type ProjectCreateInput = {
   startDate?: Date | string | null
   endDate?: Date | string | null
   daNumber?: string | null
+  consommablesResponsible?: string | null
+  manutentionPercentage?: number | null
+  durationDays?: number | null
+  employeeDailyRate?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutProjectsInput
@@ -342,6 +438,10 @@ export type ProjectUncheckedCreateInput = {
   endDate?: Date | string | null
   daNumber?: string | null
   clientId: string
+  consommablesResponsible?: string | null
+  manutentionPercentage?: number | null
+  durationDays?: number | null
+  employeeDailyRate?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   quotes?: Prisma.QuoteUncheckedCreateNestedManyWithoutProjectInput
@@ -362,6 +462,10 @@ export type ProjectUpdateInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutProjectsNestedInput
@@ -384,6 +488,10 @@ export type ProjectUncheckedUpdateInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   quotes?: Prisma.QuoteUncheckedUpdateManyWithoutProjectNestedInput
@@ -405,6 +513,10 @@ export type ProjectCreateManyInput = {
   endDate?: Date | string | null
   daNumber?: string | null
   clientId: string
+  consommablesResponsible?: string | null
+  manutentionPercentage?: number | null
+  durationDays?: number | null
+  employeeDailyRate?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -417,6 +529,10 @@ export type ProjectUpdateManyMutationInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -430,6 +546,10 @@ export type ProjectUncheckedUpdateManyInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -458,8 +578,18 @@ export type ProjectCountOrderByAggregateInput = {
   endDate?: Prisma.SortOrder
   daNumber?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
+  consommablesResponsible?: Prisma.SortOrder
+  manutentionPercentage?: Prisma.SortOrder
+  durationDays?: Prisma.SortOrder
+  employeeDailyRate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type ProjectAvgOrderByAggregateInput = {
+  manutentionPercentage?: Prisma.SortOrder
+  durationDays?: Prisma.SortOrder
+  employeeDailyRate?: Prisma.SortOrder
 }
 
 export type ProjectMaxOrderByAggregateInput = {
@@ -471,6 +601,10 @@ export type ProjectMaxOrderByAggregateInput = {
   endDate?: Prisma.SortOrder
   daNumber?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
+  consommablesResponsible?: Prisma.SortOrder
+  manutentionPercentage?: Prisma.SortOrder
+  durationDays?: Prisma.SortOrder
+  employeeDailyRate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -484,8 +618,18 @@ export type ProjectMinOrderByAggregateInput = {
   endDate?: Prisma.SortOrder
   daNumber?: Prisma.SortOrder
   clientId?: Prisma.SortOrder
+  consommablesResponsible?: Prisma.SortOrder
+  manutentionPercentage?: Prisma.SortOrder
+  durationDays?: Prisma.SortOrder
+  employeeDailyRate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type ProjectSumOrderByAggregateInput = {
+  manutentionPercentage?: Prisma.SortOrder
+  durationDays?: Prisma.SortOrder
+  employeeDailyRate?: Prisma.SortOrder
 }
 
 export type ProjectNullableScalarRelationFilter = {
@@ -561,6 +705,22 @@ export type ProjectUncheckedUpdateManyWithoutClientNestedInput = {
   update?: Prisma.ProjectUpdateWithWhereUniqueWithoutClientInput | Prisma.ProjectUpdateWithWhereUniqueWithoutClientInput[]
   updateMany?: Prisma.ProjectUpdateManyWithWhereWithoutClientInput | Prisma.ProjectUpdateManyWithWhereWithoutClientInput[]
   deleteMany?: Prisma.ProjectScalarWhereInput | Prisma.ProjectScalarWhereInput[]
+}
+
+export type NullableFloatFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type ProjectCreateNestedOneWithoutQuotesInput = {
@@ -663,6 +823,10 @@ export type ProjectCreateWithoutTimeEntriesInput = {
   startDate?: Date | string | null
   endDate?: Date | string | null
   daNumber?: string | null
+  consommablesResponsible?: string | null
+  manutentionPercentage?: number | null
+  durationDays?: number | null
+  employeeDailyRate?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutProjectsInput
@@ -684,6 +848,10 @@ export type ProjectUncheckedCreateWithoutTimeEntriesInput = {
   endDate?: Date | string | null
   daNumber?: string | null
   clientId: string
+  consommablesResponsible?: string | null
+  manutentionPercentage?: number | null
+  durationDays?: number | null
+  employeeDailyRate?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   quotes?: Prisma.QuoteUncheckedCreateNestedManyWithoutProjectInput
@@ -719,6 +887,10 @@ export type ProjectUpdateWithoutTimeEntriesInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutProjectsNestedInput
@@ -740,6 +912,10 @@ export type ProjectUncheckedUpdateWithoutTimeEntriesInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   quotes?: Prisma.QuoteUncheckedUpdateManyWithoutProjectNestedInput
@@ -759,6 +935,10 @@ export type ProjectCreateWithoutProjectEmployeesInput = {
   startDate?: Date | string | null
   endDate?: Date | string | null
   daNumber?: string | null
+  consommablesResponsible?: string | null
+  manutentionPercentage?: number | null
+  durationDays?: number | null
+  employeeDailyRate?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutProjectsInput
@@ -780,6 +960,10 @@ export type ProjectUncheckedCreateWithoutProjectEmployeesInput = {
   endDate?: Date | string | null
   daNumber?: string | null
   clientId: string
+  consommablesResponsible?: string | null
+  manutentionPercentage?: number | null
+  durationDays?: number | null
+  employeeDailyRate?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   quotes?: Prisma.QuoteUncheckedCreateNestedManyWithoutProjectInput
@@ -815,6 +999,10 @@ export type ProjectUpdateWithoutProjectEmployeesInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutProjectsNestedInput
@@ -836,6 +1024,10 @@ export type ProjectUncheckedUpdateWithoutProjectEmployeesInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   quotes?: Prisma.QuoteUncheckedUpdateManyWithoutProjectNestedInput
@@ -855,6 +1047,10 @@ export type ProjectCreateWithoutClientInput = {
   startDate?: Date | string | null
   endDate?: Date | string | null
   daNumber?: string | null
+  consommablesResponsible?: string | null
+  manutentionPercentage?: number | null
+  durationDays?: number | null
+  employeeDailyRate?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   quotes?: Prisma.QuoteCreateNestedManyWithoutProjectInput
@@ -875,6 +1071,10 @@ export type ProjectUncheckedCreateWithoutClientInput = {
   startDate?: Date | string | null
   endDate?: Date | string | null
   daNumber?: string | null
+  consommablesResponsible?: string | null
+  manutentionPercentage?: number | null
+  durationDays?: number | null
+  employeeDailyRate?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   quotes?: Prisma.QuoteUncheckedCreateNestedManyWithoutProjectInput
@@ -925,6 +1125,10 @@ export type ProjectScalarWhereInput = {
   endDate?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   daNumber?: Prisma.StringNullableFilter<"Project"> | string | null
   clientId?: Prisma.StringFilter<"Project"> | string
+  consommablesResponsible?: Prisma.StringNullableFilter<"Project"> | string | null
+  manutentionPercentage?: Prisma.FloatNullableFilter<"Project"> | number | null
+  durationDays?: Prisma.IntNullableFilter<"Project"> | number | null
+  employeeDailyRate?: Prisma.IntNullableFilter<"Project"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Project"> | Date | string
 }
@@ -937,6 +1141,10 @@ export type ProjectCreateWithoutQuotesInput = {
   startDate?: Date | string | null
   endDate?: Date | string | null
   daNumber?: string | null
+  consommablesResponsible?: string | null
+  manutentionPercentage?: number | null
+  durationDays?: number | null
+  employeeDailyRate?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutProjectsInput
@@ -958,6 +1166,10 @@ export type ProjectUncheckedCreateWithoutQuotesInput = {
   endDate?: Date | string | null
   daNumber?: string | null
   clientId: string
+  consommablesResponsible?: string | null
+  manutentionPercentage?: number | null
+  durationDays?: number | null
+  employeeDailyRate?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutProjectInput
@@ -993,6 +1205,10 @@ export type ProjectUpdateWithoutQuotesInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutProjectsNestedInput
@@ -1014,6 +1230,10 @@ export type ProjectUncheckedUpdateWithoutQuotesInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   orders?: Prisma.OrderUncheckedUpdateManyWithoutProjectNestedInput
@@ -1033,6 +1253,10 @@ export type ProjectCreateWithoutOrdersInput = {
   startDate?: Date | string | null
   endDate?: Date | string | null
   daNumber?: string | null
+  consommablesResponsible?: string | null
+  manutentionPercentage?: number | null
+  durationDays?: number | null
+  employeeDailyRate?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutProjectsInput
@@ -1054,6 +1278,10 @@ export type ProjectUncheckedCreateWithoutOrdersInput = {
   endDate?: Date | string | null
   daNumber?: string | null
   clientId: string
+  consommablesResponsible?: string | null
+  manutentionPercentage?: number | null
+  durationDays?: number | null
+  employeeDailyRate?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   quotes?: Prisma.QuoteUncheckedCreateNestedManyWithoutProjectInput
@@ -1089,6 +1317,10 @@ export type ProjectUpdateWithoutOrdersInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutProjectsNestedInput
@@ -1110,6 +1342,10 @@ export type ProjectUncheckedUpdateWithoutOrdersInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   quotes?: Prisma.QuoteUncheckedUpdateManyWithoutProjectNestedInput
@@ -1129,6 +1365,10 @@ export type ProjectCreateWithoutDeliveriesInput = {
   startDate?: Date | string | null
   endDate?: Date | string | null
   daNumber?: string | null
+  consommablesResponsible?: string | null
+  manutentionPercentage?: number | null
+  durationDays?: number | null
+  employeeDailyRate?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutProjectsInput
@@ -1150,6 +1390,10 @@ export type ProjectUncheckedCreateWithoutDeliveriesInput = {
   endDate?: Date | string | null
   daNumber?: string | null
   clientId: string
+  consommablesResponsible?: string | null
+  manutentionPercentage?: number | null
+  durationDays?: number | null
+  employeeDailyRate?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   quotes?: Prisma.QuoteUncheckedCreateNestedManyWithoutProjectInput
@@ -1185,6 +1429,10 @@ export type ProjectUpdateWithoutDeliveriesInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutProjectsNestedInput
@@ -1206,6 +1454,10 @@ export type ProjectUncheckedUpdateWithoutDeliveriesInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   quotes?: Prisma.QuoteUncheckedUpdateManyWithoutProjectNestedInput
@@ -1225,6 +1477,10 @@ export type ProjectCreateWithoutInvoicesInput = {
   startDate?: Date | string | null
   endDate?: Date | string | null
   daNumber?: string | null
+  consommablesResponsible?: string | null
+  manutentionPercentage?: number | null
+  durationDays?: number | null
+  employeeDailyRate?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutProjectsInput
@@ -1246,6 +1502,10 @@ export type ProjectUncheckedCreateWithoutInvoicesInput = {
   endDate?: Date | string | null
   daNumber?: string | null
   clientId: string
+  consommablesResponsible?: string | null
+  manutentionPercentage?: number | null
+  durationDays?: number | null
+  employeeDailyRate?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   quotes?: Prisma.QuoteUncheckedCreateNestedManyWithoutProjectInput
@@ -1281,6 +1541,10 @@ export type ProjectUpdateWithoutInvoicesInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutProjectsNestedInput
@@ -1302,6 +1566,10 @@ export type ProjectUncheckedUpdateWithoutInvoicesInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   quotes?: Prisma.QuoteUncheckedUpdateManyWithoutProjectNestedInput
@@ -1321,6 +1589,10 @@ export type ProjectCreateWithoutSpecificationInput = {
   startDate?: Date | string | null
   endDate?: Date | string | null
   daNumber?: string | null
+  consommablesResponsible?: string | null
+  manutentionPercentage?: number | null
+  durationDays?: number | null
+  employeeDailyRate?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutProjectsInput
@@ -1342,6 +1614,10 @@ export type ProjectUncheckedCreateWithoutSpecificationInput = {
   endDate?: Date | string | null
   daNumber?: string | null
   clientId: string
+  consommablesResponsible?: string | null
+  manutentionPercentage?: number | null
+  durationDays?: number | null
+  employeeDailyRate?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   quotes?: Prisma.QuoteUncheckedCreateNestedManyWithoutProjectInput
@@ -1377,6 +1653,10 @@ export type ProjectUpdateWithoutSpecificationInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutProjectsNestedInput
@@ -1398,6 +1678,10 @@ export type ProjectUncheckedUpdateWithoutSpecificationInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   quotes?: Prisma.QuoteUncheckedUpdateManyWithoutProjectNestedInput
@@ -1417,6 +1701,10 @@ export type ProjectCreateWithoutAiAnalysesInput = {
   startDate?: Date | string | null
   endDate?: Date | string | null
   daNumber?: string | null
+  consommablesResponsible?: string | null
+  manutentionPercentage?: number | null
+  durationDays?: number | null
+  employeeDailyRate?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutProjectsInput
@@ -1438,6 +1726,10 @@ export type ProjectUncheckedCreateWithoutAiAnalysesInput = {
   endDate?: Date | string | null
   daNumber?: string | null
   clientId: string
+  consommablesResponsible?: string | null
+  manutentionPercentage?: number | null
+  durationDays?: number | null
+  employeeDailyRate?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   quotes?: Prisma.QuoteUncheckedCreateNestedManyWithoutProjectInput
@@ -1473,6 +1765,10 @@ export type ProjectUpdateWithoutAiAnalysesInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutProjectsNestedInput
@@ -1494,6 +1790,10 @@ export type ProjectUncheckedUpdateWithoutAiAnalysesInput = {
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   quotes?: Prisma.QuoteUncheckedUpdateManyWithoutProjectNestedInput
@@ -1513,6 +1813,10 @@ export type ProjectCreateManyClientInput = {
   startDate?: Date | string | null
   endDate?: Date | string | null
   daNumber?: string | null
+  consommablesResponsible?: string | null
+  manutentionPercentage?: number | null
+  durationDays?: number | null
+  employeeDailyRate?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1525,6 +1829,10 @@ export type ProjectUpdateWithoutClientInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   quotes?: Prisma.QuoteUpdateManyWithoutProjectNestedInput
@@ -1545,6 +1853,10 @@ export type ProjectUncheckedUpdateWithoutClientInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   quotes?: Prisma.QuoteUncheckedUpdateManyWithoutProjectNestedInput
@@ -1565,6 +1877,10 @@ export type ProjectUncheckedUpdateManyWithoutClientInput = {
   startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   daNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consommablesResponsible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manutentionPercentage?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  durationDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  employeeDailyRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1663,6 +1979,10 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   endDate?: boolean
   daNumber?: boolean
   clientId?: boolean
+  consommablesResponsible?: boolean
+  manutentionPercentage?: boolean
+  durationDays?: boolean
+  employeeDailyRate?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
@@ -1686,6 +2006,10 @@ export type ProjectSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   endDate?: boolean
   daNumber?: boolean
   clientId?: boolean
+  consommablesResponsible?: boolean
+  manutentionPercentage?: boolean
+  durationDays?: boolean
+  employeeDailyRate?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
@@ -1700,6 +2024,10 @@ export type ProjectSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   endDate?: boolean
   daNumber?: boolean
   clientId?: boolean
+  consommablesResponsible?: boolean
+  manutentionPercentage?: boolean
+  durationDays?: boolean
+  employeeDailyRate?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
@@ -1714,11 +2042,15 @@ export type ProjectSelectScalar = {
   endDate?: boolean
   daNumber?: boolean
   clientId?: boolean
+  consommablesResponsible?: boolean
+  manutentionPercentage?: boolean
+  durationDays?: boolean
+  employeeDailyRate?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "location" | "startDate" | "endDate" | "daNumber" | "clientId" | "createdAt" | "updatedAt", ExtArgs["result"]["project"]>
+export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "location" | "startDate" | "endDate" | "daNumber" | "clientId" | "consommablesResponsible" | "manutentionPercentage" | "durationDays" | "employeeDailyRate" | "createdAt" | "updatedAt", ExtArgs["result"]["project"]>
 export type ProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
   quotes?: boolean | Prisma.Project$quotesArgs<ExtArgs>
@@ -1760,6 +2092,23 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     endDate: Date | null
     daNumber: string | null
     clientId: string
+    /**
+     * Qui prend en charge les consommables : "client" ou "entreprise"
+     */
+    consommablesResponsible: string | null
+    /**
+     * Pourcentage de manutention appliqué (ex: 0.05 pour 5%)
+     */
+    manutentionPercentage: number | null
+    /**
+     * Durée imposée du chantier en jours (si null, l'IA l'estime)
+     */
+    durationDays: number | null
+    /**
+     * Tarif journalier estimatif unique pour tous les employés (en TND)
+     * Si renseigné, il remplace le tarif COUT_JOUR_MAIN_OEUVRE du .env
+     */
+    employeeDailyRate: number | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["project"]>
@@ -2202,6 +2551,10 @@ export interface ProjectFieldRefs {
   readonly endDate: Prisma.FieldRef<"Project", 'DateTime'>
   readonly daNumber: Prisma.FieldRef<"Project", 'String'>
   readonly clientId: Prisma.FieldRef<"Project", 'String'>
+  readonly consommablesResponsible: Prisma.FieldRef<"Project", 'String'>
+  readonly manutentionPercentage: Prisma.FieldRef<"Project", 'Float'>
+  readonly durationDays: Prisma.FieldRef<"Project", 'Int'>
+  readonly employeeDailyRate: Prisma.FieldRef<"Project", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Project", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Project", 'DateTime'>
 }
